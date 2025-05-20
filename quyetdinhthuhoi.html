@@ -581,30 +581,31 @@
         // Populate GPKD_THUHOI_CHITIET data for page 2
         function populateChiTietData(data) {
             const tableBody = document.getElementById('table-body');
-            tableBody.innerHTML = ''; // Clear existing content
+            tableBody.innerHTML = '';
 
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
 
                 // Determine which reason to use
-                let lyDoThuHoi = '';
+                let lyDoThuHoi = [];
                 if (item.LyDoThuHoiKhac && item.LyDoThuHoiKhac.trim() !== '') {
-                    lyDoThuHoi = item.LyDoThuHoiKhac;
-                } else if (item.LyDoThuHoiDuaQD && item.LyDoThuHoiDuaQD.trim() !== '') {
-                    lyDoThuHoi = item.LyDoThuHoiDuaQD;
+                    lyDoThuHoi.push(`- ${item.LyDoThuHoiKhac}`);
+                }
+                if (item.LyDoThuHoiDuaQD && item.LyDoThuHoiDuaQD.trim() !== '') {
+                    lyDoThuHoi.push(`- ${item.LyDoThuHoiDuaQD}`);
                 }
 
                 row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td class="text-left">${item['Tên đơn vị'] || ''}</td>
-                    <td class="text-left">${item['Địa chỉ'] || ''}</td>
-                    <td>${item['Số ĐKKD'] || ''}</td>
-                    <td>${item['Số GP KDVT'] || ''}</td>
-                    <td>${item['Ngày cấp'] || ''}</td>
-                    <td>${item['Loại hình vận tải'] || ''}</td>
-                    <td class="text-left">${lyDoThuHoi || ''}</td>
-                    <td class="text-left">${item.CanCuThuHoiDuaQD || ''}</td>
-                `;
+            <td>${index + 1}</td>
+            <td class="text-left">${item['Tên đơn vị'] || ''}</td>
+            <td class="text-left">${item['Địa chỉ'] || ''}</td>
+            <td>${item['Số ĐKKD'] || ''}</td>
+            <td>${item['Số GP KDVT'] || ''}</td>
+            <td>${item['Ngày cấp'] || ''}</td>
+            <td>${item['Loại hình vận tải'] || ''}</td>
+            <td class="text-left">${lyDoThuHoi.join('<br>') || ''}</td>
+            <td class="text-left">${item.CanCuThuHoiDuaQD || ''}</td>
+        `;
 
                 tableBody.appendChild(row);
             });
@@ -662,11 +663,12 @@
                 // Chuẩn bị danh sách đơn vị bị thu hồi cho template
                 const donViList = chitietData.map((item, index) => {
                     // Xác định lý do thu hồi
-                    let lyDoThuHoi = '';
+                    let lyDoThuHoi = [];
                     if (item.LyDoThuHoiKhac && item.LyDoThuHoiKhac.trim() !== '') {
-                        lyDoThuHoi = item.LyDoThuHoiKhac;
-                    } else if (item.LyDoThuHoiDuaQD && item.LyDoThuHoiDuaQD.trim() !== '') {
-                        lyDoThuHoi = item.LyDoThuHoiDuaQD;
+                        lyDoThuHoi.push(`- ${item.LyDoThuHoiKhac}`);
+                    }
+                    if (item.LyDoThuHoiDuaQD && item.LyDoThuHoiDuaQD.trim() !== '') {
+                        lyDoThuHoi.push(`- ${item.LyDoThuHoiDuaQD}`);
                     }
 
                     // Định dạng ngày cấp
@@ -684,7 +686,7 @@
                         so_gp_kdvt: item['Số GP KDVT'] || '',
                         ngay_cap: ngayCap,
                         loai_hinh_van_tai: item['Loại hình vận tải'] || '',
-                        ly_do_thu_hoi: lyDoThuHoi || '',
+                        ly_do_thu_hoi: lyDoThuHoi.join('\n') || '',
                         can_cu_thu_hoi: item.CanCuThuHoiDuaQD || ''
                     };
                 });
