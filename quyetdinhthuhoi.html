@@ -325,8 +325,8 @@
                     <div style="margin-bottom: 5px;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
                     <div class="underline-title-full"><span class="underline-text">Độc lập – Tự do – Hạnh phúc</span>
                     </div>
-                    <div style="font-style: italic; font-weight: normal; margin-top: 10px; text-align: center;">Bắc
-                        Giang, ngày &nbsp;&nbsp;&nbsp; tháng &nbsp;&nbsp;&nbsp; <span id="ngay-thang">năm 2025</span>
+                    <div style="font-style: italic; font-weight: normal; margin-top: 10px; text-align: center;" id="ngay-thang">Bắc
+                        Giang, ngày &nbsp;&nbsp;&nbsp; tháng &nbsp;&nbsp;&nbsp; <span>năm 2025</span>
                     </div>
                 </div>
             </div>
@@ -563,7 +563,7 @@
                 const month = (date.getMonth() + 1).toString().padStart(2, '0');
                 const year = date.getFullYear();
                 document.getElementById('ngay-thang').textContent =
-                    `năm ${year}`;
+                    `Bắc Giang, ngày ${day} tháng ${month} năm ${year}`;
             }
 
             // Update signature
@@ -707,6 +707,8 @@
 
                 // Đặt dữ liệu vào template
                 const data = {
+                    ngayKy: ngayKy,
+                    thangKy: thangKy,
                     nam: namKy,
                     so_don_vi: chitietData.length,
                     can_cu_phap_ly: quyetDinh['Nội dung Căn cứ pháp lý'] || '',
