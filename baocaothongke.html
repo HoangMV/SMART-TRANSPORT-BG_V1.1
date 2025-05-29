@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Vận tải</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Fix cho biểu đồ không bị overflow */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .chart-container canvas {
+            max-height: 300px !important;
+        }
+
+        /* Fix responsive cho thống kê cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Fix cho biểu đồ tròn */
+        .pie-chart-container {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Fix layout cho desktop */
+        .desktop-chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .desktop-chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Đảm bảo biểu đồ không bị tràn */
+        .chart-wrapper {
+            overflow: hidden;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Header giữ nguyên -->
+    <header class="bg-blue-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-bus text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Hệ thống Quản lý Vận tải</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="currentDate" class="text-sm"></span>
+                    <i class="fas fa-user-circle text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation giữ nguyên -->
+    <nav class="bg-blue-700 text-white">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-8 overflow-x-auto">
+                <button class="nav-btn active py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="dashboard">
+                    <i class="fas fa-chart-dashboard mr-2"></i>Dashboard
+                </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="licenses">
+                    <i class="fas fa-file-alt mr-2"></i>Giấy phép
+                </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="emblems">
+                    <i class="fas fa-certificate mr-2"></i>Phù hiệu
+                </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="statistics">
+                    <i class="fas fa-chart-bar mr-2"></i>Thống kê
+                </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="reports">
+                    <i class="fas fa-file-chart-line mr-2"></i>Báo cáo
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Date Range Selector giữ nguyên -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center space-x-2">
+                    <label class="font-medium">Từ ngày:</label>
+                    <input type="date" id="startDate" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="font-medium">Đến ngày:</label>
+                    <input type="date" id="endDate" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="font-medium">Địa phương:</label>
+                    <select id="locationSelect" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Toàn tỉnh</option>
+                        <option value="district1">Quận 1</option>
+                        <option value="district2">Quận 2</option>
+                        <option value="ward1">Phường A</option>
+                        <option value="ward2">Phường B</option>
+                    </select>
+                </div>
+                <button onclick="filterData()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    <i class="fas fa-search mr-2"></i>Lọc dữ liệu
+                </button>
+                <button onclick="exportData()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                    <i class="fas fa-download mr-2"></i>Xuất Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Tab - Fixed Version -->
+        <div id="statistics" class="tab-content hidden">
+            <div class="space-y-6">
+                <!-- Entity Statistics - Fixed Layout -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-6">Thống kê đơn vị theo loại hình</h3>
+
+                    <!-- Stats Cards - Fixed Grid -->
+                    <div class="stats-grid mb-8">
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                            <div class="text-3xl font-bold text-blue-600 mb-2">255</div>
+                            <div class="text-sm font-medium text-blue-800">Tổng số đơn vị</div>
+                        </div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                            <div class="text-3xl font-bold text-green-600 mb-2">180</div>
+                            <div class="text-sm font-medium text-green-800">Doanh nghiệp</div>
+                        </div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                            <div class="text-3xl font-bold text-orange-600 mb-2">45</div>
+                            <div class="text-sm font-medium text-orange-800">Hợp tác xã</div>
+                        </div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                            <div class="text-3xl font-bold text-purple-600 mb-2">30</div>
+                            <div class="text-sm font-medium text-purple-800">Hộ kinh doanh</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts - Fixed Layout -->
+                    <div class="desktop-chart-grid">
+                        <div class="chart-wrapper bg-gray-50 p-4">
+                            <h4 class="text-center font-semibold mb-4 text-gray-700">Phân bố theo loại hình đơn vị</h4>
+                            <div class="pie-chart-container">
+                                <canvas id="entityTypeChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-wrapper bg-gray-50 p-4">
+                            <h4 class="text-center font-semibold mb-4 text-gray-700">Thống kê theo loại hình vận tải
+                            </h4>
+                            <div class="chart-container">
+                                <canvas id="transportTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regional Statistics -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Thống kê theo địa phương</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold">Địa phương</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Đơn vị</th>
+                                    <th class="px-4 py-3 text-center font-semibold">GPKD</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Phù hiệu</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Xe hoạt động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-medium">Quận 1</td>
+                                    <td class="px-4 py-3 text-center">85</td>
+                                    <td class="px-4 py-3 text-center">85</td>
+                                    <td class="px-4 py-3 text-center">1,890</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-semibold">1,750</td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-medium">Quận 2</td>
+                                    <td class="px-4 py-3 text-center">70</td>
+                                    <td class="px-4 py-3 text-center">70</td>
+                                    <td class="px-4 py-3 text-center">1,456</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-semibold">1,380</td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-medium">Quận 3</td>
+                                    <td class="px-4 py-3 text-center">100</td>
+                                    <td class="px-4 py-3 text-center">100</td>
+                                    <td class="px-4 py-3 text-center">2,332</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-semibold">2,200</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab (giữ nguyên phần khác) -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Quick Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100">GPKD được cấp</p>
+                            <p class="text-3xl font-bold" id="totalLicenses">1,234</p>
+                        </div>
+                        <i class="fas fa-file-alt text-4xl text-blue-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100">Phù hiệu có hiệu lực</p>
+                            <p class="text-3xl font-bold" id="activeEmblems">5,678</p>
+                        </div>
+                        <i class="fas fa-certificate text-4xl text-green-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-100">Phù hiệu quá hạn</p>
+                            <p class="text-3xl font-bold" id="expiredEmblems">123</p>
+                        </div>
+                        <i class="fas fa-exclamation-triangle text-4xl text-orange-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-100">GP bị thu hồi</p>
+                            <p class="text-3xl font-bold" id="revokedLicenses">45</p>
+                        </div>
+                        <i class="fas fa-ban text-4xl text-red-200"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Giấy phép theo thời gian</h3>
+                    <div class="chart-container">
+                        <canvas id="licenseChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Phù hiệu theo loại hình</h3>
+                    <div class="pie-chart-container">
+                        <canvas id="emblemChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Vehicle Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Thống kê xe theo loại hình</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Loại hình</th>
+                            <th class="px-4 py-2 text-center">Số đơn vị</th>
+                            <th class="px-4 py-2 text-center">Số xe</th>
+                            <th class="px-4 py-2 text-center">Còn hiệu lực</th>
+                            <th class="px-4 py-2 text-center">Hết hạn</th>
+                            <th class="px-4 py-2 text-center">Tỷ lệ (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vehicleStatsTable">
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">Tuyến cố định</td>
+                            <td class="px-4 py-2 text-center">150</td>
+                            <td class="px-4 py-2 text-center">2,500</td>
+                            <td class="px-4 py-2 text-center text-green-600">2,300</td>
+                            <td class="px-4 py-2 text-center text-red-600">200</td>
+                            <td class="px-4 py-2 text-center">92%</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">Xe buýt</td>
+                            <td class="px-4 py-2 text-center">25</td>
+                            <td class="px-4 py-2 text-center">800</td>
+                            <td class="px-4 py-2 text-center text-green-600">780</td>
+                            <td class="px-4 py-2 text-center text-red-600">20</td>
+                            <td class="px-4 py-2 text-center">97.5%</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">Taxi</td>
+                            <td class="px-4 py-2 text-center">80</td>
+                            <td class="px-4 py-2 text-center">1,200</td>
+                            <td class="px-4 py-2 text-center text-green-600">1,100</td>
+                            <td class="px-4 py-2 text-center text-red-600">100</td>
+                            <td class="px-4 py-2 text-center">91.7%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+        <!-- Licenses Tab -->
+        <div id="licenses" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quản lý Giấy phép Kinh doanh Vận tải</h3>
+
+                <!-- License Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <h4 class="font-semibold text-blue-800">GPKD được cấp</h4>
+                        <p class="text-2xl font-bold text-blue-600" id="licensesIssued">1,234</p>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <h4 class="font-semibold text-red-800">GPKD bị thu hồi</h4>
+                        <p class="text-2xl font-bold text-red-600" id="licensesRevoked">45</p>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <h4 class="font-semibold text-green-800">GPKD Liên vận quốc tế</h4>
+                        <p class="text-2xl font-bold text-green-600" id="internationalLicenses">89</p>
+                    </div>
+                </div>
+
+                <!-- License Details Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Loại giấy phép</th>
+                                <th class="px-4 py-2 text-center">Được cấp</th>
+                                <th class="px-4 py-2 text-center">Thu hồi</th>
+                                <th class="px-4 py-2 text-center">Còn hiệu lực</th>
+                                <th class="px-4 py-2 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">GPKD Vận tải hành khách</td>
+                                <td class="px-4 py-2 text-center">800</td>
+                                <td class="px-4 py-2 text-center text-red-600">25</td>
+                                <td class="px-4 py-2 text-center text-green-600">775</td>
+                                <td class="px-4 py-2 text-center">
+                                    <button class="text-blue-600 hover:text-blue-800">Chi tiết</button>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">GPKD Vận tải hàng hoá</td>
+                                <td class="px-4 py-2 text-center">434</td>
+                                <td class="px-4 py-2 text-center text-red-600">20</td>
+                                <td class="px-4 py-2 text-center text-green-600">414</td>
+                                <td class="px-4 py-2 text-center">
+                                    <button class="text-blue-600 hover:text-blue-800">Chi tiết</button>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">GPKD Liên vận quốc tế</td>
+                                <td class="px-4 py-2 text-center">89</td>
+                                <td class="px-4 py-2 text-center text-red-600">0</td>
+                                <td class="px-4 py-2 text-center text-green-600">89</td>
+                                <td class="px-4 py-2 text-center">
+                                    <button class="text-blue-600 hover:text-blue-800">Chi tiết</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emblems Tab -->
+        <div id="emblems" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quản lý Phù hiệu xe</h3>
+
+                <!-- Emblem Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <h4 class="font-semibold text-green-800">Phù hiệu được cấp</h4>
+                        <p class="text-2xl font-bold text-green-600">5,678</p>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <h4 class="font-semibold text-red-800">Bị thu hồi</h4>
+                        <p class="text-2xl font-bold text-red-600">78</p>
+                    </div>
+                    <div class="bg-orange-50 border-l-4 border-orange-500 p-4">
+                        <h4 class="font-semibold text-orange-800">Quá hạn</h4>
+                        <p class="text-2xl font-bold text-orange-600">123</p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <h4 class="font-semibold text-blue-800">Liên vận</h4>
+                        <p class="text-2xl font-bold text-blue-600">156</p>
+                    </div>
+                </div>
+
+                <!-- Emblem Details -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Loại xe</th>
+                                <th class="px-4 py-2 text-center">Phù hiệu cấp</th>
+                                <th class="px-4 py-2 text-center">Thu hồi</th>
+                                <th class="px-4 py-2 text-center">Quá hạn</th>
+                                <th class="px-4 py-2 text-center">Còn hiệu lực</th>
+                                <th class="px-4 py-2 text-center">Tỷ lệ (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">Xe tuyến cố định</td>
+                                <td class="px-4 py-2 text-center">2,500</td>
+                                <td class="px-4 py-2 text-center text-red-600">50</td>
+                                <td class="px-4 py-2 text-center text-orange-600">150</td>
+                                <td class="px-4 py-2 text-center text-green-600">2,300</td>
+                                <td class="px-4 py-2 text-center">92%</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">Xe buýt</td>
+                                <td class="px-4 py-2 text-center">800</td>
+                                <td class="px-4 py-2 text-center text-red-600">5</td>
+                                <td class="px-4 py-2 text-center text-orange-600">15</td>
+                                <td class="px-4 py-2 text-center text-green-600">780</td>
+                                <td class="px-4 py-2 text-center">97.5%</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">Taxi</td>
+                                <td class="px-4 py-2 text-center">1,200</td>
+                                <td class="px-4 py-2 text-center text-red-600">15</td>
+                                <td class="px-4 py-2 text-center text-orange-600">85</td>
+                                <td class="px-4 py-2 text-center text-green-600">1,100</td>
+                                <td class="px-4 py-2 text-center">91.7%</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="px-4 py-2 font-medium">Xe khách liên tỉnh</td>
+                                <td class="px-4 py-2 text-center">900</td>
+                                <td class="px-4 py-2 text-center text-red-600">8</td>
+                                <td class="px-4 py-2 text-center text-orange-600">42</td>
+                                <td class="px-4 py-2 text-center text-green-600">850</td>
+                                <td class="px-4 py-2 text-center">94.4%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="statistics" class="tab-content hidden">
+            <div class="space-y-6">
+                <!-- Entity Statistics -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Thống kê đơn vị theo loại hình</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Tổng số đơn vị</p>
+                            <p class="text-3xl font-bold text-blue-600">255</p>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Doanh nghiệp</p>
+                            <p class="text-3xl font-bold text-green-600">180</p>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Hợp tác xã</p>
+                            <p class="text-3xl font-bold text-orange-600">45</p>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Hộ kinh doanh</p>
+                            <p class="text-3xl font-bold text-purple-600">30</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <canvas id="entityTypeChart" width="400" height="200"></canvas>
+                        <canvas id="transportTypeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Regional Statistics -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Thống kê theo địa phương</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Địa phương</th>
+                                    <th class="px-4 py-2 text-center">Đơn vị</th>
+                                    <th class="px-4 py-2 text-center">GPKD</th>
+                                    <th class="px-4 py-2 text-center">Phù hiệu</th>
+                                    <th class="px-4 py-2 text-center">Xe hoạt động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="px-4 py-2 font-medium">Quận 1</td>
+                                    <td class="px-4 py-2 text-center">85</td>
+                                    <td class="px-4 py-2 text-center">85</td>
+                                    <td class="px-4 py-2 text-center">1,890</td>
+                                    <td class="px-4 py-2 text-center">1,750</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="px-4 py-2 font-medium">Quận 2</td>
+                                    <td class="px-4 py-2 text-center">70</td>
+                                    <td class="px-4 py-2 text-center">70</td>
+                                    <td class="px-4 py-2 text-center">1,456</td>
+                                    <td class="px-4 py-2 text-center">1,380</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="px-4 py-2 font-medium">Quận 3</td>
+                                    <td class="px-4 py-2 text-center">100</td>
+                                    <td class="px-4 py-2 text-center">100</td>
+                                    <td class="px-4 py-2 text-center">2,332</td>
+                                    <td class="px-4 py-2 text-center">2,200</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Báo cáo và Phân tích</h3>
+
+                <!-- Comparison Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">So sánh tháng này vs tháng trước</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span>GPKD được cấp:</span>
+                                <span class="text-green-600">+15 (+12%)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Phù hiệu cấp mới:</span>
+                                <span class="text-green-600">+89 (+8%)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Thu hồi:</span>
+                                <span class="text-red-600">+3 (+18%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">So sánh quý này vs cùng kỳ năm trước</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span>Tổng GPKD:</span>
+                                <span class="text-green-600">+45 (+25%)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Xe hoạt động:</span>
+                                <span class="text-green-600">+234 (+15%)</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Doanh nghiệp mới:</span>
+                                <span class="text-green-600">+12 (+18%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trend Charts -->
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">Xu hướng cấp GPKD theo thời gian</h4>
+                        <canvas id="licenseTrendChart" width="800" height="200"></canvas>
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">Biến động phù hiệu (Cấp mới - Tái tục - Thu hồi)</h4>
+                        <canvas id="emblemTrendChart" width="800" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('vi-VN');
+
+        // Set default dates
+        const today = new Date();
+        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+        // Tab functionality
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('active');
+                });
+
+                // Add active class to clicked button
+                btn.classList.add('active');
+
+                // Show corresponding content
+                const tabId = btn.getAttribute('data-tab');
+                const tabContent = document.getElementById(tabId);
+                tabContent.classList.remove('hidden');
+                tabContent.classList.add('active');
+
+                // Initialize charts when switching tabs
+                if (tabId === 'dashboard') {
+                    initDashboardCharts();
+                } else if (tabId === 'statistics') {
+                    initStatisticsCharts();
+                } else if (tabId === 'reports') {
+                    initReportCharts();
+                }
+            });
+        });
+
+        // Chart configurations
+        const chartColors = {
+            primary: '#3B82F6',
+            secondary: '#10B981',
+            warning: '#F59E0B',
+            danger: '#EF4444',
+            info: '#6366F1',
+            purple: '#8B5CF6',
+            orange: '#F97316'
+        };
+
+        // Initialize Dashboard Charts
+        function initDashboardCharts() {
+            // License Chart
+            const licenseCtx = document.getElementById('licenseChart');
+            if (licenseCtx) {
+                new Chart(licenseCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                        datasets: [{
+                            label: 'GPKD được cấp',
+                            data: [120, 135, 145, 160, 170, 185, 195, 200, 210, 220, 235, 250],
+                            borderColor: chartColors.primary,
+                            backgroundColor: chartColors.primary + '20',
+                            tension: 0.4
+                        }, {
+                            label: 'GPKD bị thu hồi',
+                            data: [2, 1, 3, 2, 4, 3, 2, 5, 3, 4, 6, 5],
+                            borderColor: chartColors.danger,
+                            backgroundColor: chartColors.danger + '20',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Emblem Chart
+            const emblemCtx = document.getElementById('emblemChart');
+            if (emblemCtx) {
+                new Chart(emblemCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Tuyến cố định', 'Xe buýt', 'Taxi', 'Liên tỉnh', 'Khác'],
+                        datasets: [{
+                            data: [2300, 780, 1100, 850, 400],
+                            backgroundColor: [
+                                chartColors.primary,
+                                chartColors.secondary,
+                                chartColors.warning,
+                                chartColors.info,
+                                chartColors.danger
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize Statistics Charts
+        function initStatisticsCharts() {
+            // Entity Type Chart - Pie Chart
+            const entityCtx = document.getElementById('entityTypeChart');
+            if (entityCtx) {
+                new Chart(entityCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Doanh nghiệp (180)', 'Hợp tác xã (45)', 'Hộ kinh doanh (30)'],
+                        datasets: [{
+                            data: [180, 45, 30],
+                            backgroundColor: [
+                                chartColors.secondary,
+                                chartColors.warning,
+                                chartColors.purple
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${context.label}: ${percentage}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Transport Type Chart - Bar Chart
+            const transportCtx = document.getElementById('transportTypeChart');
+            if (transportCtx) {
+                new Chart(transportCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Tuyến cố định', 'Xe buýt', 'Taxi', 'Liên tỉnh'],
+                        datasets: [{
+                            label: 'Số đơn vị',
+                            data: [150, 25, 80, 45],
+                            backgroundColor: chartColors.primary,
+                            borderRadius: 4
+                        }, {
+                            label: 'Số xe (x100)',
+                            data: [25, 8, 12, 9], // Chia 100 để hiển thị trên cùng scale
+                            backgroundColor: chartColors.secondary,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        if (context.datasetIndex === 1) {
+                                            return `${context.dataset.label}: ${context.parsed.y * 100}`;
+                                        }
+                                        return `${context.dataset.label}: ${context.parsed.y}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: true,
+                                    color: '#f3f4f6'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize Report Charts
+        function initReportCharts() {
+            // License Trend Chart
+            const licenseTrendCtx = document.getElementById('licenseTrendChart');
+            if (licenseTrendCtx) {
+                new Chart(licenseTrendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'],
+                        datasets: [{
+                            label: 'GPKD Vận tải hành khách',
+                            data: [680, 710, 740, 760, 775, 785, 795, 800],
+                            borderColor: chartColors.primary,
+                            backgroundColor: chartColors.primary + '20',
+                            tension: 0.4
+                        }, {
+                            label: 'GPKD Vận tải hàng hoá',
+                            data: [380, 390, 405, 415, 420, 425, 430, 434],
+                            borderColor: chartColors.secondary,
+                            backgroundColor: chartColors.secondary + '20',
+                            tension: 0.4
+                        }, {
+                            label: 'GPKD Liên vận quốc tế',
+                            data: [70, 75, 78, 82, 84, 86, 88, 89],
+                            borderColor: chartColors.warning,
+                            backgroundColor: chartColors.warning + '20',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Emblem Trend Chart
+            const emblemTrendCtx = document.getElementById('emblemTrendChart');
+            if (emblemTrendCtx) {
+                new Chart(emblemTrendCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                        datasets: [{
+                            label: 'Cấp mới',
+                            data: [45, 52, 48, 65, 58, 62, 70, 68, 72, 75, 78, 80],
+                            backgroundColor: chartColors.secondary
+                        }, {
+                            label: 'Tái tục',
+                            data: [120, 115, 130, 125, 140, 135, 145, 142, 148, 150, 155, 160],
+                            backgroundColor: chartColors.primary
+                        }, {
+                            label: 'Thu hồi',
+                            data: [8, 5, 12, 7, 10, 6, 9, 11, 8, 14, 12, 15],
+                            backgroundColor: chartColors.danger
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Filter data function
+        function filterData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const location = document.getElementById('locationSelect').value;
+
+            // Show loading
+            showNotification('Đang lọc dữ liệu...', 'info');
+
+            // Simulate API call
+            setTimeout(() => {
+                updateDashboardData(startDate, endDate, location);
+                showNotification('Dữ liệu đã được cập nhật!', 'success');
+            }, 1000);
+        }
+
+        // Export data function
+        function exportData() {
+            showNotification('Đang xuất dữ liệu...', 'info');
+
+            // Simulate export
+            setTimeout(() => {
+                // Create and download a sample CSV
+                const csvContent = generateCSVData();
+                downloadCSV(csvContent, 'bao_cao_van_tai.csv');
+                showNotification('Xuất dữ liệu thành công!', 'success');
+            }, 2000);
+        }
+
+        // Generate CSV data
+        function generateCSVData() {
+            const headers = ['Loại hình', 'Số đơn vị', 'GPKD cấp', 'Phù hiệu cấp', 'Còn hiệu lực', 'Hết hạn'];
+            const data = [
+                ['Tuyến cố định', '150', '150', '2500', '2300', '200'],
+                ['Xe buýt', '25', '25', '800', '780', '20'],
+                ['Taxi', '80', '80', '1200', '1100', '100'],
+                ['Liên tỉnh', '45', '45', '900', '850', '50']
+            ];
+
+            let csvContent = headers.join(',') + '\n';
+            data.forEach(row => {
+                csvContent += row.join(',') + '\n';
+            });
+
+            return csvContent;
+        }
+
+        // Download CSV file
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Update dashboard data
+        function updateDashboardData(startDate, endDate, location) {
+            // Simulate data update based on filters
+            const multiplier = location === 'all' ? 1 : 0.3;
+
+            document.getElementById('totalLicenses').textContent = Math.round(1234 * multiplier);
+            document.getElementById('activeEmblems').textContent = Math.round(5678 * multiplier);
+            document.getElementById('expiredEmblems').textContent = Math.round(123 * multiplier);
+            document.getElementById('revokedLicenses').textContent = Math.round(45 * multiplier);
+
+            // Update table data
+            updateVehicleStatsTable(multiplier);
+        }
+
+        // Update vehicle stats table
+        function updateVehicleStatsTable(multiplier) {
+            const tableBody = document.getElementById('vehicleStatsTable');
+            const rows = tableBody.querySelectorAll('tr');
+
+            rows.forEach((row, index) => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 1) {
+                    const baseValues = [
+                        [150, 2500, 2300, 200],
+                        [25, 800, 780, 20],
+                        [80, 1200, 1100, 100]
+                    ];
+
+                    if (baseValues[index]) {
+                        cells[1].textContent = Math.round(baseValues[index][0] * multiplier);
+                        cells[2].textContent = Math.round(baseValues[index][1] * multiplier);
+                        cells[3].textContent = Math.round(baseValues[index][2] * multiplier);
+                        cells[4].textContent = Math.round(baseValues[index][3] * multiplier);
+
+                        const validRate = (baseValues[index][2] / baseValues[index][1] * 100).toFixed(1);
+                        cells[5].textContent = validRate + '%';
+                    }
+                }
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transform transition-transform duration-300 translate-x-full`;
+
+            // Set color based on type
+            switch (type) {
+                case 'success':
+                    notification.classList.add('bg-green-500');
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500');
+                    break;
+                default:
+                    notification.classList.add('bg-blue-500');
+            }
+
+            notification.innerHTML = `
+               <div class="flex items-center">
+                   <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
+                   <span>${message}</span>
+               </div>
+           `;
+
+            document.body.appendChild(notification);
+
+            // Show notification
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Real-time clock update
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentDate').textContent = timeString;
+        }
+
+        // Update clock every second
+        setInterval(updateClock, 1000);
+
+        // Add CSS for active nav button
+        const style = document.createElement('style');
+        style.textContent = `
+           .nav-btn.active {
+               background-color: #1e40af !important;
+               border-bottom: 3px solid #fbbf24;
+           }
+           
+           .tab-content {
+               animation: fadeIn 0.3s ease-in-out;
+           }
+           
+           @keyframes fadeIn {
+               from { opacity: 0; transform: translateY(10px); }
+               to { opacity: 1; transform: translateY(0); }
+           }
+           
+           /* Custom scrollbar */
+           ::-webkit-scrollbar {
+               width: 8px;
+           }
+           
+           ::-webkit-scrollbar-track {
+               background: #f1f5f9;
+           }
+           
+           ::-webkit-scrollbar-thumb {
+               background: #cbd5e1;
+               border-radius: 4px;
+           }
+           
+           ::-webkit-scrollbar-thumb:hover {
+               background: #94a3b8;
+           }
+           
+           /* Hover effects */
+           .hover-card:hover {
+               transform: translateY(-2px);
+               box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+               transition: all 0.3s ease;
+           }
+           
+           /* Loading animation */
+           .loading {
+               position: relative;
+               overflow: hidden;
+           }
+           
+           .loading::after {
+               content: '';
+               position: absolute;
+               top: 0;
+               left: -100%;
+               width: 100%;
+               height: 100%;
+               background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+               animation: loading 1.5s infinite;
+           }
+           
+           @keyframes loading {
+               0% { left: -100%; }
+               100% { left: 100%; }
+           }
+       `;
+        document.head.appendChild(style);
+
+        // Initialize dashboard on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            initDashboardCharts();
+            showNotification('Hệ thống đã sẵn sàng!', 'success');
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey) {
+                switch (e.key) {
+                    case '1':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="dashboard"]').click();
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="licenses"]').click();
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="emblems"]').click();
+                        break;
+                    case '4':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="statistics"]').click();
+                        break;
+                    case '5':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="reports"]').click();
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        filterData();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        exportData();
+                        break;
+                }
+            }
+        });
+
+        // Auto-refresh data every 5 minutes
+        setInterval(() => {
+            if (document.querySelector('.nav-btn.active').getAttribute('data-tab') === 'dashboard') {
+                showNotification('Đang cập nhật dữ liệu...', 'info');
+                setTimeout(() => {
+                    updateDashboardData(
+                        document.getElementById('startDate').value,
+                        document.getElementById('endDate').value,
+                        document.getElementById('locationSelect').value
+                    );
+                    showNotification('Dữ liệu đã được làm mới!', 'success');
+                }, 1000);
+            }
+        }, 300000); // 5 minutes
+
+    </script>
+</body>
+
+</html>
