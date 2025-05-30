@@ -63,6 +63,12 @@
             overflow: hidden;
             border-radius: 0.5rem;
         }
+
+        /* Filter styles */
+        .filter-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -90,6 +96,9 @@
                 <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="emblems">
                     <i class="fas fa-certificate mr-2"></i>Phù hiệu
                 </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="international">
+                    <i class="fas fa-globe mr-2"></i>GP Liên vận QT
+                </button>
                 <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="statistics">
                     <i class="fas fa-chart-bar mr-2"></i>Thống kê
                 </button>
@@ -104,6 +113,12 @@
     <main class="container mx-auto px-4 py-6">
         <!-- Date Range Selector -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex flex-wrap items-center gap-4 mb-4">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="applyToAll" class="rounded">
+                    <label for="applyToAll" class="font-medium text-blue-600">Áp dụng cho tất cả</label>
+                </div>
+            </div>
             <div class="flex flex-wrap items-center gap-4">
                 <div class="flex items-center space-x-2">
                     <label class="font-medium">Từ ngày:</label>
@@ -113,7 +128,7 @@
                     <label class="font-medium">Đến ngày:</label>
                     <input type="date" id="endDate" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div class="flex items-center space-x-2">
+                <div id="statusFilter" class="flex items-center space-x-2">
                     <label class="font-medium">Trạng thái:</label>
                     <select id="statusSelect" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                         <option value="all">Tất cả</option>
@@ -134,7 +149,7 @@
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <!-- Quick Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
                     <div class="flex items-center justify-between">
                         <div>
@@ -151,6 +166,15 @@
                             <p class="text-3xl font-bold" id="activeEmblems">0</p>
                         </div>
                         <i class="fas fa-certificate text-4xl text-green-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100">GP Liên vận QT</p>
+                            <p class="text-3xl font-bold" id="totalInternational">0</p>
+                        </div>
+                        <i class="fas fa-globe text-4xl text-purple-200"></i>
                     </div>
                 </div>
                 <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg p-6">
@@ -194,7 +218,7 @@
         <div id="licenses" class="tab-content hidden">
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-lg font-semibold mb-4">Quản lý Giấy phép Kinh doanh Vận tải</h3>
-                
+
                 <!-- License Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
@@ -279,6 +303,53 @@
             </div>
         </div>
 
+        <!-- International Licenses Tab -->
+        <div id="international" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quản lý Giấy phép Liên vận Quốc tế</h3>
+
+                <!-- International License Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-purple-50 border-l-4 border-purple-500 p-4">
+                        <h4 class="font-semibold text-purple-800">GP được cấp</h4>
+                        <p class="text-2xl font-bold text-purple-600" id="internationalIssued">0</p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <h4 class="font-semibold text-blue-800">Đang hoạt động</h4>
+                        <p class="text-2xl font-bold text-blue-600" id="internationalActive">0</p>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <h4 class="font-semibold text-yellow-800">Tạm ngừng</h4>
+                        <p class="text-2xl font-bold text-yellow-600" id="internationalSuspended">0</p>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <h4 class="font-semibold text-red-800">Bị thu hồi</h4>
+                        <p class="text-2xl font-bold text-red-600" id="internationalRevoked">0</p>
+                    </div>
+                </div>
+
+                <!-- International License Details Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Số giấy phép</th>
+                                <th class="px-4 py-2 text-left">Tên đơn vị</th>
+                                <th class="px-4 py-2 text-center">Ngày cấp</th>
+                                <th class="px-4 py-2 text-center">Loại cấp</th>
+                                <th class="px-4 py-2 text-center">Mô hình hoạt động</th>
+                                <th class="px-4 py-2 text-center">Trạng thái</th>
+                                <th class="px-4 py-2 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="internationalTableBody">
+                            <!-- Dữ liệu sẽ được load từ API -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Statistics Tab -->
         <div id="statistics" class="tab-content hidden">
             <div class="space-y-6">
@@ -286,21 +357,30 @@
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h3 class="text-lg font-semibold mb-6">Thống kê tổng quan</h3>
                     <div class="stats-grid mb-8">
-                        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
                             <div class="text-3xl font-bold text-blue-600 mb-2" id="statsTotalLicenses">0</div>
                             <div class="text-sm font-medium text-blue-800">Tổng số GPKD</div>
                         </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
                             <div class="text-3xl font-bold text-green-600 mb-2" id="statsTotalEmblems">0</div>
                             <div class="text-sm font-medium text-green-800">Tổng số phù hiệu</div>
                         </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                            <div class="text-3xl font-bold text-purple-600 mb-2" id="statsTotalInternational">0</div>
+                            <div class="text-sm font-medium text-purple-800">GP Liên vận QT</div>
+                        </div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
                             <div class="text-3xl font-bold text-orange-600 mb-2" id="statsActiveVehicles">0</div>
                             <div class="text-sm font-medium text-orange-800">Xe đang hoạt động</div>
                         </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                            <div class="text-3xl font-bold text-purple-600 mb-2" id="statsCompanies">0</div>
-                            <div class="text-sm font-medium text-purple-800">Doanh nghiệp</div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                            <div class="text-3xl font-bold text-gray-600 mb-2" id="statsCompanies">0</div>
+                            <div class="text-sm font-medium text-gray-800">Doanh nghiệp</div>
                         </div>
                     </div>
 
@@ -327,7 +407,7 @@
         <div id="reports" class="tab-content hidden">
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-lg font-semibold mb-4">Báo cáo và Phân tích</h3>
-                
+
                 <!-- Reports content -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="border rounded-lg p-4">
@@ -349,7 +429,6 @@
 
     <script>
         // AppSheet API Configuration
-
         const appId = 'd22767b5-f711-42f8-bbbd-4cf04b26ef3d';
         const accessKey = 'V2-Qcjpo-7Ybu9-g87XI-TFLes-kJGWn-btYR5-cLMmk-FjrRj';
         const region = 'www';
@@ -357,11 +436,12 @@
         // Global data variables
         let licensesData = [];
         let emblemsData = [];
+        let internationalData = [];
 
         // API Request Function
         async function apiRequest(tableName, action, data = {}) {
             const apiUrl = `https://${region}.appsheet.com/api/v2/apps/${appId}/tables/${tableName}/Action`;
-            
+
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -388,6 +468,147 @@
             }
         }
 
+        // Fetch International Licenses Data
+        async function fetchInternationalData() {
+            try {
+                showNotification('Đang tải dữ liệu GP Liên vận QT...', 'info');
+                const response = await apiRequest('DoanhNghiep', 'Find', {
+                    Selector: "Filter(DoanhNghiep, [SoGPLienVanQT] <> \"\")"
+                });
+
+                if (Array.isArray(response)) {
+                    internationalData = response;
+                    console.log('Dữ liệu GP Liên vận QT:', internationalData);
+                    updateInternationalUI();
+                } else {
+                    throw new Error('Dữ liệu không hợp lệ');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu GP Liên vận QT:', error);
+                showNotification('Không thể tải dữ liệu GP Liên vận QT', 'error');
+            }
+        }
+
+        // Update International UI
+        function updateInternationalUI() {
+            // Filter data by status
+            const activeInternational = internationalData.filter(item =>
+                item.TrangThaiHoatDong === 'Đang hoạt động'
+            );
+            const suspendedInternational = internationalData.filter(item =>
+                item.TrangThaiHoatDong === 'Ngừng tạm thời'
+            );
+            const revokedInternational = internationalData.filter(item =>
+                item.TrangThaiHoatDong === 'Bị thu hồi GPKD'
+            );
+
+            // Update dashboard stats
+            document.getElementById('totalInternational').textContent = internationalData.length;
+            document.getElementById('internationalIssued').textContent = internationalData.length;
+            document.getElementById('internationalActive').textContent = activeInternational.length;
+            document.getElementById('internationalSuspended').textContent = suspendedInternational.length;
+            document.getElementById('internationalRevoked').textContent = revokedInternational.length;
+            document.getElementById('statsTotalInternational').textContent = internationalData.length;
+
+            // Update international table
+            updateInternationalTable();
+        }
+
+        // Update International Table
+        function updateInternationalTable() {
+            const tableBody = document.getElementById('internationalTableBody');
+            tableBody.innerHTML = '';
+
+            internationalData.slice(0, 50).forEach(license => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+
+                const statusClass = getInternationalStatusClass(license.TrangThaiHoatDong);
+                const moHinhHoatDong = Array.isArray(license.MoHinhHoatDong)
+                    ? license.MoHinhHoatDong.join(', ')
+                    : license.MoHinhHoatDong || 'N/A';
+
+                row.innerHTML = `
+                    <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
+                    <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
+                    <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                    <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
+                    <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
+                    <td class="px-4 py-2 text-center">
+                        <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                            ${license.TrangThaiHoatDong || 'N/A'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
+                            Chi tiết
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Helper function for international status class
+        function getInternationalStatusClass(status) {
+            switch (status) {
+                case 'Đang hoạt động':
+                    return 'bg-green-100 text-green-800';
+                case 'Ngừng tạm thời':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Bị thu hồi GPKD':
+                    return 'bg-red-100 text-red-800';
+                case 'Giải thể':
+                    return 'bg-gray-100 text-gray-800';
+                default:
+                    return 'bg-blue-100 text-blue-800';
+            }
+        }
+
+        // View International License Detail
+        function viewInternationalDetail(licenseId) {
+            const license = internationalData.find(item => item.IDDoanhNghiep === licenseId);
+            if (license) {
+                showInternationalModal(license);
+            }
+        }
+
+        // Show International Modal
+        function showInternationalModal(license) {
+            const modalContent = `
+               <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
+                   <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
+                       <div class="flex justify-between items-center mb-4">
+                           <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
+                           <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
+                               <i class="fas fa-times"></i>
+                           </button>
+                       </div>
+                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || 'N/A'}</div>
+                           <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || 'N/A'}</div>
+                           <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || 'N/A'}</div>
+                           <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                           <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
+                           <div><strong>Trạng thái hoạt động:</strong> 
+                               <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
+                                   ${license.TrangThaiHoatDong || 'N/A'}
+                               </span>
+                           </div>
+                           <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || 'N/A'}</div>
+                       </div>
+                       ${license.Lydocaplai ? `
+                           <div class="mt-4 p-4 bg-blue-50 rounded">
+                               <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
+                               <div class="mt-2">${license.Lydocaplai}</div>
+                           </div>
+                       ` : ''}
+                   </div>
+               </div>
+           `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
         // Fetch Licenses Data
         async function fetchLicensesData() {
             try {
@@ -395,7 +616,7 @@
                 const response = await apiRequest('GIAYPHEPKINHDOANHNOIDIA', 'Find', {
                     Selector: "Filter(GIAYPHEPKINHDOANHNOIDIA, true)"
                 });
-                
+
                 if (Array.isArray(response)) {
                     licensesData = response;
                     console.log('Dữ liệu GPKD:', licensesData);
@@ -416,7 +637,7 @@
                 const response = await apiRequest('PHUHIEUXE', 'Find', {
                     Selector: "Filter(PHUHIEUXE, true)"
                 });
-                
+
                 if (Array.isArray(response)) {
                     emblemsData = response;
                     console.log('Dữ liệu phù hiệu:', emblemsData);
@@ -433,12 +654,12 @@
         // Update Licenses UI
         function updateLicensesUI() {
             const today = new Date();
-            
+
             // Filter data
-            const activeLicenses = licensesData.filter(item => 
+            const activeLicenses = licensesData.filter(item =>
                 item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
             );
-            const revokedLicenses = licensesData.filter(item => 
+            const revokedLicenses = licensesData.filter(item =>
                 item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
             );
 
@@ -457,7 +678,7 @@
         // Update Emblems UI
         function updateEmblemsUI() {
             const today = new Date();
-            
+
             // Filter data
             const activeEmblems = emblemsData.filter(item => {
                 if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
@@ -476,7 +697,7 @@
                 return false;
             });
 
-            const revokedEmblems = emblemsData.filter(item => 
+            const revokedEmblems = emblemsData.filter(item =>
                 item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
             );
 
@@ -496,33 +717,35 @@
         // Update Licenses Table
         function updateLicensesTable() {
             const tableBody = document.getElementById('licensesTableBody');
+            if (!tableBody) return;
+
             tableBody.innerHTML = '';
 
             licensesData.slice(0, 50).forEach(license => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
-                
+
                 const statusClass = getStatusClass(license.TrangThai);
-                const transportTypes = Array.isArray(license.LoaiHinhVanTai) 
-                    ? license.LoaiHinhVanTai.join(', ') 
+                const transportTypes = Array.isArray(license.LoaiHinhVanTai)
+                    ? license.LoaiHinhVanTai.join(', ')
                     : license.LoaiHinhVanTai || 'N/A';
 
                 row.innerHTML = `
-                    <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
-                    <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
-                    <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                    <td class="px-4 py-2 text-center">${transportTypes}</td>
-                    <td class="px-4 py-2 text-center">
-                        <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                            ${license.TrangThai || 'N/A'}
-                        </span>
-                    </td>
-                    <td class="px-4 py-2 text-center">
-                        <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
-                            Chi tiết
-                        </button>
-                    </td>
-                `;
+                   <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
+                   <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                   <td class="px-4 py-2 text-center">${transportTypes}</td>
+                   <td class="px-4 py-2 text-center">
+                       <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                           ${license.TrangThai || 'N/A'}
+                       </span>
+                   </td>
+                   <td class="px-4 py-2 text-center">
+                       <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
+                           Chi tiết
+                       </button>
+                   </td>
+               `;
                 tableBody.appendChild(row);
             });
         }
@@ -530,42 +753,105 @@
         // Update Emblems Table
         function updateEmblemsTable() {
             const tableBody = document.getElementById('emblemsTableBody');
+            if (!tableBody) return;
+
             tableBody.innerHTML = '';
 
             emblemsData.slice(0, 50).forEach(emblem => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
-                
+
                 const statusClass = getStatusClass(emblem.TrangThai);
                 const isExpired = isEmblemExpired(emblem.NgayHetHan);
 
                 row.innerHTML = `
-                    <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
-                    <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
-                    <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
-                    <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
-                    <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
-                    <td class="px-4 py-2 text-center">
-                        <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
-                            ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                        </span>
-                    </td>
-                    <td class="px-4 py-2 text-center">
-                        <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
-                            Chi tiết
-                        </button>
-                    </td>
-                `;
+                   <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
+                   <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
+                   <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
+                   <td class="px-4 py-2 text-center">
+                       <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
+                           ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                       </span>
+                   </td>
+                   <td class="px-4 py-2 text-center">
+                       <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
+                           Chi tiết
+                       </button>
+                   </td>
+               `;
                 tableBody.appendChild(row);
             });
+        }
+
+        // Helper function to parse AppSheet date format correctly
+        function parseAppSheetDate(dateString) {
+            if (!dateString) return null;
+
+            try {
+                // AppSheet có thể trả về nhiều format khác nhau
+                // Thử parse theo các format phổ biến
+
+                // Format: "2024-01-15" hoặc "2024-01-15T00:00:00"
+                if (dateString.includes('T')) {
+                    return new Date(dateString);
+                }
+
+                // Format: "2024-01-15"
+                if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    return new Date(dateString + 'T00:00:00');
+                }
+
+                // Format: "01/15/2024" hoặc "15/01/2024"
+                if (dateString.includes('/')) {
+                    const parts = dateString.split('/');
+                    if (parts.length === 3) {
+                        // Giả sử format là MM/DD/YYYY hoặc DD/MM/YYYY
+                        // Cần kiểm tra để xác định format chính xác
+                        const month = parseInt(parts[0]);
+                        const day = parseInt(parts[1]);
+                        const year = parseInt(parts[2]);
+
+                        // Nếu month > 12 thì có thể format là DD/MM/YYYY
+                        if (month > 12) {
+                            return new Date(year, parseInt(parts[1]) - 1, month);
+                        } else {
+                            return new Date(year, month - 1, day);
+                        }
+                    }
+                }
+
+                // Fallback: thử parse trực tiếp
+                const date = new Date(dateString);
+                if (!isNaN(date.getTime())) {
+                    return date;
+                }
+
+                console.warn('Unable to parse date:', dateString);
+                return null;
+
+            } catch (error) {
+                console.error('Error parsing date:', dateString, error);
+                return null;
+            }
         }
 
         // Helper Functions
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
+
             try {
-                return new Date(dateString).toLocaleDateString('vi-VN');
-            } catch {
+                const date = parseAppSheetDate(dateString);
+                if (!date) return 'N/A';
+
+                return date.toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            } catch (error) {
+                console.error('Error formatting date:', dateString, error);
                 return 'N/A';
             }
         }
@@ -587,1073 +873,1475 @@
         }
 
         function isEmblemExpired(dateString) {
-           if (!dateString) return false;
-           try {
-               const expireDate = new Date(dateString);
-               return expireDate < new Date();
-           } catch {
-               return false;
-           }
-       }
-
-       function viewLicenseDetail(licenseId) {
-           const license = licensesData.find(item => item.ID_GPKD === licenseId);
-           if (license) {
-               showLicenseModal(license);
-           }
-       }
-
-       function viewEmblemDetail(emblemId) {
-           const emblem = emblemsData.find(item => item.ID_PhuHieu === emblemId);
-           if (emblem) {
-               showEmblemModal(emblem);
-           }
-       }
-
-       // Modal Functions
-       function showLicenseModal(license) {
-           const modalContent = `
-               <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
-                   <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                       <div class="flex justify-between items-center mb-4">
-                           <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
-                           <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
-                               <i class="fas fa-times"></i>
-                           </button>
-                       </div>
-                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
-                           <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
-                           <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
-                           <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
-                           <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                           <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                           <div><strong>Trạng thái:</strong> 
-                               <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
-                                   ${license.TrangThai || 'N/A'}
-                               </span>
-                           </div>
-                           <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
-                       </div>
-                       ${license.NgayThuHoi ? `
-                           <div class="mt-4 p-4 bg-red-50 rounded">
-                               <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                               <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                   <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
-                                   <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
-                                   <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
-                               </div>
-                           </div>
-                       ` : ''}
-                       ${license.GhiChu ? `
-                           <div class="mt-4">
-                               <strong>Ghi chú:</strong> ${license.GhiChu}
-                           </div>
-                       ` : ''}
-                   </div>
-               </div>
-           `;
-           document.body.insertAdjacentHTML('beforeend', modalContent);
-       }
-
-       function showEmblemModal(emblem) {
-           const modalContent = `
-               <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
-                   <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                       <div class="flex justify-between items-center mb-4">
-                           <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
-                           <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
-                               <i class="fas fa-times"></i>
-                           </button>
-                       </div>
-                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
-                           <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
-                           <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
-                           <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
-                           <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
-                           <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
-                           <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
-                           <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
-                           <div><strong>Trạng thái:</strong> 
-                               <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
-                                   ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                               </span>
-                           </div>
-                           <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
-                       </div>
-                       ${emblem.NgayThuHoi ? `
-                           <div class="mt-4 p-4 bg-red-50 rounded">
-                               <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                               <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                   <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
-                                   <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
-                                   <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
-                               </div>
-                           </div>
-                       ` : ''}
-                       ${emblem.GhiChu ? `
-                           <div class="mt-4">
-                               <strong>Ghi chú:</strong> ${emblem.GhiChu}
-                           </div>
-                       ` : ''}
-                   </div>
-               </div>
-           `;
-           document.body.insertAdjacentHTML('beforeend', modalContent);
-       }
-
-       function closeModal(modalId) {
-           const modal = document.getElementById(modalId);
-           if (modal) {
-               modal.remove();
-           }
-       }
-
-       // Chart Functions
-       function initDashboardCharts() {
-           initLicenseChart();
-           initEmblemChart();
-       }
-
-       function initLicenseChart() {
-           const ctx = document.getElementById('licenseChart');
-           if (ctx && licensesData.length > 0) {
-               // Group licenses by month
-               const monthlyData = groupLicensesByMonth();
-               
-               new Chart(ctx, {
-                   type: 'line',
-                   data: {
-                       labels: monthlyData.labels,
-                       datasets: [{
-                           label: 'GPKD được cấp',
-                           data: monthlyData.issued,
-                           borderColor: '#3B82F6',
-                           backgroundColor: '#3B82F620',
-                           tension: 0.4
-                       }, {
-                           label: 'GPKD bị thu hồi',
-                           data: monthlyData.revoked,
-                           borderColor: '#EF4444',
-                           backgroundColor: '#EF444420',
-                           tension: 0.4
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'top',
-                           }
-                       },
-                       scales: {
-                           y: {
-                               beginAtZero: true
-                           }
-                       }
-                   }
-               });
-           }
-       }
-
-       function initEmblemChart() {
-           const ctx = document.getElementById('emblemChart');
-           if (ctx && emblemsData.length > 0) {
-               // Group emblems by type
-               const typeData = groupEmblemsByType();
-               
-               new Chart(ctx, {
-                   type: 'doughnut',
-                   data: {
-                       labels: typeData.labels,
-                       datasets: [{
-                           data: typeData.values,
-                           backgroundColor: [
-                               '#3B82F6',
-                               '#10B981',
-                               '#F59E0B',
-                               '#8B5CF6',
-                               '#EF4444',
-                               '#6366F1'
-                           ]
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'bottom'
-                           }
-                       }
-                   }
-               });
-           }
-       }
-
-       function initStatisticsCharts() {
-           initTransportTypeChart();
-           initStatusChart();
-       }
-
-       function initTransportTypeChart() {
-           const ctx = document.getElementById('transportTypeChart');
-           if (ctx && licensesData.length > 0) {
-               const transportData = groupLicensesByTransportType();
-               
-               new Chart(ctx, {
-                   type: 'pie',
-                   data: {
-                       labels: transportData.labels,
-                       datasets: [{
-                           data: transportData.values,
-                           backgroundColor: [
-                               '#10B981',
-                               '#F59E0B',
-                               '#8B5CF6',
-                               '#3B82F6',
-                               '#EF4444'
-                           ]
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'bottom'
-                           }
-                       }
-                   }
-               });
-           }
-       }
-
-       function initStatusChart() {
-           const ctx = document.getElementById('statusChart');
-           if (ctx && licensesData.length > 0 && emblemsData.length > 0) {
-               const statusData = getStatusStatistics();
-               
-               new Chart(ctx, {
-                   type: 'bar',
-                   data: {
-                       labels: ['GPKD', 'Phù hiệu'],
-                       datasets: [{
-                           label: 'Còn hiệu lực',
-                           data: [statusData.licenses.active, statusData.emblems.active],
-                           backgroundColor: '#10B981'
-                       }, {
-                           label: 'Hết hạn',
-                           data: [statusData.licenses.expired, statusData.emblems.expired],
-                           backgroundColor: '#F59E0B'
-                       }, {
-                           label: 'Bị thu hồi',
-                           data: [statusData.licenses.revoked, statusData.emblems.revoked],
-                           backgroundColor: '#EF4444'
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'top'
-                           }
-                       },
-                       scales: {
-                           y: {
-                               beginAtZero: true
-                           }
-                       }
-                   }
-               });
-           }
-       }
-
-       function initReportCharts() {
-           initLicenseTrendChart();
-           initEmblemTrendChart();
-       }
-
-       function initLicenseTrendChart() {
-           const ctx = document.getElementById('licenseTrendChart');
-           if (ctx && licensesData.length > 0) {
-               const trendData = getLicenseTrendData();
-               
-               new Chart(ctx, {
-                   type: 'line',
-                   data: {
-                       labels: trendData.labels,
-                       datasets: [{
-                           label: 'GPKD được cấp',
-                           data: trendData.values,
-                           borderColor: '#3B82F6',
-                           backgroundColor: '#3B82F620',
-                           tension: 0.4
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'top'
-                           }
-                       },
-                       scales: {
-                           y: {
-                               beginAtZero: true
-                           }
-                       }
-                   }
-               });
-           }
-       }
-
-       function initEmblemTrendChart() {
-           const ctx = document.getElementById('emblemTrendChart');
-           if (ctx && emblemsData.length > 0) {
-               const trendData = getEmblemTrendData();
-               
-               new Chart(ctx, {
-                   type: 'bar',
-                   data: {
-                       labels: trendData.labels,
-                       datasets: [{
-                           label: 'Phù hiệu được cấp',
-                           data: trendData.issued,
-                           backgroundColor: '#10B981'
-                       }, {
-                           label: 'Phù hiệu bị thu hồi',
-                           data: trendData.revoked,
-                           backgroundColor: '#EF4444'
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'top'
-                           }
-                       },
-                       scales: {
-                           y: {
-                               beginAtZero: true
-                           }
-                       }
-                   }
-               });
-           }
-       }
-
-       // Data Processing Functions
-       function groupLicensesByMonth() {
-           const monthCounts = {};
-           const revokedCounts = {};
-           
-           licensesData.forEach(license => {
-               if (license.NgayCap) {
-                   const month = new Date(license.NgayCap).toLocaleDateString('vi-VN', { 
-                       year: 'numeric', 
-                       month: 'short' 
-                   });
-                   monthCounts[month] = (monthCounts[month] || 0) + 1;
-               }
-               
-               if (license.NgayThuHoi) {
-                   const month = new Date(license.NgayThuHoi).toLocaleDateString('vi-VN', { 
-                       year: 'numeric', 
-                       month: 'short' 
-                   });
-                   revokedCounts[month] = (revokedCounts[month] || 0) + 1;
-               }
-           });
-
-           const allMonths = [...new Set([...Object.keys(monthCounts), ...Object.keys(revokedCounts)])].sort();
-           
-           return {
-               labels: allMonths,
-               issued: allMonths.map(month => monthCounts[month] || 0),
-               revoked: allMonths.map(month => revokedCounts[month] || 0)
-           };
-       }
-
-       function groupEmblemsByType() {
-           const typeCounts = {};
-           
-           emblemsData.forEach(emblem => {
-               const type = emblem.LoaiPH || 'Khác';
-               typeCounts[type] = (typeCounts[type] || 0) + 1;
-           });
-
-           return {
-               labels: Object.keys(typeCounts),
-               values: Object.values(typeCounts)
-           };
-       }
-
-       function groupLicensesByTransportType() {
-           const typeCounts = {};
-           
-           licensesData.forEach(license => {
-               if (Array.isArray(license.LoaiHinhVanTai)) {
-                   license.LoaiHinhVanTai.forEach(type => {
-                       typeCounts[type] = (typeCounts[type] || 0) + 1;
-                   });
-               } else if (license.LoaiHinhVanTai) {
-                   const type = license.LoaiHinhVanTai;
-                   typeCounts[type] = (typeCounts[type] || 0) + 1;
-               }
-           });
-
-           return {
-               labels: Object.keys(typeCounts),
-               values: Object.values(typeCounts)
-           };
-       }
-
-       function getStatusStatistics() {
-           const today = new Date();
-           
-           // License statistics
-           const activeLicenses = licensesData.filter(item => 
-               item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
-           ).length;
-           const revokedLicenses = licensesData.filter(item => 
-               item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
-           ).length;
-           const expiredLicenses = licensesData.filter(item => 
-               item.TrangThai === 'Hết hiệu lực'
-           ).length;
-
-           // Emblem statistics
-           const activeEmblems = emblemsData.filter(item => {
-               if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
-               if (item.NgayHetHan) {
-                   const expireDate = new Date(item.NgayHetHan);
-                   return expireDate >= today;
-               }
-               return true;
-           }).length;
-
-           const expiredEmblems = emblemsData.filter(item => {
-               if (item.NgayHetHan) {
-                   const expireDate = new Date(item.NgayHetHan);
-                   return expireDate < today && item.TrangThai !== 'Đã thu hồi';
-               }
-               return false;
-           }).length;
-
-           const revokedEmblems = emblemsData.filter(item => 
-               item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
-           ).length;
-
-           return {
-               licenses: {
-                   active: activeLicenses,
-                   expired: expiredLicenses,
-                   revoked: revokedLicenses
-               },
-               emblems: {
-                   active: activeEmblems,
-                   expired: expiredEmblems,
-                   revoked: revokedEmblems
-               }
-           };
-       }
-
-       function getLicenseTrendData() {
-           const last12Months = [];
-           const today = new Date();
-           
-           for (let i = 11; i >= 0; i--) {
-               const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-               last12Months.push(date.toLocaleDateString('vi-VN', { year: 'numeric', month: 'short' }));
-           }
-
-           const counts = last12Months.map(month => {
-               return licensesData.filter(license => {
-                   if (license.NgayCap) {
-                       const licenseMonth = new Date(license.NgayCap).toLocaleDateString('vi-VN', { 
-                           year: 'numeric', 
-                           month: 'short' 
-                       });
-                       return licenseMonth === month;
-                   }
-                   return false;
-               }).length;
-           });
-
-           return {
-               labels: last12Months,
-               values: counts
-           };
-       }
-
-       function getEmblemTrendData() {
-           const last12Months = [];
-           const today = new Date();
-           
-           for (let i = 11; i >= 0; i--) {
-               const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-               last12Months.push(date.toLocaleDateString('vi-VN', { year: 'numeric', month: 'short' }));
-           }
-
-           const issuedCounts = last12Months.map(month => {
-               return emblemsData.filter(emblem => {
-                   if (emblem.NgayCap) {
-                       const emblemMonth = new Date(emblem.NgayCap).toLocaleDateString('vi-VN', { 
-                           year: 'numeric', 
-                           month: 'short' 
-                       });
-                       return emblemMonth === month;
-                   }
-                   return false;
-               }).length;
-           });
-
-           const revokedCounts = last12Months.map(month => {
-               return emblemsData.filter(emblem => {
-                   if (emblem.NgayThuHoi) {
-                       const revokeMonth = new Date(emblem.NgayThuHoi).toLocaleDateString('vi-VN', { 
-                           year: 'numeric', 
-                           month: 'short' 
-                       });
-                       return revokeMonth === month;
-                   }
-                   return false;
-               }).length;
-           });
-
-           return {
-               labels: last12Months,
-               issued: issuedCounts,
-               revoked: revokedCounts
-           };
-       }
-
-       // Filter and Export Functions
-       function filterData() {
-           const startDate = document.getElementById('startDate').value;
-           const endDate = document.getElementById('endDate').value;
-           const status = document.getElementById('statusSelect').value;
-
-           showNotification('Đang lọc dữ liệu...', 'info');
-
-           // Apply filters
-           let filteredLicenses = [...licensesData];
-           let filteredEmblems = [...emblemsData];
-
-           if (startDate && endDate) {
-               const start = new Date(startDate);
-               const end = new Date(endDate);
-
-               filteredLicenses = filteredLicenses.filter(license => {
-                   if (license.NgayCap) {
-                       const issueDate = new Date(license.NgayCap);
-                       return issueDate >= start && issueDate <= end;
-                   }
-                   return false;
-               });
-
-               filteredEmblems = filteredEmblems.filter(emblem => {
-                   if (emblem.NgayCap) {
-                       const issueDate = new Date(emblem.NgayCap);
-                       return issueDate >= start && issueDate <= end;
-                   }
-                   return false;
-               });
-           }
-
-           if (status !== 'all') {
-               switch (status) {
-                   case 'active':
-                       filteredLicenses = filteredLicenses.filter(license => 
-                           license.TrangThai !== 'Đã thu hồi' && license.TrangThai !== 'Hết hiệu lực'
-                       );
-                       filteredEmblems = filteredEmblems.filter(emblem => 
-                           !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-                       );
-                       break;
-                   case 'expired':
-                       filteredLicenses = filteredLicenses.filter(license => 
-                           license.TrangThai === 'Hết hiệu lực'
-                       );
-                       filteredEmblems = filteredEmblems.filter(emblem => 
-                           isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-                       );
-                       break;
-                   case 'revoked':
-                       filteredLicenses = filteredLicenses.filter(license => 
-                           license.TrangThai === 'Đã thu hồi' || license.NgayThuHoi
-                       );
-                       filteredEmblems = filteredEmblems.filter(emblem => 
-                           emblem.TrangThai === 'Đã thu hồi' || emblem.NgayThuHoi
-                       );
-                       break;
-               }
-           }
-
-           // Update UI with filtered data
-           setTimeout(() => {
-               updateFilteredUI(filteredLicenses, filteredEmblems);
-               showNotification('Dữ liệu đã được lọc!', 'success');
-           }, 500);
-       }
-
-       function updateFilteredUI(filteredLicenses, filteredEmblems) {
-           // Update dashboard stats with filtered data
-           document.getElementById('totalLicenses').textContent = filteredLicenses.length;
-           document.getElementById('activeEmblems').textContent = filteredEmblems.filter(emblem => 
-               !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-           ).length;
-           document.getElementById('expiredEmblems').textContent = filteredEmblems.filter(emblem => 
-               isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-           ).length;
-           document.getElementById('revokedLicenses').textContent = filteredLicenses.filter(license => 
-               license.TrangThai === 'Đã thu hồi' || license.NgayThuHoi
-           ).length;
-
-           // Update tables
-           updateFilteredTables(filteredLicenses, filteredEmblems);
-       }
-
-       function updateFilteredTables(filteredLicenses, filteredEmblems) {
-           // Update licenses table
-           const licensesTableBody = document.getElementById('licensesTableBody');
-           if (licensesTableBody) {
-               licensesTableBody.innerHTML = '';
-               filteredLicenses.slice(0, 50).forEach(license => {
-                   const row = document.createElement('tr');
-                   row.className = 'border-b hover:bg-gray-50';
-                   
-                   const statusClass = getStatusClass(license.TrangThai);
-                   const transportTypes = Array.isArray(license.LoaiHinhVanTai) 
-                       ? license.LoaiHinhVanTai.join(', ') 
-                       : license.LoaiHinhVanTai || 'N/A';
-
-                   row.innerHTML = `
-                       <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
-                       <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
-                       <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                       <td class="px-4 py-2 text-center">${transportTypes}</td>
-                       <td class="px-4 py-2 text-center">
-                           <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                               ${license.TrangThai || 'N/A'}
-                           </span>
-                       </td>
-                       <td class="px-4 py-2 text-center">
-                           <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
-                               Chi tiết
-                           </button>
-                       </td>
-                   `;
-                   licensesTableBody.appendChild(row);
-               });
-           }
-
-           // Update emblems table
-           const emblemsTableBody = document.getElementById('emblemsTableBody');
-           if (emblemsTableBody) {
-               emblemsTableBody.innerHTML = '';
-               filteredEmblems.slice(0, 50).forEach(emblem => {
-                   const row = document.createElement('tr');
-                   row.className = 'border-b hover:bg-gray-50';
-                   
-                   const statusClass = getStatusClass(emblem.TrangThai);
-                   const isExpired = isEmblemExpired(emblem.NgayHetHan);
-
-                   row.innerHTML = `
-                       <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
-                       <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
-                       <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
-                       <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
-                       <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
-                       <td class="px-4 py-2 text-center">
-                           <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
-                               ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                           </span>
-                       </td>
-                       <td class="px-4 py-2 text-center">
-                           <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
-                               Chi tiết
-                           </button>
-                       </td>
-                   `;
-                   emblemsTableBody.appendChild(row);
-               });
-           }
-       }
-
-       function exportData() {
-           showNotification('Đang xuất dữ liệu...', 'info');
-
-           setTimeout(() => {
-               const csvContent = generateCSVData();
-               downloadCSV(csvContent, 'bao_cao_van_tai.csv');
-               showNotification('Xuất dữ liệu thành công!', 'success');
-           }, 2000);
-       }
-
-       function generateCSVData() {
-           // Export licenses data
-           const licensesHeaders = [
-               'Số GPKD', 'Tên đơn vị', 'Địa chỉ', 'Ngày cấp', 
-               'Loại hình vận tải', 'Trạng thái', 'Ngày thu hồi'
-           ];
-           
-           let csvContent = 'DANH SÁCH GIẤY PHÉP KINH DOANH VẬN TẢI\n';
-           csvContent += licensesHeaders.join(',') + '\n';
-           
-           licensesData.forEach(license => {
-               const row = [
-                   license.SoGiayPhep || '',
-                   license.TenDonVi || '',
-                   license.DiaChi || '',
-                   formatDate(license.NgayCap),
-                   Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join('; ') : license.LoaiHinhVanTai || '',
-                   license.TrangThai || '',
-                   formatDate(license.NgayThuHoi)
-               ];
-               csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-           });
-
-           // Export emblems data
-           csvContent += '\n\nDANH SÁCH PHÙ HIỆU XE\n';
-           const emblemsHeaders = [
-               'Số phù hiệu', 'Biển số xe', 'Tên đơn vị', 'Ngày cấp', 
-               'Ngày hết hạn', 'Loại phù hiệu', 'Trạng thái'
-           ];
-           csvContent += emblemsHeaders.join(',') + '\n';
-           
-           emblemsData.forEach(emblem => {
-               const row = [
-                   emblem.SoPhuHieu || '',
-                   emblem.BienSo || '',
-                   emblem.Ten_don_vi || '',
-                   formatDate(emblem.NgayCap),
-                   formatDate(emblem.NgayHetHan),
-                   emblem.LoaiPH || '',
-                   isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || '')
-               ];
-               csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-           });
-
-           return csvContent;
-       }
-
-       function downloadCSV(csvContent, filename) {
-           const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-           const link = document.createElement('a');
-           if (link.download !== undefined) {
-               const url = URL.createObjectURL(blob);
-               link.setAttribute('href', url);
-               link.setAttribute('download', filename);
-               link.style.visibility = 'hidden';
-               document.body.appendChild(link);
-               link.click();
-               document.body.removeChild(link);
-           }
-       }
-
-       // Notification function
-       function showNotification(message, type = 'info') {
-           const notification = document.createElement('div');
-           notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transform transition-transform duration-300 translate-x-full`;
-
-           switch (type) {
-               case 'success':
-                   notification.classList.add('bg-green-500');
-                   break;
-               case 'error':
-                   notification.classList.add('bg-red-500');
-                   break;
-               case 'warning':
-                   notification.classList.add('bg-yellow-500');
-                   break;
-               default:
-                   notification.classList.add('bg-blue-500');
-           }
-
-           notification.innerHTML = `
-               <div class="flex items-center">
-                   <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
-                   <span>${message}</span>
-               </div>
-           `;
-
-           document.body.appendChild(notification);
-
-           setTimeout(() => {
-               notification.classList.remove('translate-x-full');
-           }, 100);
-
-           setTimeout(() => {
-               notification.classList.add('translate-x-full');
-               setTimeout(() => {
-                   if (document.body.contains(notification)) {
-                       document.body.removeChild(notification);
-                   }
-               }, 300);
-           }, 3000);
-       }
-
-       // Tab functionality
-       document.querySelectorAll('.nav-btn').forEach(btn => {
-           btn.addEventListener('click', () => {
-               // Remove active class from all buttons and content
-               document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-               document.querySelectorAll('.tab-content').forEach(content => {
-                   content.classList.add('hidden');
-                   content.classList.remove('active');
-               });
-
-               // Add active class to clicked button
-               btn.classList.add('active');
-
-               // Show corresponding content
-               const tabId = btn.getAttribute('data-tab');
-               const tabContent = document.getElementById(tabId);
-               tabContent.classList.remove('hidden');
-               tabContent.classList.add('active');
-
-               // Initialize charts when switching tabs
-               if (tabId === 'dashboard') {
-                   setTimeout(initDashboardCharts, 100);
-               } else if (tabId === 'statistics') {
-                   setTimeout(initStatisticsCharts, 100);
-               } else if (tabId === 'reports') {
-                   setTimeout(initReportCharts, 100);
-               }
-           });
-       });
-
-       // Initialize application
-       async function initializeApp() {
-           // Set default dates
-           const today = new Date();
-           const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-           document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
-           document.getElementById('endDate').value = today.toISOString().split('T')[0];
-
-           // Show loading notification
-           showNotification('Đang khởi tạo hệ thống...', 'info');
-
-           try {
-               // Load data from both tables
-               await Promise.all([
-                   fetchLicensesData(),
-                   fetchEmblemsData()
-               ]);
-
-               // Initialize dashboard charts
-               setTimeout(() => {
-                   initDashboardCharts();
-                   showNotification('Hệ thống đã sẵn sàng!', 'success');
-               }, 500);
-
-               // Update statistics
-               updateStatisticsData();
-
-           } catch (error) {
-               console.error('Lỗi khởi tạo ứng dụng:', error);
-               showNotification('Có lỗi xảy ra khi khởi tạo hệ thống', 'error');
-           }
-       }
-
-       function updateStatisticsData() {
-           // Count unique companies
-           const uniqueCompanies = new Set();
-           licensesData.forEach(license => {
-               if (license.TenDonVi) {
-                   uniqueCompanies.add(license.TenDonVi);
-               }
-           });
-
-           // Count active vehicles (emblems that are not expired or revoked)
-           const activeVehicles = emblemsData.filter(emblem => 
-               !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-           ).length;
-
-           // Update statistics UI
-           document.getElementById('statsCompanies').textContent = uniqueCompanies.size;
-           document.getElementById('statsActiveVehicles').textContent = activeVehicles;
-       }
-
-       // Event listeners
-       document.addEventListener('DOMContentLoaded', initializeApp);
-
-       // Keyboard shortcuts
-       document.addEventListener('keydown', function(e) {
-           if (e.ctrlKey) {
-               switch(e.key) {
-                   case '1':
-                       e.preventDefault();
-                       document.querySelector('[data-tab="dashboard"]').click();
-                       break;
-                   case '2':
-                       e.preventDefault();
-                       document.querySelector('[data-tab="licenses"]').click();
-                       break;
-                   case '3':
-                       e.preventDefault();
-                       document.querySelector('[data-tab="emblems"]').click();
-                       break;
-                   case '4':
-                       e.preventDefault();
-                       document.querySelector('[data-tab="statistics"]').click();
-                       break;
-                   case '5':
-                       e.preventDefault();
-                       document.querySelector('[data-tab="reports"]').click();
-                       break;
-                   case 'f':
-                       e.preventDefault();
-                       filterData();
-                       break;
-                   case 'e':
-                       e.preventDefault();
-                       exportData();
-                       break;
-               }
-           }
-       });
-
-       // Auto-refresh data every 10 minutes
-       setInterval(async () => {
-           showNotification('Đang làm mới dữ liệu...', 'info');
-           try {
-               await Promise.all([
-                   fetchLicensesData(),
-                   fetchEmblemsData()
-               ]);
-               updateStatisticsData();
-               showNotification('Dữ liệu đã được làm mới!', 'success');
-           } catch (error) {
-               console.error('Lỗi khi làm mới dữ liệu:', error);
-               showNotification('Không thể làm mới dữ liệu', 'error');
-           }
-       }, 600000); // 10 minutes
-
-       // Close modals when clicking outside
-       document.addEventListener('click', function(e) {
-           if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
-               const modalId = e.target.id;
-               if (modalId) {
-                   closeModal(modalId);
-               }
-           }
-       });
-
-       // Add CSS styles
-       const style = document.createElement('style');
-       style.textContent = `
-           .nav-btn.active {
-               background-color: #1e40af !important;
-               border-bottom: 3px solid #fbbf24;
-           }
-           
-           .tab-content {
-               animation: fadeIn 0.3s ease-in-out;
-           }
-           
-           @keyframes fadeIn {
-               from { opacity: 0; transform: translateY(10px); }
-               to { opacity: 1; transform: translateY(0); }
-           }
-           
-           ::-webkit-scrollbar {
-               width: 8px;
-           }
-           
-           ::-webkit-scrollbar-track {
-               background: #f1f5f9;
-           }
-           
-           ::-webkit-scrollbar-thumb {
-               background: #cbd5e1;
-               border-radius: 4px;
-           }
-           
-           ::-webkit-scrollbar-thumb:hover {
-               background: #94a3b8;
-           }
-           
-           .hover-card:hover {
-               transform: translateY(-2px);
-               box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-               transition: all 0.3s ease;
-           }
-           
-           .loading {
-               position: relative;
-               overflow: hidden;
-           }
-           
-           .loading::after {
-               content: '';
-               position: absolute;
-               top: 0;
-               left: -100%;
-               width: 100%;
-               height: 100%;
-               background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-               animation: loading 1.5s infinite;
-           }
-           
-           @keyframes loading {
-               0% { left: -100%; }
-               100% { left: 100%; }
-           }
-
-           /* Table hover effects */
-           tbody tr:hover {
-               background-color: #f8fafc;
-               transition: background-color 0.2s ease;
-           }
-
-           /* Button hover effects */
-           button:hover {
-               transform: translateY(-1px);
-               transition: transform 0.2s ease;
-           }
-
-           /* Modal animation */
-           .fixed.inset-0 {
-               animation: modalFadeIn 0.3s ease-out;
-           }
-
-           @keyframes modalFadeIn {
-               from { 
-                   opacity: 0;
-                   backdrop-filter: blur(0px);
-               }
-               to { 
-                   opacity: 1;
-                   backdrop-filter: blur(4px);
-               }
-           }
-
-           .fixed.inset-0 > div {
-               animation: modalSlideIn 0.3s ease-out;
-           }
-
-           @keyframes modalSlideIn {
-               from {
-                   transform: scale(0.9) translateY(-20px);
-                   opacity: 0;
-               }
-               to {
-                   transform: scale(1) translateY(0);
-                   opacity: 1;
-               }
-           }
-       `;
-       document.head.appendChild(style);
-
-   </script>
+            if (!dateString) return false;
+            try {
+                const expireDate = new Date(dateString);
+                return expireDate < new Date();
+            } catch {
+                return false;
+            }
+        }
+
+        function viewLicenseDetail(licenseId) {
+            const license = licensesData.find(item => item.ID_GPKD === licenseId);
+            if (license) {
+                showLicenseModal(license);
+            }
+        }
+
+        function viewEmblemDetail(emblemId) {
+            const emblem = emblemsData.find(item => item.ID_PhuHieu === emblemId);
+            if (emblem) {
+                showEmblemModal(emblem);
+            }
+        }
+
+        // Modal Functions
+        function showLicenseModal(license) {
+            const modalContent = `
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
+                  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                      <div class="flex justify-between items-center mb-4">
+                          <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
+                          <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
+                              <i class="fas fa-times"></i>
+                          </button>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
+                          <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
+                          <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
+                          <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
+                          <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                          <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
+                          <div><strong>Trạng thái:</strong> 
+                              <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
+                                  ${license.TrangThai || 'N/A'}
+                              </span>
+                          </div>
+                          <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
+                      </div>
+                      ${license.NgayThuHoi ? `
+                          <div class="mt-4 p-4 bg-red-50 rounded">
+                              <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                              <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                  <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
+                                  <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
+                                  <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
+                              </div>
+                          </div>
+                      ` : ''}
+                      ${license.GhiChu ? `
+                          <div class="mt-4">
+                              <strong>Ghi chú:</strong> ${license.GhiChu}
+                          </div>
+                      ` : ''}
+                  </div>
+              </div>
+          `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function showEmblemModal(emblem) {
+            const modalContent = `
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
+                  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                      <div class="flex justify-between items-center mb-4">
+                          <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
+                          <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
+                              <i class="fas fa-times"></i>
+                          </button>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
+                          <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
+                          <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
+                          <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
+                          <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
+                          <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
+                          <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
+                          <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
+                          <div><strong>Trạng thái:</strong> 
+                              <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
+                                  ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                              </span>
+                          </div>
+                          <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
+                      </div>
+                      ${emblem.NgayThuHoi ? `
+                          <div class="mt-4 p-4 bg-red-50 rounded">
+                              <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                              <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                  <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
+                                  <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
+                                  <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
+                              </div>
+                          </div>
+                      ` : ''}
+                      ${emblem.GhiChu ? `
+                          <div class="mt-4">
+                              <strong>Ghi chú:</strong> ${emblem.GhiChu}
+                          </div>
+                      ` : ''}
+                  </div>
+              </div>
+          `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Filter handling with apply to all option
+        function handleFilterToggle() {
+            const applyToAll = document.getElementById('applyToAll').checked;
+            const statusFilter = document.getElementById('statusFilter');
+
+            if (applyToAll) {
+                statusFilter.classList.add('filter-disabled');
+            } else {
+                statusFilter.classList.remove('filter-disabled');
+            }
+        }
+
+        // Enhanced filter function
+        function filterData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const status = document.getElementById('statusSelect').value;
+            const applyToAll = document.getElementById('applyToAll').checked;
+
+            showNotification('Đang lọc dữ liệu...', 'info');
+
+            let filteredLicenses = [...licensesData];
+            let filteredEmblems = [...emblemsData];
+            let filteredInternational = [...internationalData];
+
+            // Apply date filter to all
+            if (startDate && endDate) {
+                // Tạo Date object và set về đầu ngày để tránh vấn đề timezone
+                const start = new Date(startDate + 'T00:00:00');
+                const end = new Date(endDate + 'T23:59:59');
+
+                console.log('Filter dates:', {
+                    startDate,
+                    endDate,
+                    startDateObj: start,
+                    endDateObj: end
+                });
+
+                filteredLicenses = filteredLicenses.filter(license => {
+                    if (license.NgayCap) {
+                        // Parse ngày cấp và đảm bảo so sánh đúng
+                        const issueDate = parseAppSheetDate(license.NgayCap);
+                        const isInRange = issueDate >= start && issueDate <= end;
+
+                        if (!isInRange) {
+                            console.log('License filtered out:', {
+                                license: license.SoGiayPhep,
+                                issueDate: issueDate,
+                                isInRange
+                            });
+                        }
+
+                        return isInRange;
+                    }
+                    return false;
+                });
+
+                filteredEmblems = filteredEmblems.filter(emblem => {
+                    if (emblem.NgayCap) {
+                        const issueDate = parseAppSheetDate(emblem.NgayCap);
+                        return issueDate >= start && issueDate <= end;
+                    }
+                    return false;
+                });
+
+                filteredInternational = filteredInternational.filter(license => {
+                    if (license.NgayCap) {
+                        const issueDate = parseAppSheetDate(license.NgayCap);
+                        return issueDate >= start && issueDate <= end;
+                    }
+                    return false;
+                });
+            }
+
+            // Apply status filter only if not applying to all and specific tab is active
+            if (!applyToAll && status !== 'all') {
+                const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+
+                switch (activeTab) {
+                    case 'licenses':
+                        filteredLicenses = applyLicenseStatusFilter(filteredLicenses, status);
+                        break;
+                    case 'emblems':
+                        filteredEmblems = applyEmblemStatusFilter(filteredEmblems, status);
+                        break;
+                    case 'international':
+                        filteredInternational = applyInternationalStatusFilter(filteredInternational, status);
+                        break;
+                }
+            }
+
+            console.log('Filtered results:', {
+                licenses: filteredLicenses.length,
+                emblems: filteredEmblems.length,
+                international: filteredInternational.length
+            });
+
+            // Update UI with filtered data
+            setTimeout(() => {
+                updateFilteredUI(filteredLicenses, filteredEmblems, filteredInternational);
+                showNotification(`Đã lọc được ${filteredLicenses.length + filteredEmblems.length + filteredInternational.length} bản ghi!`, 'success');
+            }, 500);
+        }
+
+        function applyLicenseStatusFilter(data, status) {
+            switch (status) {
+                case 'active':
+                    return data.filter(license =>
+                        license.TrangThai !== 'Đã thu hồi' && license.TrangThai !== 'Hết hiệu lực'
+                    );
+                case 'expired':
+                    return data.filter(license =>
+                        license.TrangThai === 'Hết hiệu lực'
+                    );
+                case 'revoked':
+                    return data.filter(license =>
+                        license.TrangThai === 'Đã thu hồi' || license.NgayThuHoi
+                    );
+                default:
+                    return data;
+            }
+        }
+
+        function applyEmblemStatusFilter(data, status) {
+            switch (status) {
+                case 'active':
+                    return data.filter(emblem =>
+                        !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
+                    );
+                case 'expired':
+                    return data.filter(emblem =>
+                        isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
+                    );
+                case 'revoked':
+                    return data.filter(emblem =>
+                        emblem.TrangThai === 'Đã thu hồi' || emblem.NgayThuHoi
+                    );
+                default:
+                    return data;
+            }
+        }
+
+        function applyInternationalStatusFilter(data, status) {
+            switch (status) {
+                case 'active':
+                    return data.filter(license =>
+                        license.TrangThaiHoatDong === 'Đang hoạt động'
+                    );
+                case 'expired':
+                    return data.filter(license =>
+                        license.TrangThaiHoatDong === 'Ngừng tạm thời'
+                    );
+                case 'revoked':
+                    return data.filter(license =>
+                        license.TrangThaiHoatDong === 'Bị thu hồi GPKD'
+                    );
+                default:
+                    return data;
+            }
+        }
+
+        function updateFilteredUI(filteredLicenses, filteredEmblems, filteredInternational) {
+            const today = new Date();
+
+            // Tính toán lại các thống kê cho licenses
+            const activeLicenses = filteredLicenses.filter(item =>
+                item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
+            );
+            const revokedLicenses = filteredLicenses.filter(item =>
+                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
+            );
+            const expiredLicenses = filteredLicenses.filter(item =>
+                item.TrangThai === 'Hết hiệu lực'
+            );
+
+            // Tính toán lại các thống kê cho emblems
+            const activeEmblems = filteredEmblems.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
+                if (item.NgayHetHan) {
+                    const expireDate = new Date(item.NgayHetHan);
+                    return expireDate >= today;
+                }
+                return true;
+            });
+
+            const expiredEmblems = filteredEmblems.filter(item => {
+                if (item.NgayHetHan) {
+                    const expireDate = new Date(item.NgayHetHan);
+                    return expireDate < today && item.TrangThai !== 'Đã thu hồi';
+                }
+                return false;
+            });
+
+            const revokedEmblems = filteredEmblems.filter(item =>
+                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
+            );
+
+            // Tính toán lại các thống kê cho international
+            const activeInternational = filteredInternational.filter(item =>
+                item.TrangThaiHoatDong === 'Đang hoạt động'
+            );
+            const suspendedInternational = filteredInternational.filter(item =>
+                item.TrangThaiHoatDong === 'Ngừng tạm thời'
+            );
+            const revokedInternational = filteredInternational.filter(item =>
+                item.TrangThaiHoatDong === 'Bị thu hồi GPKD'
+            );
+
+            // Cập nhật Dashboard stats
+            document.getElementById('totalLicenses').textContent = filteredLicenses.length;
+            document.getElementById('activeEmblems').textContent = activeEmblems.length;
+            document.getElementById('expiredEmblems').textContent = expiredEmblems.length;
+            document.getElementById('revokedLicenses').textContent = revokedLicenses.length;
+            document.getElementById('totalInternational').textContent = filteredInternational.length;
+
+            // Cập nhật Licenses tab stats
+            document.getElementById('licensesIssued').textContent = filteredLicenses.length;
+            document.getElementById('licensesRevoked').textContent = revokedLicenses.length;
+            document.getElementById('activeLicenses').textContent = activeLicenses.length;
+
+            // Cập nhật Emblems tab stats
+            document.getElementById('emblemsIssued').textContent = filteredEmblems.length;
+            document.getElementById('emblemsRevoked').textContent = revokedEmblems.length;
+            document.getElementById('emblemsExpired').textContent = expiredEmblems.length;
+            document.getElementById('emblemsActive').textContent = activeEmblems.length;
+
+            // Cập nhật International tab stats
+            document.getElementById('internationalIssued').textContent = filteredInternational.length;
+            document.getElementById('internationalActive').textContent = activeInternational.length;
+            document.getElementById('internationalSuspended').textContent = suspendedInternational.length;
+            document.getElementById('internationalRevoked').textContent = revokedInternational.length;
+
+            // Cập nhật Statistics tab stats
+            document.getElementById('statsTotalLicenses').textContent = filteredLicenses.length;
+            document.getElementById('statsTotalEmblems').textContent = filteredEmblems.length;
+            document.getElementById('statsTotalInternational').textContent = filteredInternational.length;
+
+            // Cập nhật active vehicles và companies
+            const uniqueCompanies = new Set();
+            filteredLicenses.forEach(license => {
+                if (license.TenDonVi) {
+                    uniqueCompanies.add(license.TenDonVi);
+                }
+            });
+            document.getElementById('statsCompanies').textContent = uniqueCompanies.size;
+            document.getElementById('statsActiveVehicles').textContent = activeEmblems.length;
+
+            // Cập nhật tables
+            updateFilteredTables(filteredLicenses, filteredEmblems, filteredInternational);
+
+            // Cập nhật charts nếu đang ở tab có charts
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+            if (activeTab === 'dashboard') {
+                updateFilteredCharts(filteredLicenses, filteredEmblems);
+            } else if (activeTab === 'statistics') {
+                updateFilteredStatisticsCharts(filteredLicenses, filteredEmblems, filteredInternational);
+            }
+        }
+
+        function updateFilteredCharts(filteredLicenses, filteredEmblems) {
+            // Cập nhật license chart
+            const licenseChart = Chart.getChart('licenseChart');
+            if (licenseChart) {
+                const monthlyData = groupLicensesByMonth(filteredLicenses);
+                licenseChart.data.labels = monthlyData.labels;
+                licenseChart.data.datasets[0].data = monthlyData.issued;
+                licenseChart.data.datasets[1].data = monthlyData.revoked;
+                licenseChart.update();
+            }
+
+            // Cập nhật emblem chart
+            const emblemChart = Chart.getChart('emblemChart');
+            if (emblemChart) {
+                const typeData = groupEmblemsByType(filteredEmblems);
+                emblemChart.data.labels = typeData.labels;
+                emblemChart.data.datasets[0].data = typeData.values;
+                emblemChart.update();
+            }
+        }
+
+        function updateFilteredStatisticsCharts(filteredLicenses, filteredEmblems, filteredInternational) {
+            // Cập nhật transport type chart
+            const transportChart = Chart.getChart('transportTypeChart');
+            if (transportChart) {
+                const transportData = groupLicensesByTransportType(filteredLicenses);
+                transportChart.data.labels = transportData.labels;
+                transportChart.data.datasets[0].data = transportData.values;
+                transportChart.update();
+            }
+
+            // Cập nhật status chart
+            const statusChart = Chart.getChart('statusChart');
+            if (statusChart) {
+                const statusData = getStatusStatistics(filteredLicenses, filteredEmblems, filteredInternational);
+                statusChart.data.datasets[0].data = [statusData.licenses.active, statusData.emblems.active, statusData.international.active];
+                statusChart.data.datasets[1].data = [statusData.licenses.expired, statusData.emblems.expired, statusData.international.suspended];
+                statusChart.data.datasets[2].data = [statusData.licenses.revoked, statusData.emblems.revoked, statusData.international.revoked];
+                statusChart.update();
+            }
+        }
+
+        function updateFilteredTables(filteredLicenses, filteredEmblems, filteredInternational) {
+            // Update licenses table
+            const licensesTableBody = document.getElementById('licensesTableBody');
+            if (licensesTableBody) {
+                licensesTableBody.innerHTML = '';
+                filteredLicenses.slice(0, 50).forEach(license => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+
+                    const statusClass = getStatusClass(license.TrangThai);
+                    const transportTypes = Array.isArray(license.LoaiHinhVanTai)
+                        ? license.LoaiHinhVanTai.join(', ')
+                        : license.LoaiHinhVanTai || 'N/A';
+
+                    row.innerHTML = `
+                      <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
+                      <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
+                      <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                      <td class="px-4 py-2 text-center">${transportTypes}</td>
+                      <td class="px-4 py-2 text-center">
+                          <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                              ${license.TrangThai || 'N/A'}
+                          </span>
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                          <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
+                              Chi tiết
+                          </button>
+                      </td>
+                  `;
+                    licensesTableBody.appendChild(row);
+                });
+            }
+
+            // Update emblems table
+            const emblemsTableBody = document.getElementById('emblemsTableBody');
+            if (emblemsTableBody) {
+                emblemsTableBody.innerHTML = '';
+                filteredEmblems.slice(0, 50).forEach(emblem => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+
+                    const statusClass = getStatusClass(emblem.TrangThai);
+                    const isExpired = isEmblemExpired(emblem.NgayHetHan);
+                    row.innerHTML = `
+                      <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
+                      <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
+                      <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
+                      <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
+                      <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
+                      <td class="px-4 py-2 text-center">
+                          <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
+                              ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                          </span>
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                          <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
+                              Chi tiết
+                          </button>
+                      </td>
+                  `;
+                    emblemsTableBody.appendChild(row);
+                });
+            }
+
+            // Update international table
+            const internationalTableBody = document.getElementById('internationalTableBody');
+            if (internationalTableBody) {
+                internationalTableBody.innerHTML = '';
+                filteredInternational.slice(0, 50).forEach(license => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+
+                    const statusClass = getInternationalStatusClass(license.TrangThaiHoatDong);
+                    const moHinhHoatDong = Array.isArray(license.MoHinhHoatDong)
+                        ? license.MoHinhHoatDong.join(', ')
+                        : license.MoHinhHoatDong || 'N/A';
+
+                    row.innerHTML = `
+                      <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
+                      <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
+                      <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                      <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
+                      <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
+                      <td class="px-4 py-2 text-center">
+                          <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                              ${license.TrangThaiHoatDong || 'N/A'}
+                          </span>
+                      </td>
+                      <td class="px-4 py-2 text-center">
+                          <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
+                              Chi tiết
+                          </button>
+                      </td>
+                  `;
+                    internationalTableBody.appendChild(row);
+                });
+            }
+        }
+
+        // Export function with international data
+        function exportData() {
+            showNotification('Đang xuất dữ liệu...', 'info');
+
+            setTimeout(() => {
+                const csvContent = generateCSVData();
+                downloadCSV(csvContent, 'bao_cao_van_tai.csv');
+                showNotification('Xuất dữ liệu thành công!', 'success');
+            }, 2000);
+        }
+
+        function generateCSVData() {
+            // Export licenses data
+            const licensesHeaders = [
+                'Số GPKD', 'Tên đơn vị', 'Địa chỉ', 'Ngày cấp',
+                'Loại hình vận tải', 'Trạng thái', 'Ngày thu hồi'
+            ];
+
+            let csvContent = 'DANH SÁCH GIẤY PHÉP KINH DOANH VẬN TẢI\n';
+            csvContent += licensesHeaders.join(',') + '\n';
+
+            licensesData.forEach(license => {
+                const row = [
+                    license.SoGiayPhep || '',
+                    license.TenDonVi || '',
+                    license.DiaChi || '',
+                    formatDate(license.NgayCap),
+                    Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join('; ') : license.LoaiHinhVanTai || '',
+                    license.TrangThai || '',
+                    formatDate(license.NgayThuHoi)
+                ];
+                csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+            });
+
+            // Export emblems data
+            csvContent += '\n\nDANH SÁCH PHÙ HIỆU XE\n';
+            const emblemsHeaders = [
+                'Số phù hiệu', 'Biển số xe', 'Tên đơn vị', 'Ngày cấp',
+                'Ngày hết hạn', 'Loại phù hiệu', 'Trạng thái'
+            ];
+            csvContent += emblemsHeaders.join(',') + '\n';
+
+            emblemsData.forEach(emblem => {
+                const row = [
+                    emblem.SoPhuHieu || '',
+                    emblem.BienSo || '',
+                    emblem.Ten_don_vi || '',
+                    formatDate(emblem.NgayCap),
+                    formatDate(emblem.NgayHetHan),
+                    emblem.LoaiPH || '',
+                    isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || '')
+                ];
+                csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+            });
+
+            // Export international data
+            csvContent += '\n\nDANH SÁCH GIẤY PHÉP LIÊN VẬN QUỐC TẾ\n';
+            const internationalHeaders = [
+                'Số GP', 'Tên đơn vị', 'Ngày cấp', 'Loại cấp',
+                'Mô hình hoạt động', 'Trạng thái'
+            ];
+            csvContent += internationalHeaders.join(',') + '\n';
+
+            internationalData.forEach(license => {
+                const row = [
+                    license.SoGPLienVanQT || '',
+                    license.TenDonViHienThi || '',
+                    formatDate(license.NgayCap),
+                    license.LoaiCap || '',
+                    Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join('; ') : license.MoHinhHoatDong || '',
+                    license.TrangThaiHoatDong || ''
+                ];
+                csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+            });
+
+            return csvContent;
+        }
+
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Chart Functions
+        function initDashboardCharts() {
+            initLicenseChart();
+            initEmblemChart();
+        }
+
+        function initLicenseChart() {
+            const ctx = document.getElementById('licenseChart');
+            if (ctx && licensesData.length > 0) {
+                // Group licenses by month
+                const monthlyData = groupLicensesByMonth();
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: monthlyData.labels,
+                        datasets: [{
+                            label: 'GPKD được cấp',
+                            data: monthlyData.issued,
+                            borderColor: '#3B82F6',
+                            backgroundColor: '#3B82F620',
+                            tension: 0.4
+                        }, {
+                            label: 'GPKD bị thu hồi',
+                            data: monthlyData.revoked,
+                            borderColor: '#EF4444',
+                            backgroundColor: '#EF444420',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initEmblemChart() {
+            const ctx = document.getElementById('emblemChart');
+            if (ctx && emblemsData.length > 0) {
+                // Group emblems by type
+                const typeData = groupEmblemsByType();
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: typeData.labels,
+                        datasets: [{
+                            data: typeData.values,
+                            backgroundColor: [
+                                '#3B82F6',
+                                '#10B981',
+                                '#F59E0B',
+                                '#8B5CF6',
+                                '#EF4444',
+                                '#6366F1'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initStatisticsCharts() {
+            initTransportTypeChart();
+            initStatusChart();
+        }
+
+        function initTransportTypeChart() {
+            const ctx = document.getElementById('transportTypeChart');
+            if (ctx && licensesData.length > 0) {
+                const transportData = groupLicensesByTransportType();
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: transportData.labels,
+                        datasets: [{
+                            data: transportData.values,
+                            backgroundColor: [
+                                '#10B981',
+                                '#F59E0B',
+                                '#8B5CF6',
+                                '#3B82F6',
+                                '#EF4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initStatusChart() {
+            const ctx = document.getElementById('statusChart');
+            if (ctx && licensesData.length > 0 && emblemsData.length > 0) {
+                const statusData = getStatusStatistics();
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['GPKD', 'Phù hiệu', 'GP Liên vận QT'],
+                        datasets: [{
+                            label: 'Còn hiệu lực',
+                            data: [statusData.licenses.active, statusData.emblems.active, statusData.international.active],
+                            backgroundColor: '#10B981'
+                        }, {
+                            label: 'Hết hạn/Tạm ngừng',
+                            data: [statusData.licenses.expired, statusData.emblems.expired, statusData.international.suspended],
+                            backgroundColor: '#F59E0B'
+                        }, {
+                            label: 'Bị thu hồi',
+                            data: [statusData.licenses.revoked, statusData.emblems.revoked, statusData.international.revoked],
+                            backgroundColor: '#EF4444'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initReportCharts() {
+            initLicenseTrendChart();
+            initEmblemTrendChart();
+        }
+
+        function initLicenseTrendChart() {
+            const ctx = document.getElementById('licenseTrendChart');
+            if (ctx && licensesData.length > 0) {
+                const trendData = getLicenseTrendData();
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [{
+                            label: 'GPKD được cấp',
+                            data: trendData.values,
+                            borderColor: '#3B82F6',
+                            backgroundColor: '#3B82F620',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initEmblemTrendChart() {
+            const ctx = document.getElementById('emblemTrendChart');
+            if (ctx && emblemsData.length > 0) {
+                const trendData = getEmblemTrendData();
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [{
+                            label: 'Phù hiệu được cấp',
+                            data: trendData.issued,
+                            backgroundColor: '#10B981'
+                        }, {
+                            label: 'Phù hiệu bị thu hồi',
+                            data: trendData.revoked,
+                            backgroundColor: '#EF4444'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function groupLicensesByMonth(dataToUse = licensesData) {
+            const monthCounts = {};
+            const revokedCounts = {};
+
+            dataToUse.forEach(license => {
+                if (license.NgayCap) {
+                    const month = new Date(license.NgayCap).toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: 'short'
+                    });
+                    monthCounts[month] = (monthCounts[month] || 0) + 1;
+                }
+
+                if (license.NgayThuHoi) {
+                    const month = new Date(license.NgayThuHoi).toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: 'short'
+                    });
+                    revokedCounts[month] = (revokedCounts[month] || 0) + 1;
+                }
+            });
+
+            const allMonths = [...new Set([...Object.keys(monthCounts), ...Object.keys(revokedCounts)])].sort();
+
+            return {
+                labels: allMonths,
+                issued: allMonths.map(month => monthCounts[month] || 0),
+                revoked: allMonths.map(month => revokedCounts[month] || 0)
+            };
+        }
+
+        function groupEmblemsByType(dataToUse = emblemsData) {
+            const typeCounts = {};
+
+            dataToUse.forEach(emblem => {
+                const type = emblem.LoaiPH || 'Khác';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            return {
+                labels: Object.keys(typeCounts),
+                values: Object.values(typeCounts)
+            };
+        }
+
+        function groupLicensesByTransportType(dataToUse = licensesData) {
+            const typeCounts = {};
+
+            dataToUse.forEach(license => {
+                if (Array.isArray(license.LoaiHinhVanTai)) {
+                    license.LoaiHinhVanTai.forEach(type => {
+                        typeCounts[type] = (typeCounts[type] || 0) + 1;
+                    });
+                } else if (license.LoaiHinhVanTai) {
+                    const type = license.LoaiHinhVanTai;
+                    typeCounts[type] = (typeCounts[type] || 0) + 1;
+                }
+            });
+
+            return {
+                labels: Object.keys(typeCounts),
+                values: Object.values(typeCounts)
+            };
+        }
+
+        function getStatusStatistics(filteredLicenses = licensesData, filteredEmblems = emblemsData, filteredInternational = internationalData) {
+            const today = new Date();
+
+            // License statistics
+            const activeLicenses = filteredLicenses.filter(item =>
+                item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
+            ).length;
+            const revokedLicenses = filteredLicenses.filter(item =>
+                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
+            ).length;
+            const expiredLicenses = filteredLicenses.filter(item =>
+                item.TrangThai === 'Hết hiệu lực'
+            ).length;
+
+            // Emblem statistics
+            const activeEmblems = filteredEmblems.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
+                if (item.NgayHetHan) {
+                    const expireDate = new Date(item.NgayHetHan);
+                    return expireDate >= today;
+                }
+                return true;
+            }).length;
+
+            const expiredEmblems = filteredEmblems.filter(item => {
+                if (item.NgayHetHan) {
+                    const expireDate = new Date(item.NgayHetHan);
+                    return expireDate < today && item.TrangThai !== 'Đã thu hồi';
+                }
+                return false;
+            }).length;
+
+            const revokedEmblems = filteredEmblems.filter(item =>
+                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
+            ).length;
+
+            // International statistics
+            const activeInternational = filteredInternational.filter(item =>
+                item.TrangThaiHoatDong === 'Đang hoạt động'
+            ).length;
+
+            const suspendedInternational = filteredInternational.filter(item =>
+                item.TrangThaiHoatDong === 'Ngừng tạm thời'
+            ).length;
+
+            const revokedInternational = filteredInternational.filter(item =>
+                item.TrangThaiHoatDong === 'Bị thu hồi GPKD'
+            ).length;
+
+            return {
+                licenses: {
+                    active: activeLicenses,
+                    expired: expiredLicenses,
+                    revoked: revokedLicenses
+                },
+                emblems: {
+                    active: activeEmblems,
+                    expired: expiredEmblems,
+                    revoked: revokedEmblems
+                },
+                international: {
+                    active: activeInternational,
+                    suspended: suspendedInternational,
+                    revoked: revokedInternational
+                }
+            };
+        }
+
+        function getLicenseTrendData() {
+            const last12Months = [];
+            const today = new Date();
+
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                last12Months.push(date.toLocaleDateString('vi-VN', { year: 'numeric', month: 'short' }));
+            }
+
+            const counts = last12Months.map(month => {
+                return licensesData.filter(license => {
+                    if (license.NgayCap) {
+                        const licenseMonth = new Date(license.NgayCap).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'short'
+                        });
+                        return licenseMonth === month;
+                    }
+                    return false;
+                }).length;
+            });
+
+            return {
+                labels: last12Months,
+                values: counts
+            };
+        }
+
+        function getEmblemTrendData() {
+            const last12Months = [];
+            const today = new Date();
+
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                last12Months.push(date.toLocaleDateString('vi-VN', { year: 'numeric', month: 'short' }));
+            }
+
+            const issuedCounts = last12Months.map(month => {
+                return emblemsData.filter(emblem => {
+                    if (emblem.NgayCap) {
+                        const emblemMonth = new Date(emblem.NgayCap).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'short'
+                        });
+                        return emblemMonth === month;
+                    }
+                    return false;
+                }).length;
+            });
+
+            const revokedCounts = last12Months.map(month => {
+                return emblemsData.filter(emblem => {
+                    if (emblem.NgayThuHoi) {
+                        const revokeMonth = new Date(emblem.NgayThuHoi).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'short'
+                        });
+                        return revokeMonth === month;
+                    }
+                    return false;
+                }).length;
+            });
+
+            return {
+                labels: last12Months,
+                issued: issuedCounts,
+                revoked: revokedCounts
+            };
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transform transition-transform duration-300 translate-x-full`;
+
+            switch (type) {
+                case 'success':
+                    notification.classList.add('bg-green-500');
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500');
+                    break;
+                default:
+                    notification.classList.add('bg-blue-500');
+            }
+
+            notification.innerHTML = `
+              <div class="flex items-center">
+                  <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
+                  <span>${message}</span>
+              </div>
+          `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Tab functionality
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('active');
+                });
+
+                // Add active class to clicked button
+                btn.classList.add('active');
+
+                // Show corresponding content
+                const tabId = btn.getAttribute('data-tab');
+                const tabContent = document.getElementById(tabId);
+                tabContent.classList.remove('hidden');
+                tabContent.classList.add('active');
+
+                // Initialize charts when switching tabs
+                if (tabId === 'dashboard') {
+                    setTimeout(initDashboardCharts, 100);
+                } else if (tabId === 'statistics') {
+                    setTimeout(initStatisticsCharts, 100);
+                } else if (tabId === 'reports') {
+                    setTimeout(initReportCharts, 100);
+                }
+            });
+        });
+
+        // Initialize application
+        async function initializeApp() {
+            // Set default dates
+            const today = new Date();
+            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+            // Add event listener for filter toggle
+            document.getElementById('applyToAll').addEventListener('change', handleFilterToggle);
+
+            // Show loading notification
+            showNotification('Đang khởi tạo hệ thống...', 'info');
+
+            try {
+                // Load data from all tables
+                await Promise.all([
+                    fetchLicensesData(),
+                    fetchEmblemsData(),
+                    fetchInternationalData()
+                ]);
+
+                // Initialize dashboard charts
+                setTimeout(() => {
+                    initDashboardCharts();
+                    showNotification('Hệ thống đã sẵn sàng!', 'success');
+                }, 500);
+
+                // Update statistics
+                updateStatisticsData();
+
+            } catch (error) {
+                console.error('Lỗi khởi tạo ứng dụng:', error);
+                showNotification('Có lỗi xảy ra khi khởi tạo hệ thống', 'error');
+            }
+        }
+
+        function updateStatisticsData() {
+            // Count unique companies
+            const uniqueCompanies = new Set();
+            licensesData.forEach(license => {
+                if (license.TenDonVi) {
+                    uniqueCompanies.add(license.TenDonVi);
+                }
+            });
+
+            // Count active vehicles (emblems that are not expired or revoked)
+            const activeVehicles = emblemsData.filter(emblem =>
+                !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
+            ).length;
+
+            // Update statistics UI
+            document.getElementById('statsCompanies').textContent = uniqueCompanies.size;
+            document.getElementById('statsActiveVehicles').textContent = activeVehicles;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey) {
+                switch (e.key) {
+                    case '1':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="dashboard"]').click();
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="licenses"]').click();
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="emblems"]').click();
+                        break;
+                    case '4':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="international"]').click();
+                        break;
+                    case '5':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="statistics"]').click();
+                        break;
+                    case '6':
+                        e.preventDefault();
+                        document.querySelector('[data-tab="reports"]').click();
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        filterData();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        exportData();
+                        break;
+                }
+            }
+        });
+
+        // Auto-refresh data every 10 minutes
+        setInterval(async () => {
+            showNotification('Đang làm mới dữ liệu...', 'info');
+            try {
+                await Promise.all([
+                    fetchLicensesData(),
+                    fetchEmblemsData(),
+                    fetchInternationalData()
+                ]);
+                updateStatisticsData();
+                showNotification('Dữ liệu đã được làm mới!', 'success');
+            } catch (error) {
+                console.error('Lỗi khi làm mới dữ liệu:', error);
+                showNotification('Không thể làm mới dữ liệu', 'error');
+            }
+        }, 600000); // 10 minutes
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+                const modalId = e.target.id;
+                if (modalId) {
+                    closeModal(modalId);
+                }
+            }
+        });
+
+        // Add CSS styles
+        const style = document.createElement('style');
+        style.textContent = `
+          .nav-btn.active {
+              background-color: #1e40af !important;
+              border-bottom: 3px solid #fbbf24;
+          }
+          
+          .tab-content {
+              animation: fadeIn 0.3s ease-in-out;
+          }
+          
+          @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+          }
+          
+          ::-webkit-scrollbar {
+              width: 8px;
+          }
+          
+          ::-webkit-scrollbar-track {
+              background: #f1f5f9;
+          }
+          
+          ::-webkit-scrollbar-thumb {
+              background: #cbd5e1;
+              border-radius: 4px;
+          }
+          
+          ::-webkit-scrollbar-thumb:hover {
+              background: #94a3b8;
+          }
+          
+          .hover-card:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+              transition: all 0.3s ease;
+          }
+          
+          .loading {
+              position: relative;
+              overflow: hidden;
+          }
+          
+          .loading::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+              animation: loading 1.5s infinite;
+          }
+          
+          @keyframes loading {
+              0% { left: -100%; }
+              100% { left: 100%; }
+          }
+
+          /* Table hover effects */
+          tbody tr:hover {
+              background-color: #f8fafc;
+              transition: background-color 0.2s ease;
+          }
+
+          /* Button hover effects */
+          button:hover {
+              transform: translateY(-1px);
+              transition: transform 0.2s ease;
+          }
+
+          /* Modal animation */
+          .fixed.inset-0 {
+              animation: modalFadeIn 0.3s ease-out;
+              backdrop-filter: blur(4px);
+          }
+
+          @keyframes modalFadeIn {
+              from { 
+                  opacity: 0;
+                  backdrop-filter: blur(0px);
+              }
+              to { 
+                  opacity: 1;
+                  backdrop-filter: blur(4px);
+              }
+          }
+
+          .fixed.inset-0 > div {
+              animation: modalSlideIn 0.3s ease-out;
+          }
+
+          @keyframes modalSlideIn {
+              from {
+                  transform: scale(0.9) translateY(-20px);
+                  opacity: 0;
+              }
+              to {
+                  transform: scale(1) translateY(0);
+                  opacity: 1;
+              }
+          }
+
+          /* Filter disabled state */
+          .filter-disabled {
+              opacity: 0.5;
+              pointer-events: none;
+              transition: opacity 0.3s ease;
+          }
+
+          /* Responsive navigation */
+          @media (max-width: 768px) {
+              .nav-btn {
+                  font-size: 0.875rem;
+                  padding: 0.75rem 0.5rem;
+              }
+              
+              .nav-btn i {
+                  display: none;
+              }
+          }
+
+          /* Enhanced stats cards */
+          .stats-grid > div {
+              transition: all 0.3s ease;
+          }
+
+          .stats-grid > div:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+          }
+
+          /* Custom checkbox style */
+          input[type="checkbox"] {
+              accent-color: #3B82F6;
+          }
+
+          /* Notification improvements */
+          .notification-enter {
+              transform: translateX(100%);
+              opacity: 0;
+          }
+
+          .notification-enter-active {
+              transform: translateX(0);
+              opacity: 1;
+              transition: all 0.3s ease-out;
+          }
+
+          .notification-exit {
+              transform: translateX(0);
+              opacity: 1;
+          }
+
+          .notification-exit-active {
+              transform: translateX(100%);
+              opacity: 0;
+              transition: all 0.3s ease-in;
+          }
+
+          /* Table improvements */
+          .table-container {
+              border-radius: 0.5rem;
+              overflow: hidden;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+
+          thead th {
+              background: linear-gradient(to right, #f8fafc, #f1f5f9);
+              font-weight: 600;
+              text-transform: uppercase;
+              font-size: 0.75rem;
+              letter-spacing: 0.05em;
+              border-bottom: 2px solid #e2e8f0;
+          }
+
+          /* Loading states */
+          .skeleton {
+              background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+              background-size: 200% 100%;
+              animation: loading 1.5s infinite;
+          }
+
+          /* Chart container improvements */
+          .chart-container {
+              background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+              border-radius: 0.5rem;
+              padding: 1rem;
+              box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+          }
+
+          /* Status badge improvements */
+          .status-badge {
+              display: inline-flex;
+              align-items: center;
+              font-weight: 500;
+              border: 1px solid;
+          }
+
+          .status-badge::before {
+              content: '';
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              margin-right: 0.375rem;
+              background-color: currentColor;
+          }
+      `;
+        document.head.appendChild(style);
+
+    </script>
 </body>
+
 </html>
