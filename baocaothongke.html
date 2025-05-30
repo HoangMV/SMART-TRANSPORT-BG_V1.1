@@ -69,6 +69,67 @@
             opacity: 0.5;
             pointer-events: none;
         }
+
+        /* Specific filter styles */
+        .specific-filters {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-section {
+            transition: all 0.3s ease;
+        }
+
+        .filter-section.hidden {
+            display: none;
+        }
+
+        /* Style cho button lọc riêng */
+        .specific-filters .flex.gap-2 button {
+            transition: all 0.2s ease;
+        }
+
+        .specific-filters .flex.gap-2 button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
     </style>
 </head>
 
@@ -115,7 +176,7 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex flex-wrap items-center gap-4 mb-4">
                 <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="applyToAll" class="rounded">
+                    <input type="checkbox" id="applyToAll" class="rounded" checked>
                     <label for="applyToAll" class="font-medium text-blue-600">Áp dụng cho tất cả</label>
                 </div>
             </div>
@@ -128,21 +189,123 @@
                     <label class="font-medium">Đến ngày:</label>
                     <input type="date" id="endDate" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div id="statusFilter" class="flex items-center space-x-2">
-                    <label class="font-medium">Trạng thái:</label>
-                    <select id="statusSelect" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                        <option value="all">Tất cả</option>
-                        <option value="active">Còn hiệu lực</option>
-                        <option value="expired">Hết hạn</option>
-                        <option value="revoked">Bị thu hồi</option>
-                    </select>
-                </div>
                 <button onclick="filterData()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     <i class="fas fa-search mr-2"></i>Lọc dữ liệu
                 </button>
                 <button onclick="exportData()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
                     <i class="fas fa-download mr-2"></i>Xuất Excel
                 </button>
+            </div>
+
+            <!-- Bộ lọc riêng cho từng tab -->
+            <div id="specificFilters" class="specific-filters filter-disabled">
+                <h4 class="font-semibold text-gray-800 mb-3">Bộ lọc riêng</h4>
+
+                <!-- Bộ lọc cho Giấy phép -->
+                <div id="licenseFilters" class="filter-section hidden">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>TÊN ĐƠN VỊ</label>
+                            <input type="text" id="licenseCompanyFilter" placeholder="Nhập tên đơn vị..."
+                                class="w-full">
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI CẤP</label>
+                            <select id="licenseTypeFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI HÌNH VẬN TẢI</label>
+                            <select id="licenseTransportFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI</label>
+                            <select id="licenseStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                                <option value="active">Còn hiệu lực</option>
+                                <option value="expired">Hết hiệu lực</option>
+                                <option value="revoked">Đã thu hồi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bộ lọc cho Phù hiệu -->
+                <div id="emblemFilters" class="filter-section hidden">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>TÊN ĐƠN VỊ</label>
+                            <input type="text" id="emblemCompanyFilter" placeholder="Nhập tên đơn vị..." class="w-full">
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI PHÙ HIỆU</label>
+                            <select id="emblemTypeFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI CẤP</label>
+                            <select id="emblemCapFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI</label>
+                            <select id="emblemStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                                <option value="active">Còn hiệu lực</option>
+                                <option value="expired">Hết hạn</option>
+                                <option value="revoked">Đã thu hồi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bộ lọc cho GP Liên vận QT -->
+                <div id="internationalFilters" class="filter-section hidden">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>TÊN ĐƠN VỊ</label>
+                            <input type="text" id="internationalCompanyFilter" placeholder="Nhập tên đơn vị..."
+                                class="w-full">
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI CẤP</label>
+                            <select id="internationalTypeFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>MÔ HÌNH HOẠT ĐỘNG</label>
+                            <select id="internationalModelFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI</label>
+                            <select id="internationalStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                                <option value="active">Đang hoạt động</option>
+                                <option value="suspended">Ngừng tạm thời</option>
+                                <option value="revoked">Bị thu hồi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-4">
+                    <button onclick="applySpecificFilters()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2">
+                        <i class="fas fa-filter"></i> Lọc riêng
+                    </button>
+                    <button onclick="clearSpecificFilters()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md flex items-center gap-2">
+                        <i class="fas fa-times"></i> Xóa bộ lọc riêng
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -236,7 +399,7 @@
                 </div>
 
                 <!-- License Details Table -->
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto mt-6">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
                             <tr>
@@ -282,7 +445,7 @@
                 </div>
 
                 <!-- Emblem Details Table -->
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto mt-6">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
                             <tr>
@@ -438,6 +601,10 @@
         let emblemsData = [];
         let internationalData = [];
 
+        // Filtered data variables
+        let filteredLicensesData = [];
+        let filteredEmblemsData = [];
+
         // API Request Function
         async function apiRequest(tableName, action, data = {}) {
             const apiUrl = `https://${region}.appsheet.com/api/v2/apps/${appId}/tables/${tableName}/Action`;
@@ -529,22 +696,22 @@
                     : license.MoHinhHoatDong || 'N/A';
 
                 row.innerHTML = `
-                    <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
-                    <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
-                    <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                    <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
-                    <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
-                    <td class="px-4 py-2 text-center">
-                        <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                            ${license.TrangThaiHoatDong || 'N/A'}
-                        </span>
-                    </td>
-                    <td class="px-4 py-2 text-center">
-                        <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
-                            Chi tiết
-                        </button>
-                    </td>
-                `;
+                   <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
+                   <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                   <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
+                   <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
+                   <td class="px-4 py-2 text-center">
+                       <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                           ${license.TrangThaiHoatDong || 'N/A'}
+                       </span>
+                   </td>
+                   <td class="px-4 py-2 text-center">
+                       <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
+                           Chi tiết
+                       </button>
+                   </td>
+               `;
                 tableBody.appendChild(row);
             });
         }
@@ -576,36 +743,36 @@
         // Show International Modal
         function showInternationalModal(license) {
             const modalContent = `
-               <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
-                   <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
-                       <div class="flex justify-between items-center mb-4">
-                           <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
-                           <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
-                               <i class="fas fa-times"></i>
-                           </button>
-                       </div>
-                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || 'N/A'}</div>
-                           <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || 'N/A'}</div>
-                           <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || 'N/A'}</div>
-                           <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                           <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                           <div><strong>Trạng thái hoạt động:</strong> 
-                               <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
-                                   ${license.TrangThaiHoatDong || 'N/A'}
-                               </span>
-                           </div>
-                           <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || 'N/A'}</div>
-                       </div>
-                       ${license.Lydocaplai ? `
-                           <div class="mt-4 p-4 bg-blue-50 rounded">
-                               <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
-                               <div class="mt-2">${license.Lydocaplai}</div>
-                           </div>
-                       ` : ''}
-                   </div>
-               </div>
-           `;
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
+                  <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
+                      <div class="flex justify-between items-center mb-4">
+                          <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
+                          <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
+                              <i class="fas fa-times"></i>
+                          </button>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || 'N/A'}</div>
+                          <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || 'N/A'}</div>
+                          <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || 'N/A'}</div>
+                          <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                          <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
+                          <div><strong>Trạng thái hoạt động:</strong> 
+                              <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
+                                  ${license.TrangThaiHoatDong || 'N/A'}
+                              </span>
+                          </div>
+                          <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || 'N/A'}</div>
+                      </div>
+                      ${license.Lydocaplai ? `
+                          <div class="mt-4 p-4 bg-blue-50 rounded">
+                              <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
+                              <div class="mt-2">${license.Lydocaplai}</div>
+                          </div>
+                      ` : ''}
+                  </div>
+              </div>
+          `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
@@ -619,8 +786,10 @@
 
                 if (Array.isArray(response)) {
                     licensesData = response;
+                    filteredLicensesData = [...licensesData];
                     console.log('Dữ liệu GPKD:', licensesData);
                     updateLicensesUI();
+                    populateLicenseFilters();
                 } else {
                     throw new Error('Dữ liệu không hợp lệ');
                 }
@@ -640,8 +809,10 @@
 
                 if (Array.isArray(response)) {
                     emblemsData = response;
+                    filteredEmblemsData = [...emblemsData];
                     console.log('Dữ liệu phù hiệu:', emblemsData);
                     updateEmblemsUI();
+                    populateEmblemFilters();
                 } else {
                     throw new Error('Dữ liệu không hợp lệ');
                 }
@@ -649,6 +820,188 @@
                 console.error('Lỗi khi lấy dữ liệu phù hiệu:', error);
                 showNotification('Không thể tải dữ liệu phù hiệu', 'error');
             }
+        }
+
+        // Function để populate dropdown options từ dữ liệu thực tế
+        function populateFilterOptions() {
+            // Populate license filters
+            populateLicenseFilters();
+            populateEmblemFilters();
+            populateInternationalFilters();
+        }
+
+        function populateLicenseFilters() {
+            const typeFilter = document.getElementById('licenseTypeFilter');
+            const transportFilter = document.getElementById('licenseTransportFilter');
+
+            // Get unique values
+            const types = [...new Set(licensesData.map(item => item.LoaiCap).filter(Boolean))];
+            const transports = [...new Set(licensesData.flatMap(item =>
+                Array.isArray(item.LoaiHinhVanTai) ? item.LoaiHinhVanTai : [item.LoaiHinhVanTai]
+            ).filter(Boolean))];
+
+            // Populate dropdowns
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            transports.forEach(transport => {
+                const option = document.createElement('option');
+                option.value = transport;
+                option.textContent = transport;
+                transportFilter.appendChild(option);
+            });
+        }
+
+        // Populate Emblem Filters
+        function populateEmblemFilters() {
+            const typeFilter = document.getElementById('emblemTypeFilter');
+            const capFilter = document.getElementById('emblemCapFilter');
+
+            // Get unique values
+            const types = [...new Set(emblemsData.map(item => item.LoaiPH).filter(Boolean))];
+            const caps = [...new Set(emblemsData.map(item => item.LoaiCap).filter(Boolean))];
+
+            // Populate dropdowns
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            caps.forEach(cap => {
+                const option = document.createElement('option');
+                option.value = cap;
+                option.textContent = cap;
+                capFilter.appendChild(option);
+            });
+        }
+
+        function populateInternationalFilters() {
+            const typeFilter = document.getElementById('internationalTypeFilter');
+            const modelFilter = document.getElementById('internationalModelFilter');
+
+            // Get unique values
+            const types = [...new Set(internationalData.map(item => item.LoaiCap).filter(Boolean))];
+            const models = [...new Set(internationalData.flatMap(item =>
+                Array.isArray(item.MoHinhHoatDong) ? item.MoHinhHoatDong : [item.MoHinhHoatDong]
+            ).filter(Boolean))];
+
+            // Populate dropdowns
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelFilter.appendChild(option);
+            });
+        }
+
+        // Helper function to populate select options
+        function populateSelect(selectElement, values) {
+            // Clear existing options except first one
+            while (selectElement.children.length > 1) {
+                selectElement.removeChild(selectElement.lastChild);
+            }
+
+            values.sort().forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Apply License Filters
+        function applyLicenseFilters() {
+            const companyFilter = document.getElementById('licenseCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('licenseTypeFilter').value;
+            const transportFilter = document.getElementById('licenseTransportFilter').value;
+            const statusFilter = document.getElementById('licenseStatusFilter').value;
+
+            filteredLicensesData = licensesData.filter(license => {
+                // Company name filter
+                if (companyFilter && !license.TenDonVi?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && license.LoaiCap !== typeFilter) {
+                    return false;
+                }
+
+                // Transport type filter
+                if (transportFilter) {
+                    if (Array.isArray(license.LoaiHinhVanTai)) {
+                        if (!license.LoaiHinhVanTai.includes(transportFilter)) {
+                            return false;
+                        }
+                    } else if (license.LoaiHinhVanTai !== transportFilter) {
+                        return false;
+                    }
+                }
+
+                // Status filter
+                if (statusFilter && license.TrangThai !== statusFilter) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            updateLicensesTableWithFiltered();
+            showNotification(`Đã lọc được ${filteredLicensesData.length} giấy phép`, 'success');
+        }
+
+        // Apply Emblem Filters
+        function applyEmblemFilters() {
+            const companyFilter = document.getElementById('emblemCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('emblemTypeFilter').value;
+            const capFilter = document.getElementById('emblemCapFilter').value;
+            const statusFilter = document.getElementById('emblemStatusFilter').value;
+
+            filteredEmblemsData = emblemsData.filter(emblem => {
+                // Company name filter
+                if (companyFilter && !emblem.Ten_don_vi?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && emblem.LoaiPH !== typeFilter) {
+                    return false;
+                }
+
+                // Cap filter
+                if (capFilter && emblem.LoaiCap !== capFilter) {
+                    return false;
+                }
+
+                // Status filter - consider expired emblems
+                if (statusFilter) {
+                    let currentStatus = emblem.TrangThai;
+                    if (isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi') {
+                        currentStatus = 'Hết hạn';
+                    }
+                    if (currentStatus !== statusFilter) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            updateEmblemsTableWithFiltered();
+            showNotification(`Đã lọc được ${filteredEmblemsData.length} phù hiệu`, 'success');
         }
 
         // Update Licenses UI
@@ -716,12 +1069,22 @@
 
         // Update Licenses Table
         function updateLicensesTable() {
+            updateLicensesTableWithData(licensesData);
+        }
+
+        // Update Licenses Table with Filtered Data
+        function updateLicensesTableWithFiltered() {
+            updateLicensesTableWithData(filteredLicensesData);
+        }
+
+        // Update Licenses Table with specific data
+        function updateLicensesTableWithData(dataToShow) {
             const tableBody = document.getElementById('licensesTableBody');
             if (!tableBody) return;
 
             tableBody.innerHTML = '';
 
-            licensesData.slice(0, 50).forEach(license => {
+            dataToShow.slice(0, 50).forEach(license => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
 
@@ -731,33 +1094,43 @@
                     : license.LoaiHinhVanTai || 'N/A';
 
                 row.innerHTML = `
-                   <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
-                   <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                   <td class="px-4 py-2 text-center">${transportTypes}</td>
-                   <td class="px-4 py-2 text-center">
-                       <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                           ${license.TrangThai || 'N/A'}
-                       </span>
-                   </td>
-                   <td class="px-4 py-2 text-center">
-                       <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
-                           Chi tiết
-                       </button>
-                   </td>
-               `;
+                  <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
+                  <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
+                  <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                  <td class="px-4 py-2 text-center">${transportTypes}</td>
+                  <td class="px-4 py-2 text-center">
+                      <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                          ${license.TrangThai || 'N/A'}
+                      </span>
+                  </td>
+                  <td class="px-4 py-2 text-center">
+                      <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
+                          Chi tiết
+                      </button>
+                  </td>
+              `;
                 tableBody.appendChild(row);
             });
         }
 
         // Update Emblems Table
         function updateEmblemsTable() {
+            updateEmblemsTableWithData(emblemsData);
+        }
+
+        // Update Emblems Table with Filtered Data
+        function updateEmblemsTableWithFiltered() {
+            updateEmblemsTableWithData(filteredEmblemsData);
+        }
+
+        // Update Emblems Table with specific data
+        function updateEmblemsTableWithData(dataToShow) {
             const tableBody = document.getElementById('emblemsTableBody');
             if (!tableBody) return;
 
             tableBody.innerHTML = '';
 
-            emblemsData.slice(0, 50).forEach(emblem => {
+            dataToShow.slice(0, 50).forEach(emblem => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
 
@@ -765,22 +1138,22 @@
                 const isExpired = isEmblemExpired(emblem.NgayHetHan);
 
                 row.innerHTML = `
-                   <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
-                   <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
-                   <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
-                   <td class="px-4 py-2 text-center">
-                       <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
-                           ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                       </span>
-                   </td>
-                   <td class="px-4 py-2 text-center">
-                       <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
-                           Chi tiết
-                       </button>
-                   </td>
-               `;
+                  <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
+                  <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
+                  <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
+                  <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
+                  <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
+                  <td class="px-4 py-2 text-center">
+                      <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
+                          ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                      </span>
+                  </td>
+                  <td class="px-4 py-2 text-center">
+                      <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
+                          Chi tiết
+                      </button>
+                  </td>
+              `;
                 tableBody.appendChild(row);
             });
         }
@@ -899,93 +1272,93 @@
         // Modal Functions
         function showLicenseModal(license) {
             const modalContent = `
-              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
-                  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                      <div class="flex justify-between items-center mb-4">
-                          <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
-                          <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
-                              <i class="fas fa-times"></i>
-                          </button>
-                      </div>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
-                          <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
-                          <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
-                          <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
-                          <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                          <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                          <div><strong>Trạng thái:</strong> 
-                              <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
-                                  ${license.TrangThai || 'N/A'}
-                              </span>
-                          </div>
-                          <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
-                      </div>
-                      ${license.NgayThuHoi ? `
-                          <div class="mt-4 p-4 bg-red-50 rounded">
-                              <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                              <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                  <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
-                                  <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
-                                  <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
-                              </div>
-                          </div>
-                      ` : ''}
-                      ${license.GhiChu ? `
-                          <div class="mt-4">
-                              <strong>Ghi chú:</strong> ${license.GhiChu}
-                          </div>
-                      ` : ''}
-                  </div>
-              </div>
-          `;
+             <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
+                 <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                     <div class="flex justify-between items-center mb-4">
+                         <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
+                         <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
+                             <i class="fas fa-times"></i>
+                         </button>
+                     </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
+                         <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
+                         <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
+                         <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
+                         <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                         <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
+                         <div><strong>Trạng thái:</strong> 
+                             <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
+                                 ${license.TrangThai || 'N/A'}
+                             </span>
+                         </div>
+                         <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
+                     </div>
+                     ${license.NgayThuHoi ? `
+                         <div class="mt-4 p-4 bg-red-50 rounded">
+                             <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                             <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                 <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
+                                 <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
+                                 <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
+                             </div>
+                         </div>
+                     ` : ''}
+                     ${license.GhiChu ? `
+                         <div class="mt-4">
+                             <strong>Ghi chú:</strong> ${license.GhiChu}
+                         </div>
+                     ` : ''}
+                 </div>
+             </div>
+         `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
         function showEmblemModal(emblem) {
             const modalContent = `
-              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
-                  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                      <div class="flex justify-between items-center mb-4">
-                          <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
-                          <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
-                              <i class="fas fa-times"></i>
-                          </button>
-                      </div>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
-                          <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
-                          <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
-                          <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
-                          <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
-                          <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
-                          <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
-                          <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
-                          <div><strong>Trạng thái:</strong> 
-                              <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
-                                  ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                              </span>
-                          </div>
-                          <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
-                      </div>
-                      ${emblem.NgayThuHoi ? `
-                          <div class="mt-4 p-4 bg-red-50 rounded">
-                              <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                              <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                  <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
-                                  <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
-                                  <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
-                              </div>
-                          </div>
-                      ` : ''}
-                      ${emblem.GhiChu ? `
-                          <div class="mt-4">
-                              <strong>Ghi chú:</strong> ${emblem.GhiChu}
-                          </div>
-                      ` : ''}
-                  </div>
-              </div>
-          `;
+             <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
+                 <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                     <div class="flex justify-between items-center mb-4">
+                         <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
+                         <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
+                             <i class="fas fa-times"></i>
+                         </button>
+                     </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
+                         <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
+                         <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
+                         <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
+                         <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
+                         <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
+                         <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
+                         <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
+                         <div><strong>Trạng thái:</strong> 
+                             <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
+                                 ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                             </span>
+                         </div>
+                         <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
+                     </div>
+                     ${emblem.NgayThuHoi ? `
+                         <div class="mt-4 p-4 bg-red-50 rounded">
+                             <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                             <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                 <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
+                                 <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
+                                 <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
+                             </div>
+                         </div>
+                     ` : ''}
+                     ${emblem.GhiChu ? `
+                         <div class="mt-4">
+                             <strong>Ghi chú:</strong> ${emblem.GhiChu}
+                         </div>
+                     ` : ''}
+                 </div>
+             </div>
+         `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
@@ -999,12 +1372,142 @@
         // Filter handling with apply to all option
         function handleFilterToggle() {
             const applyToAll = document.getElementById('applyToAll').checked;
-            const statusFilter = document.getElementById('statusFilter');
+            const specificFilters = document.getElementById('specificFilters');
 
             if (applyToAll) {
-                statusFilter.classList.add('filter-disabled');
+                specificFilters.classList.add('filter-disabled');
             } else {
-                statusFilter.classList.remove('filter-disabled');
+                specificFilters.classList.remove('filter-disabled');
+                showCurrentTabFilters();
+            }
+        }
+
+        // Function để áp dụng bộ lọc riêng
+        function applySpecificFilters() {
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+            const applyToAll = document.getElementById('applyToAll').checked;
+
+            if (applyToAll) {
+                showNotification('Vui lòng bỏ tick "Áp dụng cho tất cả" để sử dụng bộ lọc riêng', 'warning');
+                return;
+            }
+
+            switch (activeTab) {
+                case 'licenses':
+                    applyLicenseFilters();
+                    break;
+                case 'emblems':
+                    applyEmblemFilters();
+                    break;
+                case 'international':
+                    applyInternationalFilters();
+                    break;
+                default:
+                    showNotification('Chọn tab Giấy phép, Phù hiệu hoặc GP Liên vận QT để lọc', 'warning');
+            }
+        }
+
+        // Function để xóa bộ lọc riêng
+        function clearSpecificFilters() {
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+
+            switch (activeTab) {
+                case 'licenses':
+                    clearLicenseFilters();
+                    break;
+                case 'emblems':
+                    clearEmblemFilters();
+                    break;
+                case 'international':
+                    clearInternationalFilters();
+                    break;
+            }
+        }
+
+        // Function để xóa bộ lọc international
+        function clearInternationalFilters() {
+            document.getElementById('internationalCompanyFilter').value = '';
+            document.getElementById('internationalTypeFilter').value = '';
+            document.getElementById('internationalModelFilter').value = '';
+            document.getElementById('internationalStatusFilter').value = '';
+
+            // Reset về dữ liệu gốc và cập nhật UI
+            updateFilteredUI(licensesData, emblemsData, internationalData);
+            showNotification('Đã xóa bộ lọc GP Liên vận QT', 'info');
+        }
+
+        // Function để áp dụng bộ lọc international
+        function applyInternationalFilters() {
+            const companyFilter = document.getElementById('internationalCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('internationalTypeFilter').value;
+            const modelFilter = document.getElementById('internationalModelFilter').value;
+            const statusFilter = document.getElementById('internationalStatusFilter').value;
+
+            let filteredInternational = internationalData.filter(license => {
+                // Company name filter
+                if (companyFilter && !license.TenDonViHienThi?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && license.LoaiCap !== typeFilter) {
+                    return false;
+                }
+
+                // Model filter
+                if (modelFilter) {
+                    if (Array.isArray(license.MoHinhHoatDong)) {
+                        if (!license.MoHinhHoatDong.includes(modelFilter)) {
+                            return false;
+                        }
+                    } else if (license.MoHinhHoatDong !== modelFilter) {
+                        return false;
+                    }
+                }
+
+                // Status filter
+                if (statusFilter) {
+                    switch (statusFilter) {
+                        case 'active':
+                            return license.TrangThaiHoatDong === 'Đang hoạt động';
+                        case 'suspended':
+                            return license.TrangThaiHoatDong === 'Ngừng tạm thời';
+                        case 'revoked':
+                            return license.TrangThaiHoatDong === 'Bị thu hồi GPKD';
+                    }
+                }
+
+                return true;
+            });
+
+            // Cập nhật UI với dữ liệu đã lọc, giữ nguyên licenses và emblems
+            updateFilteredUI(licensesData, emblemsData, filteredInternational);
+            showNotification(`Đã lọc được ${filteredInternational.length} GP Liên vận QT`, 'success');
+        }
+
+        // Cập nhật function showCurrentTabFilters
+        function showCurrentTabFilters() {
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+
+            // Ẩn tất cả bộ lọc
+            document.querySelectorAll('.filter-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Hiển thị bộ lọc tương ứng
+            switch (activeTab) {
+                case 'licenses':
+                    document.getElementById('licenseFilters').classList.remove('hidden');
+                    break;
+                case 'emblems':
+                    document.getElementById('emblemFilters').classList.remove('hidden');
+                    break;
+                case 'international':
+                    document.getElementById('internationalFilters').classList.remove('hidden');
+                    break;
+                default:
+                    // Ẩn tất cả nếu không phải tab có bộ lọc riêng
+                    break;
             }
         }
 
@@ -1012,7 +1515,6 @@
         function filterData() {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            const status = document.getElementById('statusSelect').value;
             const applyToAll = document.getElementById('applyToAll').checked;
 
             showNotification('Đang lọc dữ liệu...', 'info');
@@ -1023,32 +1525,13 @@
 
             // Apply date filter to all
             if (startDate && endDate) {
-                // Tạo Date object và set về đầu ngày để tránh vấn đề timezone
                 const start = new Date(startDate + 'T00:00:00');
                 const end = new Date(endDate + 'T23:59:59');
 
-                console.log('Filter dates:', {
-                    startDate,
-                    endDate,
-                    startDateObj: start,
-                    endDateObj: end
-                });
-
                 filteredLicenses = filteredLicenses.filter(license => {
                     if (license.NgayCap) {
-                        // Parse ngày cấp và đảm bảo so sánh đúng
                         const issueDate = parseAppSheetDate(license.NgayCap);
-                        const isInRange = issueDate >= start && issueDate <= end;
-
-                        if (!isInRange) {
-                            console.log('License filtered out:', {
-                                license: license.SoGiayPhep,
-                                issueDate: issueDate,
-                                isInRange
-                            });
-                        }
-
-                        return isInRange;
+                        return issueDate >= start && issueDate <= end;
                     }
                     return false;
                 });
@@ -1070,28 +1553,22 @@
                 });
             }
 
-            // Apply status filter only if not applying to all and specific tab is active
-            if (!applyToAll && status !== 'all') {
+            // Apply specific filters only if not applying to all
+            if (!applyToAll) {
                 const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
 
                 switch (activeTab) {
                     case 'licenses':
-                        filteredLicenses = applyLicenseStatusFilter(filteredLicenses, status);
+                        filteredLicenses = applyLicenseSpecificFilters(filteredLicenses);
                         break;
                     case 'emblems':
-                        filteredEmblems = applyEmblemStatusFilter(filteredEmblems, status);
+                        filteredEmblems = applyEmblemSpecificFilters(filteredEmblems);
                         break;
                     case 'international':
-                        filteredInternational = applyInternationalStatusFilter(filteredInternational, status);
+                        filteredInternational = applyInternationalSpecificFilters(filteredInternational);
                         break;
                 }
             }
-
-            console.log('Filtered results:', {
-                licenses: filteredLicenses.length,
-                emblems: filteredEmblems.length,
-                international: filteredInternational.length
-            });
 
             // Update UI with filtered data
             setTimeout(() => {
@@ -1099,6 +1576,138 @@
                 showNotification(`Đã lọc được ${filteredLicenses.length + filteredEmblems.length + filteredInternational.length} bản ghi!`, 'success');
             }, 500);
         }
+
+        // Functions để áp dụng bộ lọc riêng
+        function applyLicenseSpecificFilters(data) {
+            let filtered = [...data];
+
+            const companyFilter = document.getElementById('licenseCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('licenseTypeFilter').value;
+            const transportFilter = document.getElementById('licenseTransportFilter').value;
+            const statusFilter = document.getElementById('licenseStatusFilter').value;
+
+            if (companyFilter) {
+                filtered = filtered.filter(item =>
+                    item.TenDonVi && item.TenDonVi.toLowerCase().includes(companyFilter)
+                );
+            }
+
+            if (typeFilter) {
+                filtered = filtered.filter(item => item.LoaiCap === typeFilter);
+            }
+
+            if (transportFilter) {
+                filtered = filtered.filter(item => {
+                    if (Array.isArray(item.LoaiHinhVanTai)) {
+                        return item.LoaiHinhVanTai.includes(transportFilter);
+                    }
+                    return item.LoaiHinhVanTai === transportFilter;
+                });
+            }
+
+            if (statusFilter) {
+                filtered = applyLicenseStatusFilter(filtered, statusFilter);
+            }
+
+            return filtered;
+        }
+
+        function applyEmblemSpecificFilters(data) {
+            let filtered = [...data];
+
+            const companyFilter = document.getElementById('emblemCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('emblemTypeFilter').value;
+            const capFilter = document.getElementById('emblemCapFilter').value;
+            const statusFilter = document.getElementById('emblemStatusFilter').value;
+
+            if (companyFilter) {
+                filtered = filtered.filter(item =>
+                    item.Ten_don_vi && item.Ten_don_vi.toLowerCase().includes(companyFilter)
+                );
+            }
+
+            if (typeFilter) {
+                filtered = filtered.filter(item => item.LoaiPH === typeFilter);
+            }
+
+            if (capFilter) {
+                filtered = filtered.filter(item => item.LoaiCap === capFilter);
+            }
+
+            if (statusFilter) {
+                filtered = applyEmblemStatusFilter(filtered, statusFilter);
+            }
+
+            return filtered;
+        }
+
+        // Function để xóa tất cả bộ lọc
+        function clearAllFilters() {
+            // Clear date filters
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+
+            // Clear license filters
+            document.getElementById('licenseCompanyFilter').value = '';
+            document.getElementById('licenseTypeFilter').value = '';
+            document.getElementById('licenseTransportFilter').value = '';
+            document.getElementById('licenseStatusFilter').value = '';
+
+            // Clear emblem filters
+            document.getElementById('emblemCompanyFilter').value = '';
+            document.getElementById('emblemTypeFilter').value = '';
+            document.getElementById('emblemCapFilter').value = '';
+            document.getElementById('emblemStatusFilter').value = '';
+
+            // Clear international filters
+            document.getElementById('internationalCompanyFilter').value = '';
+            document.getElementById('internationalTypeFilter').value = '';
+            document.getElementById('internationalModelFilter').value = '';
+            document.getElementById('internationalStatusFilter').value = '';
+
+            // Reset checkbox
+            document.getElementById('applyToAll').checked = true;
+            handleFilterToggle();
+
+            // Reset to original data
+            updateFilteredUI(licensesData, emblemsData, internationalData);
+            showNotification('Đã xóa tất cả bộ lọc!', 'info');
+        }
+
+        function applyInternationalSpecificFilters(data) {
+            let filtered = [...data];
+
+            const companyFilter = document.getElementById('internationalCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('internationalTypeFilter').value;
+            const modelFilter = document.getElementById('internationalModelFilter').value;
+            const statusFilter = document.getElementById('internationalStatusFilter').value;
+
+            if (companyFilter) {
+                filtered = filtered.filter(item =>
+                    item.TenDonViHienThi && item.TenDonViHienThi.toLowerCase().includes(companyFilter)
+                );
+            }
+
+            if (typeFilter) {
+                filtered = filtered.filter(item => item.LoaiCap === typeFilter);
+            }
+
+            if (modelFilter) {
+                filtered = filtered.filter(item => {
+                    if (Array.isArray(item.MoHinhHoatDong)) {
+                        return item.MoHinhHoatDong.includes(modelFilter);
+                    }
+                    return item.MoHinhHoatDong === modelFilter;
+                });
+            }
+
+            if (statusFilter) {
+                filtered = applyInternationalStatusFilter(filtered, statusFilter);
+            }
+
+            return filtered;
+        }
+
 
         function applyLicenseStatusFilter(data, status) {
             switch (status) {
@@ -1299,68 +1908,10 @@
 
         function updateFilteredTables(filteredLicenses, filteredEmblems, filteredInternational) {
             // Update licenses table
-            const licensesTableBody = document.getElementById('licensesTableBody');
-            if (licensesTableBody) {
-                licensesTableBody.innerHTML = '';
-                filteredLicenses.slice(0, 50).forEach(license => {
-                    const row = document.createElement('tr');
-                    row.className = 'border-b hover:bg-gray-50';
-
-                    const statusClass = getStatusClass(license.TrangThai);
-                    const transportTypes = Array.isArray(license.LoaiHinhVanTai)
-                        ? license.LoaiHinhVanTai.join(', ')
-                        : license.LoaiHinhVanTai || 'N/A';
-
-                    row.innerHTML = `
-                      <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
-                      <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
-                      <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                      <td class="px-4 py-2 text-center">${transportTypes}</td>
-                      <td class="px-4 py-2 text-center">
-                          <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                              ${license.TrangThai || 'N/A'}
-                          </span>
-                      </td>
-                      <td class="px-4 py-2 text-center">
-                          <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
-                              Chi tiết
-                          </button>
-                      </td>
-                  `;
-                    licensesTableBody.appendChild(row);
-                });
-            }
+            updateLicensesTableWithData(filteredLicenses);
 
             // Update emblems table
-            const emblemsTableBody = document.getElementById('emblemsTableBody');
-            if (emblemsTableBody) {
-                emblemsTableBody.innerHTML = '';
-                filteredEmblems.slice(0, 50).forEach(emblem => {
-                    const row = document.createElement('tr');
-                    row.className = 'border-b hover:bg-gray-50';
-
-                    const statusClass = getStatusClass(emblem.TrangThai);
-                    const isExpired = isEmblemExpired(emblem.NgayHetHan);
-                    row.innerHTML = `
-                      <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
-                      <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
-                      <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
-                      <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
-                      <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
-                      <td class="px-4 py-2 text-center">
-                          <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
-                              ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                          </span>
-                      </td>
-                      <td class="px-4 py-2 text-center">
-                          <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
-                              Chi tiết
-                          </button>
-                      </td>
-                  `;
-                    emblemsTableBody.appendChild(row);
-                });
-            }
+            updateEmblemsTableWithData(filteredEmblems);
 
             // Update international table
             const internationalTableBody = document.getElementById('internationalTableBody');
@@ -1376,22 +1927,22 @@
                         : license.MoHinhHoatDong || 'N/A';
 
                     row.innerHTML = `
-                      <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
-                      <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
-                      <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                      <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
-                      <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
-                      <td class="px-4 py-2 text-center">
-                          <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                              ${license.TrangThaiHoatDong || 'N/A'}
-                          </span>
-                      </td>
-                      <td class="px-4 py-2 text-center">
-                          <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
-                              Chi tiết
-                          </button>
-                      </td>
-                  `;
+                     <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
+                     <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
+                     <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                     <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
+                     <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
+                     <td class="px-4 py-2 text-center">
+                         <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                             ${license.TrangThaiHoatDong || 'N/A'}
+                         </span>
+                     </td>
+                     <td class="px-4 py-2 text-center">
+                         <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
+                             Chi tiết
+                         </button>
+                     </td>
+                 `;
                     internationalTableBody.appendChild(row);
                 });
             }
@@ -1951,11 +2502,11 @@
             }
 
             notification.innerHTML = `
-              <div class="flex items-center">
-                  <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
-                  <span>${message}</span>
-              </div>
-          `;
+             <div class="flex items-center">
+                 <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
+                 <span>${message}</span>
+             </div>
+         `;
 
             document.body.appendChild(notification);
 
@@ -1992,6 +2543,11 @@
                 tabContent.classList.remove('hidden');
                 tabContent.classList.add('active');
 
+                // Show appropriate filters if not applying to all
+                if (!document.getElementById('applyToAll').checked) {
+                    showCurrentTabFilters();
+                }
+
                 // Initialize charts when switching tabs
                 if (tabId === 'dashboard') {
                     setTimeout(initDashboardCharts, 100);
@@ -2024,6 +2580,9 @@
                     fetchEmblemsData(),
                     fetchInternationalData()
                 ]);
+
+                // Populate filter options
+                populateFilterOptions();
 
                 // Initialize dashboard charts
                 setTimeout(() => {
@@ -2129,216 +2688,340 @@
             }
         });
 
+        // Clear filters functions
+        function clearLicenseFilters() {
+            document.getElementById('licenseCompanyFilter').value = '';
+            document.getElementById('licenseTypeFilter').value = '';
+            document.getElementById('licenseTransportFilter').value = '';
+            document.getElementById('licenseStatusFilter').value = '';
+
+            filteredLicensesData = [...licensesData];
+            updateLicensesTableWithFiltered();
+            showNotification('Đã xóa bộ lọc giấy phép', 'info');
+        }
+
+        function clearEmblemFilters() {
+            document.getElementById('emblemCompanyFilter').value = '';
+            document.getElementById('emblemTypeFilter').value = '';
+            document.getElementById('emblemCapFilter').value = '';
+            document.getElementById('emblemStatusFilter').value = '';
+
+            filteredEmblemsData = [...emblemsData];
+            updateEmblemsTableWithFiltered();
+            showNotification('Đã xóa bộ lọc phù hiệu', 'info');
+        }
+
         // Add CSS styles
         const style = document.createElement('style');
         style.textContent = `
-          .nav-btn.active {
-              background-color: #1e40af !important;
-              border-bottom: 3px solid #fbbf24;
-          }
-          
-          .tab-content {
-              animation: fadeIn 0.3s ease-in-out;
-          }
-          
-          @keyframes fadeIn {
-              from { opacity: 0; transform: translateY(10px); }
-              to { opacity: 1; transform: translateY(0); }
-          }
-          
-          ::-webkit-scrollbar {
-              width: 8px;
-          }
-          
-          ::-webkit-scrollbar-track {
-              background: #f1f5f9;
-          }
-          
-          ::-webkit-scrollbar-thumb {
-              background: #cbd5e1;
-              border-radius: 4px;
-          }
-          
-          ::-webkit-scrollbar-thumb:hover {
-              background: #94a3b8;
-          }
-          
-          .hover-card:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-              transition: all 0.3s ease;
-          }
-          
-          .loading {
-              position: relative;
-              overflow: hidden;
-          }
-          
-          .loading::after {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: -100%;
-              width: 100%;
-              height: 100%;
-              background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-              animation: loading 1.5s infinite;
-          }
-          
-          @keyframes loading {
-              0% { left: -100%; }
-              100% { left: 100%; }
-          }
+         .nav-btn.active {
+             background-color: #1e40af !important;
+             border-bottom: 3px solid #fbbf24;
+         }
+         
+         .tab-content {
+             animation: fadeIn 0.3s ease-in-out;
+         }
+         
+         @keyframes fadeIn {
+             from { opacity: 0; transform: translateY(10px); }
+             to { opacity: 1; transform: translateY(0); }
+         }
+         
+         ::-webkit-scrollbar {
+             width: 8px;
+         }
+         
+         ::-webkit-scrollbar-track {
+             background: #f1f5f9;
+         }
+         
+         ::-webkit-scrollbar-thumb {
+             background: #cbd5e1;
+             border-radius: 4px;
+         }
+         
+         ::-webkit-scrollbar-thumb:hover {
+             background: #94a3b8;
+         }
+         
+         .hover-card:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+             transition: all 0.3s ease;
+         }
+         
+         .loading {
+             position: relative;
+             overflow: hidden;
+         }
+         
+         .loading::after {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: -100%;
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+             animation: loading 1.5s infinite;
+         }
+         
+         @keyframes loading {
+             0% { left: -100%; }
+             100% { left: 100%; }
+         }
 
-          /* Table hover effects */
-          tbody tr:hover {
-              background-color: #f8fafc;
-              transition: background-color 0.2s ease;
-          }
+         /* Table hover effects */
+         tbody tr:hover {
+             background-color: #f8fafc;
+             transition: background-color 0.2s ease;
+         }
 
-          /* Button hover effects */
-          button:hover {
-              transform: translateY(-1px);
-              transition: transform 0.2s ease;
-          }
+         /* Button hover effects */
+         button:hover {
+             transform: translateY(-1px);
+             transition: transform 0.2s ease;
+         }
 
-          /* Modal animation */
-          .fixed.inset-0 {
-              animation: modalFadeIn 0.3s ease-out;
-              backdrop-filter: blur(4px);
-          }
+         /* Modal animation */
+         .fixed.inset-0 {
+             animation: modalFadeIn 0.3s ease-out;
+             backdrop-filter: blur(4px);
+         }
 
-          @keyframes modalFadeIn {
-              from { 
-                  opacity: 0;
-                  backdrop-filter: blur(0px);
-              }
-              to { 
-                  opacity: 1;
-                  backdrop-filter: blur(4px);
-              }
-          }
+         @keyframes modalFadeIn {
+             from { 
+                 opacity: 0;
+                 backdrop-filter: blur(0px);
+             }
+             to { 
+                 opacity: 1;
+                 backdrop-filter: blur(4px);
+             }
+         }
 
-          .fixed.inset-0 > div {
-              animation: modalSlideIn 0.3s ease-out;
-          }
+         .fixed.inset-0 > div {
+             animation: modalSlideIn 0.3s ease-out;
+         }
 
-          @keyframes modalSlideIn {
-              from {
-                  transform: scale(0.9) translateY(-20px);
-                  opacity: 0;
-              }
-              to {
-                  transform: scale(1) translateY(0);
-                  opacity: 1;
-              }
-          }
+         @keyframes modalSlideIn {
+             from {
+                 transform: scale(0.9) translateY(-20px);
+                 opacity: 0;
+             }
+             to {
+                 transform: scale(1) translateY(0);
+                 opacity: 1;
+             }
+         }
 
-          /* Filter disabled state */
-          .filter-disabled {
-              opacity: 0.5;
-              pointer-events: none;
-              transition: opacity 0.3s ease;
-          }
+         /* Filter disabled state */
+         .filter-disabled {
+             opacity: 0.5;
+             pointer-events: none;
+             transition: opacity 0.3s ease;
+         }
 
-          /* Responsive navigation */
-          @media (max-width: 768px) {
-              .nav-btn {
-                  font-size: 0.875rem;
-                  padding: 0.75rem 0.5rem;
-              }
-              
-              .nav-btn i {
-                  display: none;
-              }
-          }
+         /* Responsive navigation */
+         @media (max-width: 768px) {
+             .nav-btn {
+                 font-size: 0.875rem;
+                 padding: 0.75rem 0.5rem;
+             }
+             
+             .nav-btn i {
+                 display: none;
+             }
+         }
 
-          /* Enhanced stats cards */
-          .stats-grid > div {
-              transition: all 0.3s ease;
-          }
+         /* Enhanced stats cards */
+         .stats-grid > div {
+             transition: all 0.3s ease;
+         }
 
-          .stats-grid > div:hover {
-              transform: translateY(-4px);
-              box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-          }
+         .stats-grid > div:hover {
+             transform: translateY(-4px);
+             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+         }
 
-          /* Custom checkbox style */
-          input[type="checkbox"] {
-              accent-color: #3B82F6;
-          }
+         /* Custom checkbox style */
+         input[type="checkbox"] {
+             accent-color: #3B82F6;
+         }
 
-          /* Notification improvements */
-          .notification-enter {
-              transform: translateX(100%);
-              opacity: 0;
-          }
+         /* Notification improvements */
+         .notification-enter {
+             transform: translateX(100%);
+             opacity: 0;
+         }
 
-          .notification-enter-active {
-              transform: translateX(0);
-              opacity: 1;
-              transition: all 0.3s ease-out;
-          }
+         .notification-enter-active {
+             transform: translateX(0);
+             opacity: 1;
+             transition: all 0.3s ease-out;
+         }
 
-          .notification-exit {
-              transform: translateX(0);
-              opacity: 1;
-          }
+         .notification-exit {
+             transform: translateX(0);
+             opacity: 1;
+         }
 
-          .notification-exit-active {
-              transform: translateX(100%);
-              opacity: 0;
-              transition: all 0.3s ease-in;
-          }
+         .notification-exit-active {
+             transform: translateX(100%);
+             opacity: 0;
+             transition: all 0.3s ease-in;
+         }
 
-          /* Table improvements */
-          .table-container {
-              border-radius: 0.5rem;
-              overflow: hidden;
-              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          }
+         /* Table improvements */
+         .table-container {
+             border-radius: 0.5rem;
+             overflow: hidden;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+         }
 
-          thead th {
-              background: linear-gradient(to right, #f8fafc, #f1f5f9);
-              font-weight: 600;
-              text-transform: uppercase;
-              font-size: 0.75rem;
-              letter-spacing: 0.05em;
-              border-bottom: 2px solid #e2e8f0;
-          }
+         thead th {
+             background: linear-gradient(to right, #f8fafc, #f1f5f9);
+             font-weight: 600;
+             text-transform: uppercase;
+             font-size: 0.75rem;
+             letter-spacing: 0.05em;
+             border-bottom: 2px solid #e2e8f0;
+         }
 
-          /* Loading states */
-          .skeleton {
-              background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-              background-size: 200% 100%;
-              animation: loading 1.5s infinite;
-          }
+         /* Loading states */
+         .skeleton {
+             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+             background-size: 200% 100%;
+             animation: loading 1.5s infinite;
+         }
 
-          /* Chart container improvements */
-          .chart-container {
-              background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-              border-radius: 0.5rem;
-              padding: 1rem;
-              box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-          }
+         /* Chart container improvements */
+         .chart-container {
+             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+             border-radius: 0.5rem;
+             padding: 1rem;
+             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+         }
 
-          /* Status badge improvements */
-          .status-badge {
-              display: inline-flex;
-              align-items: center;
-              font-weight: 500;
-              border: 1px solid;
-          }
+         /* Status badge improvements */
+         .status-badge {
+             display: inline-flex;
+             align-items: center;
+             font-weight: 500;
+             border: 1px solid;
+         }
 
-          .status-badge::before {
-              content: '';
-              width: 6px;
-              height: 6px;
-              border-radius: 50%;
-              margin-right: 0.375rem;
-              background-color: currentColor;
-          }
-      `;
+         .status-badge::before {
+             content: '';
+             width: 6px;
+             height: 6px;
+             border-radius: 50%;
+             margin-right: 0.375rem;
+             background-color: currentColor;
+         }
+
+         /* Specific filter styles */
+         .specific-filters {
+             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+             border: 1px solid #e2e8f0;
+             border-radius: 0.5rem;
+             padding: 1.5rem;
+             margin-top: 1rem;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+         }
+
+         .filter-row {
+             display: grid;
+             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+             gap: 1rem;
+             align-items: end;
+         }
+
+         .filter-group {
+             display: flex;
+             flex-direction: column;
+             gap: 0.5rem;
+         }
+
+         .filter-group label {
+             font-size: 0.875rem;
+             font-weight: 600;
+             color: #374151;
+             text-transform: uppercase;
+             letter-spacing: 0.025em;
+         }
+
+         .filter-group select,
+         .filter-group input {
+             padding: 0.75rem;
+             border: 1px solid #d1d5db;
+             border-radius: 0.5rem;
+             font-size: 0.875rem;
+             background: white;
+             transition: all 0.2s ease;
+         }
+
+         .filter-group select:focus,
+         .filter-group input:focus {
+             outline: none;
+             border-color: #3b82f6;
+             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+             transform: translateY(-1px);
+         }
+
+         .filter-group button {
+             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+             border: none;
+             border-radius: 0.5rem;
+             color: white;
+             font-weight: 600;
+             padding: 0.75rem 1.5rem;
+             cursor: pointer;
+             transition: all 0.2s ease;
+             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+         }
+
+         .filter-group button:hover {
+             background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+             transform: translateY(-2px);
+             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+         }
+
+         .filter-group button:active {
+             transform: translateY(0);
+         }
+
+         /* Clear filter button */
+         .clear-filter-btn {
+             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+             border: none;
+             border-radius: 0.5rem;
+             color: white;
+             font-weight: 600;
+             padding: 0.75rem 1.5rem;
+             cursor: pointer;
+             transition: all 0.2s ease;
+             box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+         }
+
+         .clear-filter-btn:hover {
+             background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+             transform: translateY(-2px);
+             box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+         }
+
+         /* Responsive filter layout */
+         @media (max-width: 768px) {
+             .filter-row {
+                 grid-template-columns: 1fr;
+             }
+             
+             .specific-filters {
+                 padding: 1rem;
+             }
+         }
+     `;
         document.head.appendChild(style);
 
     </script>
