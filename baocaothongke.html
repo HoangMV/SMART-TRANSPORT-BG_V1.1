@@ -94,16 +94,6 @@
             display: none;
         }
 
-        /* Style cho button lọc riêng */
-        .specific-filters .flex.gap-2 button {
-            transition: all 0.2s ease;
-        }
-
-        .specific-filters .flex.gap-2 button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
         .filter-group {
             display: flex;
             flex-direction: column;
@@ -129,6 +119,77 @@
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Navigation styles */
+        .nav-btn.active {
+            background-color: #1e40af !important;
+            border-bottom: 3px solid #fbbf24;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Notification styles */
+        .notification {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        /* Modal styles */
+        .fixed.inset-0 {
+            animation: modalFadeIn 0.3s ease-out;
+            backdrop-filter: blur(4px);
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+
+            to {
+                opacity: 1;
+                backdrop-filter: blur(4px);
+            }
+        }
+
+        .fixed.inset-0>div {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: scale(0.9) translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -174,13 +235,16 @@
     <main class="container mx-auto px-4 py-6">
         <!-- Date Range Selector -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <!-- Filter Mode Toggle -->
             <div class="flex flex-wrap items-center gap-4 mb-4">
                 <div class="flex items-center space-x-2">
                     <input type="checkbox" id="applyToAll" class="rounded" checked>
-                    <label for="applyToAll" class="font-medium text-blue-600">Áp dụng cho tất cả</label>
+                    <label for="applyToAll" class="font-medium text-blue-600">Lọc toàn bộ</label>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-4">
+
+            <!-- Date Range and Main Filter Controls -->
+            <div class="flex flex-wrap items-center gap-4 mb-4">
                 <div class="flex items-center space-x-2">
                     <label class="font-medium">Từ ngày:</label>
                     <input type="date" id="startDate" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
@@ -189,8 +253,11 @@
                     <label class="font-medium">Đến ngày:</label>
                     <input type="date" id="endDate" class="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
                 </div>
-                <button onclick="filterData()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                <button onclick="applyFilters()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     <i class="fas fa-search mr-2"></i>Lọc dữ liệu
+                </button>
+                <button onclick="clearAllFilters()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">
+                    <i class="fas fa-times mr-2"></i>Xóa bộ lọc
                 </button>
                 <button onclick="exportData()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
                     <i class="fas fa-download mr-2"></i>Xuất Excel
@@ -199,7 +266,7 @@
 
             <!-- Bộ lọc riêng cho từng tab -->
             <div id="specificFilters" class="specific-filters filter-disabled">
-                <h4 class="font-semibold text-gray-800 mb-3">Bộ lọc riêng</h4>
+                <!-- <h4 class="font-semibold text-gray-800 mb-3">Bộ lọc chi tiết</h4> -->
 
                 <!-- Bộ lọc cho Giấy phép -->
                 <div id="licenseFilters" class="filter-section hidden">
@@ -294,17 +361,6 @@
                             </select>
                         </div>
                     </div>
-                </div>
-
-                <div class="flex gap-2 mt-4">
-                    <button onclick="applySpecificFilters()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2">
-                        <i class="fas fa-filter"></i> Lọc riêng
-                    </button>
-                    <button onclick="clearSpecificFilters()"
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md flex items-center gap-2">
-                        <i class="fas fa-times"></i> Xóa bộ lọc riêng
-                    </button>
                 </div>
             </div>
         </div>
@@ -550,7 +606,7 @@
                     <!-- Charts -->
                     <div class="desktop-chart-grid">
                         <div class="chart-wrapper bg-gray-50 p-4">
-                            <h4 class="text-center font-semibold mb-4 text-gray-700">Phân bố theo loại hình vận tải</h4>
+                            <h4 class="text-center font-semibold mb-4 text-gray-700">Phân bố theo loại hình</h4>
                             <div class="pie-chart-container">
                                 <canvas id="transportTypeChart"></canvas>
                             </div>
@@ -597,13 +653,14 @@
         const region = 'www';
 
         // Global data variables
-        let licensesData = [];
-        let emblemsData = [];
-        let internationalData = [];
+        let originalLicensesData = [];
+        let originalEmblemsData = [];
+        let originalInternationalData = [];
 
-        // Filtered data variables
+        // Filtered data variables (dữ liệu sau khi lọc)
         let filteredLicensesData = [];
         let filteredEmblemsData = [];
+        let filteredInternationalData = [];
 
         // API Request Function
         async function apiRequest(tableName, action, data = {}) {
@@ -635,6 +692,48 @@
             }
         }
 
+        // Fetch Licenses Data
+        async function fetchLicensesData() {
+            try {
+                showNotification('Đang tải dữ liệu giấy phép...', 'info');
+                const response = await apiRequest('GIAYPHEPKINHDOANHNOIDIA', 'Find', {
+                    Selector: "Filter(GIAYPHEPKINHDOANHNOIDIA, true)"
+                });
+
+                if (Array.isArray(response)) {
+                    originalLicensesData = response;
+                    filteredLicensesData = [...originalLicensesData];
+                    console.log('Dữ liệu GPKD:', originalLicensesData);
+                } else {
+                    throw new Error('Dữ liệu không hợp lệ');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu GPKD:', error);
+                showNotification('Không thể tải dữ liệu giấy phép', 'error');
+            }
+        }
+
+        // Fetch Emblems Data
+        async function fetchEmblemsData() {
+            try {
+                showNotification('Đang tải dữ liệu phù hiệu...', 'info');
+                const response = await apiRequest('PHUHIEUXE', 'Find', {
+                    Selector: "Filter(PHUHIEUXE, true)"
+                });
+
+                if (Array.isArray(response)) {
+                    originalEmblemsData = response;
+                    filteredEmblemsData = [...originalEmblemsData];
+                    console.log('Dữ liệu phù hiệu:', originalEmblemsData);
+                } else {
+                    throw new Error('Dữ liệu không hợp lệ');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu phù hiệu:', error);
+                showNotification('Không thể tải dữ liệu phù hiệu', 'error');
+            }
+        }
+
         // Fetch International Licenses Data
         async function fetchInternationalData() {
             try {
@@ -644,9 +743,9 @@
                 });
 
                 if (Array.isArray(response)) {
-                    internationalData = response;
-                    console.log('Dữ liệu GP Liên vận QT:', internationalData);
-                    updateInternationalUI();
+                    originalInternationalData = response;
+                    filteredInternationalData = [...originalInternationalData];
+                    console.log('Dữ liệu GP Liên vận QT:', originalInternationalData);
                 } else {
                     throw new Error('Dữ liệu không hợp lệ');
                 }
@@ -656,37 +755,401 @@
             }
         }
 
-        // Update International UI
+        // Main Filter Function - Xử lý tất cả logic lọc
+        function applyFilters() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const applyToAll = document.getElementById('applyToAll').checked;
+
+            if (!startDate || !endDate) {
+                showNotification('Vui lòng chọn khoảng thời gian', 'warning');
+                return;
+            }
+
+            showNotification('Đang áp dụng bộ lọc...', 'info');
+
+            // Bước 1: Lọc theo thời gian trước
+            let tempLicenses = filterByDateRange(originalLicensesData, startDate, endDate, 'NgayCap');
+            let tempEmblems = filterByDateRange(originalEmblemsData, startDate, endDate, 'NgayCap');
+            let tempInternational = filterByDateRange(originalInternationalData, startDate, endDate, 'NgayCap');
+
+            // Bước 2: Nếu không áp dụng cho tất cả, thêm bộ lọc chi tiết
+            if (!applyToAll) {
+                const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+
+                switch (activeTab) {
+                    case 'licenses':
+                        tempLicenses = applyLicenseSpecificFilters(tempLicenses);
+                        break;
+                    case 'emblems':
+                        tempEmblems = applyEmblemSpecificFilters(tempEmblems);
+                        break;
+                    case 'international':
+                        tempInternational = applyInternationalSpecificFilters(tempInternational);
+                        break;
+                }
+            }
+
+            // Bước 3: Cập nhật dữ liệu đã lọc
+            filteredLicensesData = tempLicenses;
+            filteredEmblemsData = tempEmblems;
+            filteredInternationalData = tempInternational;
+
+            // Bước 4: Cập nhật toàn bộ UI
+            updateAllUI();
+
+            // Bước 5: Cập nhật biểu đồ
+            updateChartsWithFilteredData();
+
+            const totalFiltered = filteredLicensesData.length + filteredEmblemsData.length + filteredInternationalData.length;
+            showNotification(`Đã lọc được ${totalFiltered} bản ghi!`, 'success');
+        }
+
+        // Lọc theo khoảng thời gian
+        function filterByDateRange(data, startDate, endDate, dateField) {
+            if (!startDate || !endDate) return data;
+
+            const start = new Date(startDate + 'T00:00:00');
+            const end = new Date(endDate + 'T23:59:59');
+
+            return data.filter(item => {
+                if (item[dateField]) {
+                    const itemDate = parseAppSheetDate(item[dateField]);
+                    return itemDate >= start && itemDate <= end;
+                }
+                return false;
+            });
+        }
+
+        // Áp dụng bộ lọc chi tiết cho Licenses
+        function applyLicenseSpecificFilters(data) {
+            const companyFilter = document.getElementById('licenseCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('licenseTypeFilter').value;
+            const transportFilter = document.getElementById('licenseTransportFilter').value;
+            const statusFilter = document.getElementById('licenseStatusFilter').value;
+
+            return data.filter(license => {
+                // Company name filter
+                if (companyFilter && !license.TenDonVi?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && license.LoaiCap !== typeFilter) {
+                    return false;
+                }
+
+                // Transport type filter
+                if (transportFilter) {
+                    let hasTransportType = false;
+                    if (Array.isArray(license.LoaiHinhVanTai)) {
+                        hasTransportType = license.LoaiHinhVanTai.some(transport =>
+                            transport && transport.trim() === transportFilter
+                        );
+                    } else if (typeof license.LoaiHinhVanTai === 'string') {
+                        const transportArray = license.LoaiHinhVanTai.split(',');
+                        hasTransportType = transportArray.some(transport =>
+                            transport && transport.trim() === transportFilter
+                        );
+                    }
+                    if (!hasTransportType) return false;
+                }
+
+                // Status filter
+                if (statusFilter) {
+                    const licenseStatus = getLicenseFilterStatus(license);
+                    if (licenseStatus !== statusFilter) return false;
+                }
+
+                return true;
+            });
+        }
+
+        // Áp dụng bộ lọc chi tiết cho Emblems
+        function applyEmblemSpecificFilters(data) {
+            const companyFilter = document.getElementById('emblemCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('emblemTypeFilter').value;
+            const capFilter = document.getElementById('emblemCapFilter').value;
+            const statusFilter = document.getElementById('emblemStatusFilter').value;
+
+            return data.filter(emblem => {
+                // Company name filter
+                if (companyFilter && !emblem.Ten_don_vi?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && emblem.LoaiPH !== typeFilter) {
+                    return false;
+                }
+
+                // Cap filter
+                if (capFilter && emblem.LoaiCap !== capFilter) {
+                    return false;
+                }
+
+                // Status filter
+                if (statusFilter) {
+                    const emblemStatus = getEmblemFilterStatus(emblem);
+                    if (emblemStatus !== statusFilter) return false;
+                }
+
+                return true;
+            });
+        }
+
+        // Áp dụng bộ lọc chi tiết cho International
+        function applyInternationalSpecificFilters(data) {
+            const companyFilter = document.getElementById('internationalCompanyFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('internationalTypeFilter').value;
+            const modelFilter = document.getElementById('internationalModelFilter').value;
+            const statusFilter = document.getElementById('internationalStatusFilter').value;
+
+            return data.filter(license => {
+                // Company name filter
+                if (companyFilter && !license.TenDonViHienThi?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && license.LoaiCap !== typeFilter) {
+                    return false;
+                }
+
+                // Model filter
+                if (modelFilter) {
+                    if (Array.isArray(license.MoHinhHoatDong)) {
+                        if (!license.MoHinhHoatDong.includes(modelFilter)) return false;
+                    } else if (license.MoHinhHoatDong !== modelFilter) {
+                        return false;
+                    }
+                }
+
+                // Status filter
+                if (statusFilter) {
+                    const internationalStatus = getInternationalFilterStatus(license);
+                    if (internationalStatus !== statusFilter) return false;
+                }
+
+                return true;
+            });
+        }
+
+        // Xóa tất cả bộ lọc
+        function clearAllFilters() {
+            // Reset date filters
+            const today = new Date();
+            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+            // Reset specific filters
+            clearSpecificFilters();
+
+            // Reset to original data
+            filteredLicensesData = [...originalLicensesData];
+            filteredEmblemsData = [...originalEmblemsData];
+            filteredInternationalData = [...originalInternationalData];
+
+            // Update UI
+            updateAllUI();
+            updateChartsWithFilteredData();
+
+            showNotification('Đã xóa tất cả bộ lọc', 'info');
+        }
+
+        // Xóa bộ lọc chi tiết
+        function clearSpecificFilters() {
+            // Clear license filters
+            document.getElementById('licenseCompanyFilter').value = '';
+            document.getElementById('licenseTypeFilter').value = '';
+            document.getElementById('licenseTransportFilter').value = '';
+            document.getElementById('licenseStatusFilter').value = '';
+
+            // Clear emblem filters
+            document.getElementById('emblemCompanyFilter').value = '';
+            document.getElementById('emblemTypeFilter').value = '';
+            document.getElementById('emblemCapFilter').value = '';
+            document.getElementById('emblemStatusFilter').value = '';
+
+            // Clear international filters
+            document.getElementById('internationalCompanyFilter').value = '';
+            document.getElementById('internationalTypeFilter').value = '';
+            document.getElementById('internationalModelFilter').value = '';
+            document.getElementById('internationalStatusFilter').value = '';
+        }
+
+        // Cập nhật toàn bộ UI với dữ liệu đã lọc
+        function updateAllUI() {
+            updateLicensesUI();
+            updateEmblemsUI();
+            updateInternationalUI();
+            updateStatisticsData();
+        }
+
+        // Update UI functions với dữ liệu đã lọc
+        function updateLicensesUI() {
+            const activeLicenses = filteredLicensesData.filter(item =>
+                item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
+            );
+            const revokedLicenses = filteredLicensesData.filter(item =>
+                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
+            );
+
+            // Update dashboard stats
+            document.getElementById('totalLicenses').textContent = filteredLicensesData.length;
+            document.getElementById('revokedLicenses').textContent = revokedLicenses.length;
+            document.getElementById('licensesIssued').textContent = filteredLicensesData.length;
+            document.getElementById('licensesRevoked').textContent = revokedLicenses.length;
+            document.getElementById('activeLicenses').textContent = activeLicenses.length;
+            document.getElementById('statsTotalLicenses').textContent = filteredLicensesData.length;
+
+            // Update table
+            updateLicensesTable();
+        }
+
+        function updateEmblemsUI() {
+            const today = new Date();
+
+            const activeEmblems = filteredEmblemsData.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate >= today;
+                }
+                return true;
+            });
+
+            const expiredEmblems = filteredEmblemsData.filter(item => {
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate < today && item.TrangThai !== 'Đã thu hồi';
+                }
+                return false;
+            });
+
+            const revokedEmblems = filteredEmblemsData.filter(item =>
+                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
+            );
+
+            // Update dashboard stats
+            document.getElementById('activeEmblems').textContent = activeEmblems.length;
+            document.getElementById('expiredEmblems').textContent = expiredEmblems.length;
+            document.getElementById('emblemsIssued').textContent = filteredEmblemsData.length;
+            document.getElementById('emblemsRevoked').textContent = revokedEmblems.length;
+            document.getElementById('emblemsExpired').textContent = expiredEmblems.length;
+            document.getElementById('emblemsActive').textContent = activeEmblems.length;
+            document.getElementById('statsTotalEmblems').textContent = filteredEmblemsData.length;
+
+            // Update table
+            updateEmblemsTable();
+        }
+
         function updateInternationalUI() {
-            // Filter data by status
-            const activeInternational = internationalData.filter(item =>
+            const activeInternational = filteredInternationalData.filter(item =>
                 item.TrangThaiHoatDong === 'Đang hoạt động'
             );
-            const suspendedInternational = internationalData.filter(item =>
+            const suspendedInternational = filteredInternationalData.filter(item =>
                 item.TrangThaiHoatDong === 'Ngừng tạm thời'
             );
-            const revokedInternational = internationalData.filter(item =>
+            const revokedInternational = filteredInternationalData.filter(item =>
                 item.TrangThaiHoatDong === 'Bị thu hồi GPKD'
             );
 
             // Update dashboard stats
-            document.getElementById('totalInternational').textContent = internationalData.length;
-            document.getElementById('internationalIssued').textContent = internationalData.length;
+            document.getElementById('totalInternational').textContent = filteredInternationalData.length;
+            document.getElementById('internationalIssued').textContent = filteredInternationalData.length;
             document.getElementById('internationalActive').textContent = activeInternational.length;
             document.getElementById('internationalSuspended').textContent = suspendedInternational.length;
             document.getElementById('internationalRevoked').textContent = revokedInternational.length;
-            document.getElementById('statsTotalInternational').textContent = internationalData.length;
+            document.getElementById('statsTotalInternational').textContent = filteredInternationalData.length;
 
-            // Update international table
+            // Update table
             updateInternationalTable();
         }
 
-        // Update International Table
+        // Update Tables với dữ liệu đã lọc
+        function updateLicensesTable() {
+            const tableBody = document.getElementById('licensesTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            filteredLicensesData.slice(0, 50).forEach(license => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+
+                const statusClass = getStatusClass(license.TrangThai);
+
+                let transportTypes = 'N/A';
+                if (license.LoaiHinhVanTai) {
+                    if (Array.isArray(license.LoaiHinhVanTai)) {
+                        transportTypes = license.LoaiHinhVanTai.join(', ');
+                    } else if (typeof license.LoaiHinhVanTai === 'string') {
+                        const transportArray = license.LoaiHinhVanTai.split(',');
+                        transportTypes = transportArray.map(t => t.trim()).filter(t => t).join(', ');
+                    }
+                }
+
+                row.innerHTML = `
+                   <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
+                   <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+                   <td class="px-4 py-2 text-center">${transportTypes}</td>
+                   <td class="px-4 py-2 text-center">
+                       <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                           ${license.TrangThai || 'N/A'}
+                       </span>
+                   </td>
+                   <td class="px-4 py-2 text-center">
+                       <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
+                           Chi tiết
+                       </button>
+                   </td>
+               `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateEmblemsTable() {
+            const tableBody = document.getElementById('emblemsTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            filteredEmblemsData.slice(0, 50).forEach(emblem => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+
+                const statusClass = getStatusClass(emblem.TrangThai);
+                const isExpired = isEmblemExpired(emblem.NgayHetHan);
+
+                row.innerHTML = `
+                   <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
+                   <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
+                   <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
+                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
+                   <td class="px-4 py-2 text-center">
+                       <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
+                           ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                       </span>
+                   </td>
+                   <td class="px-4 py-2 text-center">
+                       <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
+                           Chi tiết
+                       </button>
+                   </td>
+               `;
+                tableBody.appendChild(row);
+            });
+        }
+
         function updateInternationalTable() {
             const tableBody = document.getElementById('internationalTableBody');
             tableBody.innerHTML = '';
 
-            internationalData.slice(0, 50).forEach(license => {
+            filteredInternationalData.slice(0, 50).forEach(license => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
 
@@ -716,477 +1179,26 @@
             });
         }
 
-        // Helper function for international status class
-        function getInternationalStatusClass(status) {
-            switch (status) {
-                case 'Đang hoạt động':
-                    return 'bg-green-100 text-green-800';
-                case 'Ngừng tạm thời':
-                    return 'bg-yellow-100 text-yellow-800';
-                case 'Bị thu hồi GPKD':
-                    return 'bg-red-100 text-red-800';
-                case 'Giải thể':
-                    return 'bg-gray-100 text-gray-800';
-                default:
-                    return 'bg-blue-100 text-blue-800';
-            }
-        }
-
-        // View International License Detail
-        function viewInternationalDetail(licenseId) {
-            const license = internationalData.find(item => item.IDDoanhNghiep === licenseId);
-            if (license) {
-                showInternationalModal(license);
-            }
-        }
-
-        // Show International Modal
-        function showInternationalModal(license) {
-            const modalContent = `
-              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
-                  <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
-                      <div class="flex justify-between items-center mb-4">
-                          <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
-                          <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
-                              <i class="fas fa-times"></i>
-                          </button>
-                      </div>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || 'N/A'}</div>
-                          <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || 'N/A'}</div>
-                          <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || 'N/A'}</div>
-                          <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                          <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                          <div><strong>Trạng thái hoạt động:</strong> 
-                              <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
-                                  ${license.TrangThaiHoatDong || 'N/A'}
-                              </span>
-                          </div>
-                          <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || 'N/A'}</div>
-                      </div>
-                      ${license.Lydocaplai ? `
-                          <div class="mt-4 p-4 bg-blue-50 rounded">
-                              <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
-                              <div class="mt-2">${license.Lydocaplai}</div>
-                          </div>
-                      ` : ''}
-                  </div>
-              </div>
-          `;
-            document.body.insertAdjacentHTML('beforeend', modalContent);
-        }
-
-        // Fetch Licenses Data
-        async function fetchLicensesData() {
-            try {
-                showNotification('Đang tải dữ liệu giấy phép...', 'info');
-                const response = await apiRequest('GIAYPHEPKINHDOANHNOIDIA', 'Find', {
-                    Selector: "Filter(GIAYPHEPKINHDOANHNOIDIA, true)"
-                });
-
-                if (Array.isArray(response)) {
-                    licensesData = response;
-                    filteredLicensesData = [...licensesData];
-                    console.log('Dữ liệu GPKD:', licensesData);
-                    updateLicensesUI();
-                    populateLicenseFilters();
-                } else {
-                    throw new Error('Dữ liệu không hợp lệ');
-                }
-            } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu GPKD:', error);
-                showNotification('Không thể tải dữ liệu giấy phép', 'error');
-            }
-        }
-
-        // Fetch Emblems Data
-        async function fetchEmblemsData() {
-            try {
-                showNotification('Đang tải dữ liệu phù hiệu...', 'info');
-                const response = await apiRequest('PHUHIEUXE', 'Find', {
-                    Selector: "Filter(PHUHIEUXE, true)"
-                });
-
-                if (Array.isArray(response)) {
-                    emblemsData = response;
-                    filteredEmblemsData = [...emblemsData];
-                    console.log('Dữ liệu phù hiệu:', emblemsData);
-                    updateEmblemsUI();
-                    populateEmblemFilters();
-                } else {
-                    throw new Error('Dữ liệu không hợp lệ');
-                }
-            } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu phù hiệu:', error);
-                showNotification('Không thể tải dữ liệu phù hiệu', 'error');
-            }
-        }
-
-        // Function để populate dropdown options từ dữ liệu thực tế
-        function populateFilterOptions() {
-            // Populate license filters
-            populateLicenseFilters();
-            populateEmblemFilters();
-            populateInternationalFilters();
-        }
-
-        function populateLicenseFilters() {
-            const typeFilter = document.getElementById('licenseTypeFilter');
-            const transportFilter = document.getElementById('licenseTransportFilter');
-
-            // Get unique values
-            const types = [...new Set(licensesData.map(item => item.LoaiCap).filter(Boolean))];
-            const transports = [...new Set(licensesData.flatMap(item =>
-                Array.isArray(item.LoaiHinhVanTai) ? item.LoaiHinhVanTai : [item.LoaiHinhVanTai]
-            ).filter(Boolean))];
-
-            // Populate dropdowns
-            types.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                typeFilter.appendChild(option);
-            });
-
-            transports.forEach(transport => {
-                const option = document.createElement('option');
-                option.value = transport;
-                option.textContent = transport;
-                transportFilter.appendChild(option);
-            });
-        }
-
-        // Populate Emblem Filters
-        function populateEmblemFilters() {
-            const typeFilter = document.getElementById('emblemTypeFilter');
-            const capFilter = document.getElementById('emblemCapFilter');
-
-            // Get unique values
-            const types = [...new Set(emblemsData.map(item => item.LoaiPH).filter(Boolean))];
-            const caps = [...new Set(emblemsData.map(item => item.LoaiCap).filter(Boolean))];
-
-            // Populate dropdowns
-            types.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                typeFilter.appendChild(option);
-            });
-
-            caps.forEach(cap => {
-                const option = document.createElement('option');
-                option.value = cap;
-                option.textContent = cap;
-                capFilter.appendChild(option);
-            });
-        }
-
-        function populateInternationalFilters() {
-            const typeFilter = document.getElementById('internationalTypeFilter');
-            const modelFilter = document.getElementById('internationalModelFilter');
-
-            // Get unique values
-            const types = [...new Set(internationalData.map(item => item.LoaiCap).filter(Boolean))];
-            const models = [...new Set(internationalData.flatMap(item =>
-                Array.isArray(item.MoHinhHoatDong) ? item.MoHinhHoatDong : [item.MoHinhHoatDong]
-            ).filter(Boolean))];
-
-            // Populate dropdowns
-            types.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                typeFilter.appendChild(option);
-            });
-
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelFilter.appendChild(option);
-            });
-        }
-
-        // Helper function to populate select options
-        function populateSelect(selectElement, values) {
-            // Clear existing options except first one
-            while (selectElement.children.length > 1) {
-                selectElement.removeChild(selectElement.lastChild);
-            }
-
-            values.sort().forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                selectElement.appendChild(option);
-            });
-        }
-
-        // Apply License Filters
-        function applyLicenseFilters() {
-            const companyFilter = document.getElementById('licenseCompanyFilter').value.toLowerCase();
-            const typeFilter = document.getElementById('licenseTypeFilter').value;
-            const transportFilter = document.getElementById('licenseTransportFilter').value;
-            const statusFilter = document.getElementById('licenseStatusFilter').value;
-
-            filteredLicensesData = licensesData.filter(license => {
-                // Company name filter
-                if (companyFilter && !license.TenDonVi?.toLowerCase().includes(companyFilter)) {
-                    return false;
-                }
-
-                // Type filter
-                if (typeFilter && license.LoaiCap !== typeFilter) {
-                    return false;
-                }
-
-                // Transport type filter
-                if (transportFilter) {
-                    if (Array.isArray(license.LoaiHinhVanTai)) {
-                        if (!license.LoaiHinhVanTai.includes(transportFilter)) {
-                            return false;
-                        }
-                    } else if (license.LoaiHinhVanTai !== transportFilter) {
-                        return false;
-                    }
-                }
-
-                // Status filter
-                if (statusFilter && license.TrangThai !== statusFilter) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            updateLicensesTableWithFiltered();
-            showNotification(`Đã lọc được ${filteredLicensesData.length} giấy phép`, 'success');
-        }
-
-        // Apply Emblem Filters
-        function applyEmblemFilters() {
-            const companyFilter = document.getElementById('emblemCompanyFilter').value.toLowerCase();
-            const typeFilter = document.getElementById('emblemTypeFilter').value;
-            const capFilter = document.getElementById('emblemCapFilter').value;
-            const statusFilter = document.getElementById('emblemStatusFilter').value;
-
-            filteredEmblemsData = emblemsData.filter(emblem => {
-                // Company name filter
-                if (companyFilter && !emblem.Ten_don_vi?.toLowerCase().includes(companyFilter)) {
-                    return false;
-                }
-
-                // Type filter
-                if (typeFilter && emblem.LoaiPH !== typeFilter) {
-                    return false;
-                }
-
-                // Cap filter
-                if (capFilter && emblem.LoaiCap !== capFilter) {
-                    return false;
-                }
-
-                // Status filter - consider expired emblems
-                if (statusFilter) {
-                    let currentStatus = emblem.TrangThai;
-                    if (isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi') {
-                        currentStatus = 'Hết hạn';
-                    }
-                    if (currentStatus !== statusFilter) {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
-
-            updateEmblemsTableWithFiltered();
-            showNotification(`Đã lọc được ${filteredEmblemsData.length} phù hiệu`, 'success');
-        }
-
-        // Update Licenses UI
-        function updateLicensesUI() {
-            const today = new Date();
-
-            // Filter data
-            const activeLicenses = licensesData.filter(item =>
-                item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
-            );
-            const revokedLicenses = licensesData.filter(item =>
-                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
-            );
-
-            // Update dashboard stats
-            document.getElementById('totalLicenses').textContent = licensesData.length;
-            document.getElementById('revokedLicenses').textContent = revokedLicenses.length;
-            document.getElementById('licensesIssued').textContent = licensesData.length;
-            document.getElementById('licensesRevoked').textContent = revokedLicenses.length;
-            document.getElementById('activeLicenses').textContent = activeLicenses.length;
-            document.getElementById('statsTotalLicenses').textContent = licensesData.length;
-
-            // Update licenses table
-            updateLicensesTable();
-        }
-
-        // Update Emblems UI
-        function updateEmblemsUI() {
-            const today = new Date();
-
-            // Filter data
-            const activeEmblems = emblemsData.filter(item => {
-                if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
-                if (item.NgayHetHan) {
-                    const expireDate = new Date(item.NgayHetHan);
-                    return expireDate >= today;
-                }
-                return true;
-            });
-
-            const expiredEmblems = emblemsData.filter(item => {
-                if (item.NgayHetHan) {
-                    const expireDate = new Date(item.NgayHetHan);
-                    return expireDate < today && item.TrangThai !== 'Đã thu hồi';
-                }
-                return false;
-            });
-
-            const revokedEmblems = emblemsData.filter(item =>
-                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
-            );
-
-            // Update dashboard stats
-            document.getElementById('activeEmblems').textContent = activeEmblems.length;
-            document.getElementById('expiredEmblems').textContent = expiredEmblems.length;
-            document.getElementById('emblemsIssued').textContent = emblemsData.length;
-            document.getElementById('emblemsRevoked').textContent = revokedEmblems.length;
-            document.getElementById('emblemsExpired').textContent = expiredEmblems.length;
-            document.getElementById('emblemsActive').textContent = activeEmblems.length;
-            document.getElementById('statsTotalEmblems').textContent = emblemsData.length;
-
-            // Update emblems table
-            updateEmblemsTable();
-        }
-
-        // Update Licenses Table
-        function updateLicensesTable() {
-            updateLicensesTableWithData(licensesData);
-        }
-
-        // Update Licenses Table with Filtered Data
-        function updateLicensesTableWithFiltered() {
-            updateLicensesTableWithData(filteredLicensesData);
-        }
-
-        // Update Licenses Table with specific data
-        function updateLicensesTableWithData(dataToShow) {
-            const tableBody = document.getElementById('licensesTableBody');
-            if (!tableBody) return;
-
-            tableBody.innerHTML = '';
-
-            dataToShow.slice(0, 50).forEach(license => {
-                const row = document.createElement('tr');
-                row.className = 'border-b hover:bg-gray-50';
-
-                const statusClass = getStatusClass(license.TrangThai);
-                const transportTypes = Array.isArray(license.LoaiHinhVanTai)
-                    ? license.LoaiHinhVanTai.join(', ')
-                    : license.LoaiHinhVanTai || 'N/A';
-
-                row.innerHTML = `
-                  <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
-                  <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
-                  <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                  <td class="px-4 py-2 text-center">${transportTypes}</td>
-                  <td class="px-4 py-2 text-center">
-                      <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                          ${license.TrangThai || 'N/A'}
-                      </span>
-                  </td>
-                  <td class="px-4 py-2 text-center">
-                      <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
-                          Chi tiết
-                      </button>
-                  </td>
-              `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Update Emblems Table
-        function updateEmblemsTable() {
-            updateEmblemsTableWithData(emblemsData);
-        }
-
-        // Update Emblems Table with Filtered Data
-        function updateEmblemsTableWithFiltered() {
-            updateEmblemsTableWithData(filteredEmblemsData);
-        }
-
-        // Update Emblems Table with specific data
-        function updateEmblemsTableWithData(dataToShow) {
-            const tableBody = document.getElementById('emblemsTableBody');
-            if (!tableBody) return;
-
-            tableBody.innerHTML = '';
-
-            dataToShow.slice(0, 50).forEach(emblem => {
-                const row = document.createElement('tr');
-                row.className = 'border-b hover:bg-gray-50';
-
-                const statusClass = getStatusClass(emblem.TrangThai);
-                const isExpired = isEmblemExpired(emblem.NgayHetHan);
-
-                row.innerHTML = `
-                  <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
-                  <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
-                  <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
-                  <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
-                  <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
-                  <td class="px-4 py-2 text-center">
-                      <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
-                          ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                      </span>
-                  </td>
-                  <td class="px-4 py-2 text-center">
-                      <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
-                          Chi tiết
-                      </button>
-                  </td>
-              `;
-                tableBody.appendChild(row);
-            });
-        }
-
         // Helper function to parse AppSheet date format correctly
         function parseAppSheetDate(dateString) {
             if (!dateString) return null;
 
             try {
-                // AppSheet có thể trả về nhiều format khác nhau
-                // Thử parse theo các format phổ biến
-
-                // Format: "2024-01-15" hoặc "2024-01-15T00:00:00"
                 if (dateString.includes('T')) {
                     return new Date(dateString);
                 }
 
-                // Format: "2024-01-15"
                 if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
                     return new Date(dateString + 'T00:00:00');
                 }
 
-                // Format: "01/15/2024" hoặc "15/01/2024"
                 if (dateString.includes('/')) {
                     const parts = dateString.split('/');
                     if (parts.length === 3) {
-                        // Giả sử format là MM/DD/YYYY hoặc DD/MM/YYYY
-                        // Cần kiểm tra để xác định format chính xác
                         const month = parseInt(parts[0]);
                         const day = parseInt(parts[1]);
                         const year = parseInt(parts[2]);
 
-                        // Nếu month > 12 thì có thể format là DD/MM/YYYY
                         if (month > 12) {
                             return new Date(year, parseInt(parts[1]) - 1, month);
                         } else {
@@ -1195,7 +1207,6 @@
                     }
                 }
 
-                // Fallback: thử parse trực tiếp
                 const date = new Date(dateString);
                 if (!isNaN(date.getTime())) {
                     return date;
@@ -1245,130 +1256,67 @@
             }
         }
 
+        function getInternationalStatusClass(status) {
+            switch (status) {
+                case 'Đang hoạt động':
+                    return 'bg-green-100 text-green-800';
+                case 'Ngừng tạm thời':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Bị thu hồi GPKD':
+                    return 'bg-red-100 text-red-800';
+                case 'Giải thể':
+                    return 'bg-gray-100 text-gray-800';
+                default:
+                    return 'bg-blue-100 text-blue-800';
+            }
+        }
+
         function isEmblemExpired(dateString) {
             if (!dateString) return false;
             try {
-                const expireDate = new Date(dateString);
+                const expireDate = parseAppSheetDate(dateString);
                 return expireDate < new Date();
             } catch {
                 return false;
             }
         }
 
-        function viewLicenseDetail(licenseId) {
-            const license = licensesData.find(item => item.ID_GPKD === licenseId);
-            if (license) {
-                showLicenseModal(license);
-            }
-        }
+        // Tab functionality
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('active');
+                });
 
-        function viewEmblemDetail(emblemId) {
-            const emblem = emblemsData.find(item => item.ID_PhuHieu === emblemId);
-            if (emblem) {
-                showEmblemModal(emblem);
-            }
-        }
+                // Add active class to clicked button
+                btn.classList.add('active');
 
-        // Modal Functions
-        function showLicenseModal(license) {
-            const modalContent = `
-             <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
-                 <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                     <div class="flex justify-between items-center mb-4">
-                         <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
-                         <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
-                             <i class="fas fa-times"></i>
-                         </button>
-                     </div>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
-                         <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
-                         <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
-                         <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
-                         <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                         <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                         <div><strong>Trạng thái:</strong> 
-                             <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
-                                 ${license.TrangThai || 'N/A'}
-                             </span>
-                         </div>
-                         <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
-                     </div>
-                     ${license.NgayThuHoi ? `
-                         <div class="mt-4 p-4 bg-red-50 rounded">
-                             <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                             <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                 <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
-                                 <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
-                                 <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
-                             </div>
-                         </div>
-                     ` : ''}
-                     ${license.GhiChu ? `
-                         <div class="mt-4">
-                             <strong>Ghi chú:</strong> ${license.GhiChu}
-                         </div>
-                     ` : ''}
-                 </div>
-             </div>
-         `;
-            document.body.insertAdjacentHTML('beforeend', modalContent);
-        }
+                // Show corresponding content
+                const tabId = btn.getAttribute('data-tab');
+                const tabContent = document.getElementById(tabId);
+                tabContent.classList.remove('hidden');
+                tabContent.classList.add('active');
 
-        function showEmblemModal(emblem) {
-            const modalContent = `
-             <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
-                 <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                     <div class="flex justify-between items-center mb-4">
-                         <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
-                         <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
-                             <i class="fas fa-times"></i>
-                         </button>
-                     </div>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
-                         <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
-                         <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
-                         <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
-                         <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
-                         <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
-                         <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
-                         <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
-                         <div><strong>Trạng thái:</strong> 
-                             <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
-                                 ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                             </span>
-                         </div>
-                         <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
-                     </div>
-                     ${emblem.NgayThuHoi ? `
-                         <div class="mt-4 p-4 bg-red-50 rounded">
-                             <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                             <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                 <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
-                                 <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
-                                 <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
-                             </div>
-                         </div>
-                     ` : ''}
-                     ${emblem.GhiChu ? `
-                         <div class="mt-4">
-                             <strong>Ghi chú:</strong> ${emblem.GhiChu}
-                         </div>
-                     ` : ''}
-                 </div>
-             </div>
-         `;
-            document.body.insertAdjacentHTML('beforeend', modalContent);
-        }
+                // Show appropriate filters if not applying to all
+                if (!document.getElementById('applyToAll').checked) {
+                    showCurrentTabFilters();
+                }
 
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.remove();
-            }
-        }
+                // Initialize charts when switching tabs
+                if (tabId === 'dashboard') {
+                    setTimeout(initDashboardCharts, 100);
+                } else if (tabId === 'statistics') {
+                    setTimeout(initStatisticsCharts, 100);
+                } else if (tabId === 'reports') {
+                    setTimeout(initReportCharts, 100);
+                }
+            });
+        });
 
+        // Filter handling with apply to all option
         // Filter handling with apply to all option
         function handleFilterToggle() {
             const applyToAll = document.getElementById('applyToAll').checked;
@@ -1376,116 +1324,17 @@
 
             if (applyToAll) {
                 specificFilters.classList.add('filter-disabled');
+                // Ẩn tất cả bộ lọc chi tiết
+                document.querySelectorAll('.filter-section').forEach(section => {
+                    section.classList.add('hidden');
+                });
             } else {
                 specificFilters.classList.remove('filter-disabled');
                 showCurrentTabFilters();
             }
         }
 
-        // Function để áp dụng bộ lọc riêng
-        function applySpecificFilters() {
-            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
-            const applyToAll = document.getElementById('applyToAll').checked;
-
-            if (applyToAll) {
-                showNotification('Vui lòng bỏ tick "Áp dụng cho tất cả" để sử dụng bộ lọc riêng', 'warning');
-                return;
-            }
-
-            switch (activeTab) {
-                case 'licenses':
-                    applyLicenseFilters();
-                    break;
-                case 'emblems':
-                    applyEmblemFilters();
-                    break;
-                case 'international':
-                    applyInternationalFilters();
-                    break;
-                default:
-                    showNotification('Chọn tab Giấy phép, Phù hiệu hoặc GP Liên vận QT để lọc', 'warning');
-            }
-        }
-
-        // Function để xóa bộ lọc riêng
-        function clearSpecificFilters() {
-            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
-
-            switch (activeTab) {
-                case 'licenses':
-                    clearLicenseFilters();
-                    break;
-                case 'emblems':
-                    clearEmblemFilters();
-                    break;
-                case 'international':
-                    clearInternationalFilters();
-                    break;
-            }
-        }
-
-        // Function để xóa bộ lọc international
-        function clearInternationalFilters() {
-            document.getElementById('internationalCompanyFilter').value = '';
-            document.getElementById('internationalTypeFilter').value = '';
-            document.getElementById('internationalModelFilter').value = '';
-            document.getElementById('internationalStatusFilter').value = '';
-
-            // Reset về dữ liệu gốc và cập nhật UI
-            updateFilteredUI(licensesData, emblemsData, internationalData);
-            showNotification('Đã xóa bộ lọc GP Liên vận QT', 'info');
-        }
-
-        // Function để áp dụng bộ lọc international
-        function applyInternationalFilters() {
-            const companyFilter = document.getElementById('internationalCompanyFilter').value.toLowerCase();
-            const typeFilter = document.getElementById('internationalTypeFilter').value;
-            const modelFilter = document.getElementById('internationalModelFilter').value;
-            const statusFilter = document.getElementById('internationalStatusFilter').value;
-
-            let filteredInternational = internationalData.filter(license => {
-                // Company name filter
-                if (companyFilter && !license.TenDonViHienThi?.toLowerCase().includes(companyFilter)) {
-                    return false;
-                }
-
-                // Type filter
-                if (typeFilter && license.LoaiCap !== typeFilter) {
-                    return false;
-                }
-
-                // Model filter
-                if (modelFilter) {
-                    if (Array.isArray(license.MoHinhHoatDong)) {
-                        if (!license.MoHinhHoatDong.includes(modelFilter)) {
-                            return false;
-                        }
-                    } else if (license.MoHinhHoatDong !== modelFilter) {
-                        return false;
-                    }
-                }
-
-                // Status filter
-                if (statusFilter) {
-                    switch (statusFilter) {
-                        case 'active':
-                            return license.TrangThaiHoatDong === 'Đang hoạt động';
-                        case 'suspended':
-                            return license.TrangThaiHoatDong === 'Ngừng tạm thời';
-                        case 'revoked':
-                            return license.TrangThaiHoatDong === 'Bị thu hồi GPKD';
-                    }
-                }
-
-                return true;
-            });
-
-            // Cập nhật UI với dữ liệu đã lọc, giữ nguyên licenses và emblems
-            updateFilteredUI(licensesData, emblemsData, filteredInternational);
-            showNotification(`Đã lọc được ${filteredInternational.length} GP Liên vận QT`, 'success');
-        }
-
-        // Cập nhật function showCurrentTabFilters
+        // Function để hiển thị bộ lọc riêng cho tab hiện tại
         function showCurrentTabFilters() {
             const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
 
@@ -1511,465 +1360,223 @@
             }
         }
 
-        // Enhanced filter function
-        function filterData() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const applyToAll = document.getElementById('applyToAll').checked;
-
-            showNotification('Đang lọc dữ liệu...', 'info');
-
-            let filteredLicenses = [...licensesData];
-            let filteredEmblems = [...emblemsData];
-            let filteredInternational = [...internationalData];
-
-            // Apply date filter to all
-            if (startDate && endDate) {
-                const start = new Date(startDate + 'T00:00:00');
-                const end = new Date(endDate + 'T23:59:59');
-
-                filteredLicenses = filteredLicenses.filter(license => {
-                    if (license.NgayCap) {
-                        const issueDate = parseAppSheetDate(license.NgayCap);
-                        return issueDate >= start && issueDate <= end;
-                    }
-                    return false;
-                });
-
-                filteredEmblems = filteredEmblems.filter(emblem => {
-                    if (emblem.NgayCap) {
-                        const issueDate = parseAppSheetDate(emblem.NgayCap);
-                        return issueDate >= start && issueDate <= end;
-                    }
-                    return false;
-                });
-
-                filteredInternational = filteredInternational.filter(license => {
-                    if (license.NgayCap) {
-                        const issueDate = parseAppSheetDate(license.NgayCap);
-                        return issueDate >= start && issueDate <= end;
-                    }
-                    return false;
-                });
-            }
-
-            // Apply specific filters only if not applying to all
-            if (!applyToAll) {
-                const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
-
-                switch (activeTab) {
-                    case 'licenses':
-                        filteredLicenses = applyLicenseSpecificFilters(filteredLicenses);
-                        break;
-                    case 'emblems':
-                        filteredEmblems = applyEmblemSpecificFilters(filteredEmblems);
-                        break;
-                    case 'international':
-                        filteredInternational = applyInternationalSpecificFilters(filteredInternational);
-                        break;
-                }
-            }
-
-            // Update UI with filtered data
-            setTimeout(() => {
-                updateFilteredUI(filteredLicenses, filteredEmblems, filteredInternational);
-                showNotification(`Đã lọc được ${filteredLicenses.length + filteredEmblems.length + filteredInternational.length} bản ghi!`, 'success');
-            }, 500);
-        }
-
-        // Functions để áp dụng bộ lọc riêng
-        function applyLicenseSpecificFilters(data) {
-            let filtered = [...data];
-
-            const companyFilter = document.getElementById('licenseCompanyFilter').value.toLowerCase();
-            const typeFilter = document.getElementById('licenseTypeFilter').value;
-            const transportFilter = document.getElementById('licenseTransportFilter').value;
-            const statusFilter = document.getElementById('licenseStatusFilter').value;
-
-            if (companyFilter) {
-                filtered = filtered.filter(item =>
-                    item.TenDonVi && item.TenDonVi.toLowerCase().includes(companyFilter)
-                );
-            }
-
-            if (typeFilter) {
-                filtered = filtered.filter(item => item.LoaiCap === typeFilter);
-            }
-
-            if (transportFilter) {
-                filtered = filtered.filter(item => {
-                    if (Array.isArray(item.LoaiHinhVanTai)) {
-                        return item.LoaiHinhVanTai.includes(transportFilter);
-                    }
-                    return item.LoaiHinhVanTai === transportFilter;
-                });
-            }
-
-            if (statusFilter) {
-                filtered = applyLicenseStatusFilter(filtered, statusFilter);
-            }
-
-            return filtered;
-        }
-
-        function applyEmblemSpecificFilters(data) {
-            let filtered = [...data];
-
-            const companyFilter = document.getElementById('emblemCompanyFilter').value.toLowerCase();
-            const typeFilter = document.getElementById('emblemTypeFilter').value;
-            const capFilter = document.getElementById('emblemCapFilter').value;
-            const statusFilter = document.getElementById('emblemStatusFilter').value;
-
-            if (companyFilter) {
-                filtered = filtered.filter(item =>
-                    item.Ten_don_vi && item.Ten_don_vi.toLowerCase().includes(companyFilter)
-                );
-            }
-
-            if (typeFilter) {
-                filtered = filtered.filter(item => item.LoaiPH === typeFilter);
-            }
-
-            if (capFilter) {
-                filtered = filtered.filter(item => item.LoaiCap === capFilter);
-            }
-
-            if (statusFilter) {
-                filtered = applyEmblemStatusFilter(filtered, statusFilter);
-            }
-
-            return filtered;
-        }
-
-        // Function để xóa tất cả bộ lọc
-        function clearAllFilters() {
-            // Clear date filters
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-
-            // Clear license filters
-            document.getElementById('licenseCompanyFilter').value = '';
-            document.getElementById('licenseTypeFilter').value = '';
-            document.getElementById('licenseTransportFilter').value = '';
-            document.getElementById('licenseStatusFilter').value = '';
-
-            // Clear emblem filters
-            document.getElementById('emblemCompanyFilter').value = '';
-            document.getElementById('emblemTypeFilter').value = '';
-            document.getElementById('emblemCapFilter').value = '';
-            document.getElementById('emblemStatusFilter').value = '';
-
-            // Clear international filters
-            document.getElementById('internationalCompanyFilter').value = '';
-            document.getElementById('internationalTypeFilter').value = '';
-            document.getElementById('internationalModelFilter').value = '';
-            document.getElementById('internationalStatusFilter').value = '';
-
-            // Reset checkbox
-            document.getElementById('applyToAll').checked = true;
-            handleFilterToggle();
-
-            // Reset to original data
-            updateFilteredUI(licensesData, emblemsData, internationalData);
-            showNotification('Đã xóa tất cả bộ lọc!', 'info');
-        }
-
-        function applyInternationalSpecificFilters(data) {
-            let filtered = [...data];
-
-            const companyFilter = document.getElementById('internationalCompanyFilter').value.toLowerCase();
-            const typeFilter = document.getElementById('internationalTypeFilter').value;
-            const modelFilter = document.getElementById('internationalModelFilter').value;
-            const statusFilter = document.getElementById('internationalStatusFilter').value;
-
-            if (companyFilter) {
-                filtered = filtered.filter(item =>
-                    item.TenDonViHienThi && item.TenDonViHienThi.toLowerCase().includes(companyFilter)
-                );
-            }
-
-            if (typeFilter) {
-                filtered = filtered.filter(item => item.LoaiCap === typeFilter);
-            }
-
-            if (modelFilter) {
-                filtered = filtered.filter(item => {
-                    if (Array.isArray(item.MoHinhHoatDong)) {
-                        return item.MoHinhHoatDong.includes(modelFilter);
-                    }
-                    return item.MoHinhHoatDong === modelFilter;
-                });
-            }
-
-            if (statusFilter) {
-                filtered = applyInternationalStatusFilter(filtered, statusFilter);
-            }
-
-            return filtered;
-        }
-
-
-        function applyLicenseStatusFilter(data, status) {
-            switch (status) {
-                case 'active':
-                    return data.filter(license =>
-                        license.TrangThai !== 'Đã thu hồi' && license.TrangThai !== 'Hết hiệu lực'
-                    );
-                case 'expired':
-                    return data.filter(license =>
-                        license.TrangThai === 'Hết hiệu lực'
-                    );
-                case 'revoked':
-                    return data.filter(license =>
-                        license.TrangThai === 'Đã thu hồi' || license.NgayThuHoi
-                    );
+        // Helper functions for filter status
+        function getLicenseFilterStatus(license) {
+            switch (license.TrangThai) {
+                case 'Còn hiệu lực':
+                    return 'active';
+                case 'Hết hiệu lực':
+                    return 'expired';
+                case 'Đã thu hồi':
+                    return 'revoked';
                 default:
-                    return data;
+                    return 'active';
             }
         }
 
-        function applyEmblemStatusFilter(data, status) {
-            switch (status) {
-                case 'active':
-                    return data.filter(emblem =>
-                        !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-                    );
-                case 'expired':
-                    return data.filter(emblem =>
-                        isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-                    );
-                case 'revoked':
-                    return data.filter(emblem =>
-                        emblem.TrangThai === 'Đã thu hồi' || emblem.NgayThuHoi
-                    );
+        function getEmblemFilterStatus(emblem) {
+            if (emblem.TrangThai === 'Đã thu hồi') {
+                return 'revoked';
+            }
+
+            if (isEmblemExpired(emblem.NgayHetHan)) {
+                return 'expired';
+            }
+
+            return 'active';
+        }
+
+        function getInternationalFilterStatus(item) {
+            switch (item.TrangThaiHoatDong) {
+                case 'Đang hoạt động':
+                    return 'active';
+                case 'Ngừng tạm thời':
+                    return 'suspended';
+                case 'Bị thu hồi GPKD':
+                    return 'revoked';
                 default:
-                    return data;
+                    return 'active';
             }
         }
 
-        function applyInternationalStatusFilter(data, status) {
-            switch (status) {
-                case 'active':
-                    return data.filter(license =>
-                        license.TrangThaiHoatDong === 'Đang hoạt động'
-                    );
-                case 'expired':
-                    return data.filter(license =>
-                        license.TrangThaiHoatDong === 'Ngừng tạm thời'
-                    );
-                case 'revoked':
-                    return data.filter(license =>
-                        license.TrangThaiHoatDong === 'Bị thu hồi GPKD'
-                    );
-                default:
-                    return data;
+        // Modal Functions
+        function viewLicenseDetail(licenseId) {
+            const license = originalLicensesData.find(item => item.ID_GPKD === licenseId);
+            if (license) {
+                showLicenseModal(license);
             }
         }
 
-        function updateFilteredUI(filteredLicenses, filteredEmblems, filteredInternational) {
-            const today = new Date();
-
-            // Tính toán lại các thống kê cho licenses
-            const activeLicenses = filteredLicenses.filter(item =>
-                item.TrangThai !== 'Đã thu hồi' && item.TrangThai !== 'Hết hiệu lực'
-            );
-            const revokedLicenses = filteredLicenses.filter(item =>
-                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
-            );
-            const expiredLicenses = filteredLicenses.filter(item =>
-                item.TrangThai === 'Hết hiệu lực'
-            );
-
-            // Tính toán lại các thống kê cho emblems
-            const activeEmblems = filteredEmblems.filter(item => {
-                if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
-                if (item.NgayHetHan) {
-                    const expireDate = new Date(item.NgayHetHan);
-                    return expireDate >= today;
-                }
-                return true;
-            });
-
-            const expiredEmblems = filteredEmblems.filter(item => {
-                if (item.NgayHetHan) {
-                    const expireDate = new Date(item.NgayHetHan);
-                    return expireDate < today && item.TrangThai !== 'Đã thu hồi';
-                }
-                return false;
-            });
-
-            const revokedEmblems = filteredEmblems.filter(item =>
-                item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi
-            );
-
-            // Tính toán lại các thống kê cho international
-            const activeInternational = filteredInternational.filter(item =>
-                item.TrangThaiHoatDong === 'Đang hoạt động'
-            );
-            const suspendedInternational = filteredInternational.filter(item =>
-                item.TrangThaiHoatDong === 'Ngừng tạm thời'
-            );
-            const revokedInternational = filteredInternational.filter(item =>
-                item.TrangThaiHoatDong === 'Bị thu hồi GPKD'
-            );
-
-            // Cập nhật Dashboard stats
-            document.getElementById('totalLicenses').textContent = filteredLicenses.length;
-            document.getElementById('activeEmblems').textContent = activeEmblems.length;
-            document.getElementById('expiredEmblems').textContent = expiredEmblems.length;
-            document.getElementById('revokedLicenses').textContent = revokedLicenses.length;
-            document.getElementById('totalInternational').textContent = filteredInternational.length;
-
-            // Cập nhật Licenses tab stats
-            document.getElementById('licensesIssued').textContent = filteredLicenses.length;
-            document.getElementById('licensesRevoked').textContent = revokedLicenses.length;
-            document.getElementById('activeLicenses').textContent = activeLicenses.length;
-
-            // Cập nhật Emblems tab stats
-            document.getElementById('emblemsIssued').textContent = filteredEmblems.length;
-            document.getElementById('emblemsRevoked').textContent = revokedEmblems.length;
-            document.getElementById('emblemsExpired').textContent = expiredEmblems.length;
-            document.getElementById('emblemsActive').textContent = activeEmblems.length;
-
-            // Cập nhật International tab stats
-            document.getElementById('internationalIssued').textContent = filteredInternational.length;
-            document.getElementById('internationalActive').textContent = activeInternational.length;
-            document.getElementById('internationalSuspended').textContent = suspendedInternational.length;
-            document.getElementById('internationalRevoked').textContent = revokedInternational.length;
-
-            // Cập nhật Statistics tab stats
-            document.getElementById('statsTotalLicenses').textContent = filteredLicenses.length;
-            document.getElementById('statsTotalEmblems').textContent = filteredEmblems.length;
-            document.getElementById('statsTotalInternational').textContent = filteredInternational.length;
-
-            // Cập nhật active vehicles và companies
-            const uniqueCompanies = new Set();
-            filteredLicenses.forEach(license => {
-                if (license.TenDonVi) {
-                    uniqueCompanies.add(license.TenDonVi);
-                }
-            });
-            document.getElementById('statsCompanies').textContent = uniqueCompanies.size;
-            document.getElementById('statsActiveVehicles').textContent = activeEmblems.length;
-
-            // Cập nhật tables
-            updateFilteredTables(filteredLicenses, filteredEmblems, filteredInternational);
-
-            // Cập nhật charts nếu đang ở tab có charts
-            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
-            if (activeTab === 'dashboard') {
-                updateFilteredCharts(filteredLicenses, filteredEmblems);
-            } else if (activeTab === 'statistics') {
-                updateFilteredStatisticsCharts(filteredLicenses, filteredEmblems, filteredInternational);
+        function viewEmblemDetail(emblemId) {
+            const emblem = originalEmblemsData.find(item => item.ID_PhuHieu === emblemId);
+            if (emblem) {
+                showEmblemModal(emblem);
             }
         }
 
-        function updateFilteredCharts(filteredLicenses, filteredEmblems) {
-            // Cập nhật license chart
-            const licenseChart = Chart.getChart('licenseChart');
-            if (licenseChart) {
-                const monthlyData = groupLicensesByMonth(filteredLicenses);
-                licenseChart.data.labels = monthlyData.labels;
-                licenseChart.data.datasets[0].data = monthlyData.issued;
-                licenseChart.data.datasets[1].data = monthlyData.revoked;
-                licenseChart.update();
-            }
-
-            // Cập nhật emblem chart
-            const emblemChart = Chart.getChart('emblemChart');
-            if (emblemChart) {
-                const typeData = groupEmblemsByType(filteredEmblems);
-                emblemChart.data.labels = typeData.labels;
-                emblemChart.data.datasets[0].data = typeData.values;
-                emblemChart.update();
+        function viewInternationalDetail(licenseId) {
+            const license = originalInternationalData.find(item => item.IDDoanhNghiep === licenseId);
+            if (license) {
+                showInternationalModal(license);
             }
         }
 
-        function updateFilteredStatisticsCharts(filteredLicenses, filteredEmblems, filteredInternational) {
-            // Cập nhật transport type chart
-            const transportChart = Chart.getChart('transportTypeChart');
-            if (transportChart) {
-                const transportData = groupLicensesByTransportType(filteredLicenses);
-                transportChart.data.labels = transportData.labels;
-                transportChart.data.datasets[0].data = transportData.values;
-                transportChart.update();
-            }
+        function showLicenseModal(license) {
+            const modalContent = `
+           <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
+               <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                   <div class="flex justify-between items-center mb-4">
+                       <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
+                       <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
+                           <i class="fas fa-times"></i>
+                       </button>
+                   </div>
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
+                       <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
+                       <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
+                       <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
+                       <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                       <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
+                       <div><strong>Trạng thái:</strong> 
+                           <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
+                               ${license.TrangThai || 'N/A'}
+                           </span>
+                       </div>
+                       <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
+                   </div>
+                   ${license.NgayThuHoi ? `
+                       <div class="mt-4 p-4 bg-red-50 rounded">
+                           <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                           <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                               <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
+                               <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
+                               <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
+                           </div>
+                       </div>
+                   ` : ''}
+                   ${license.GhiChu ? `
+                       <div class="mt-4">
+                           <strong>Ghi chú:</strong> ${license.GhiChu}
+                       </div>
+                   ` : ''}
+               </div>
+           </div>
+       `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
 
-            // Cập nhật status chart
-            const statusChart = Chart.getChart('statusChart');
-            if (statusChart) {
-                const statusData = getStatusStatistics(filteredLicenses, filteredEmblems, filteredInternational);
-                statusChart.data.datasets[0].data = [statusData.licenses.active, statusData.emblems.active, statusData.international.active];
-                statusChart.data.datasets[1].data = [statusData.licenses.expired, statusData.emblems.expired, statusData.international.suspended];
-                statusChart.data.datasets[2].data = [statusData.licenses.revoked, statusData.emblems.revoked, statusData.international.revoked];
-                statusChart.update();
+        function showEmblemModal(emblem) {
+            const modalContent = `
+           <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
+               <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                   <div class="flex justify-between items-center mb-4">
+                       <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
+                       <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
+                           <i class="fas fa-times"></i>
+                       </button>
+                   </div>
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
+                       <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
+                       <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
+                       <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
+                       <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
+                       <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
+                       <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
+                       <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
+                       <div><strong>Trạng thái:</strong> 
+                           <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
+                               ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
+                           </span>
+                       </div>
+                       <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
+                   </div>
+                   ${emblem.NgayThuHoi ? `
+                       <div class="mt-4 p-4 bg-red-50 rounded">
+                           <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                           <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                               <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
+                               <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
+                               <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
+                           </div>
+                       </div>
+                   ` : ''}
+                   ${emblem.GhiChu ? `
+                       <div class="mt-4">
+                           <strong>Ghi chú:</strong> ${emblem.GhiChu}
+                       </div>
+                   ` : ''}
+               </div>
+           </div>
+       `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function showInternationalModal(license) {
+            const modalContent = `
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
+                <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
+                        <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || 'N/A'}</div>
+                        <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || 'N/A'}</div>
+                        <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || 'N/A'}</div>
+                        <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                        <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
+                        <div><strong>Trạng thái hoạt động:</strong> 
+                            <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
+                                ${license.TrangThaiHoatDong || 'N/A'}
+                            </span>
+                        </div>
+                        <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || 'N/A'}</div>
+                    </div>
+                    ${license.Lydocaplai ? `
+                        <div class="mt-4 p-4 bg-blue-50 rounded">
+                            <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
+                            <div class="mt-2">${license.Lydocaplai}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.remove();
             }
         }
 
-        function updateFilteredTables(filteredLicenses, filteredEmblems, filteredInternational) {
-            // Update licenses table
-            updateLicensesTableWithData(filteredLicenses);
-
-            // Update emblems table
-            updateEmblemsTableWithData(filteredEmblems);
-
-            // Update international table
-            const internationalTableBody = document.getElementById('internationalTableBody');
-            if (internationalTableBody) {
-                internationalTableBody.innerHTML = '';
-                filteredInternational.slice(0, 50).forEach(license => {
-                    const row = document.createElement('tr');
-                    row.className = 'border-b hover:bg-gray-50';
-
-                    const statusClass = getInternationalStatusClass(license.TrangThaiHoatDong);
-                    const moHinhHoatDong = Array.isArray(license.MoHinhHoatDong)
-                        ? license.MoHinhHoatDong.join(', ')
-                        : license.MoHinhHoatDong || 'N/A';
-
-                    row.innerHTML = `
-                     <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
-                     <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
-                     <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                     <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
-                     <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
-                     <td class="px-4 py-2 text-center">
-                         <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                             ${license.TrangThaiHoatDong || 'N/A'}
-                         </span>
-                     </td>
-                     <td class="px-4 py-2 text-center">
-                         <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
-                             Chi tiết
-                         </button>
-                     </td>
-                 `;
-                    internationalTableBody.appendChild(row);
-                });
-            }
-        }
-
-        // Export function with international data
+        // Export function with filtered data
         function exportData() {
             showNotification('Đang xuất dữ liệu...', 'info');
 
             setTimeout(() => {
                 const csvContent = generateCSVData();
-                downloadCSV(csvContent, 'bao_cao_van_tai.csv');
+                downloadCSV(csvContent, 'bao_cao_van_tai_filtered.csv');
                 showNotification('Xuất dữ liệu thành công!', 'success');
             }, 2000);
         }
 
         function generateCSVData() {
-            // Export licenses data
+            // Export filtered licenses data
             const licensesHeaders = [
                 'Số GPKD', 'Tên đơn vị', 'Địa chỉ', 'Ngày cấp',
                 'Loại hình vận tải', 'Trạng thái', 'Ngày thu hồi'
             ];
 
-            let csvContent = 'DANH SÁCH GIẤY PHÉP KINH DOANH VẬN TẢI\n';
+            let csvContent = 'DANH SÁCH GIẤY PHÉP KINH DOANH VẬN TẢI (ĐÃ LỌC)\n';
             csvContent += licensesHeaders.join(',') + '\n';
 
-            licensesData.forEach(license => {
+            filteredLicensesData.forEach(license => {
                 const row = [
                     license.SoGiayPhep || '',
                     license.TenDonVi || '',
@@ -1982,15 +1589,15 @@
                 csvContent += row.map(field => `"${field}"`).join(',') + '\n';
             });
 
-            // Export emblems data
-            csvContent += '\n\nDANH SÁCH PHÙ HIỆU XE\n';
+            // Export filtered emblems data
+            csvContent += '\n\nDANH SÁCH PHÙ HIỆU XE (ĐÃ LỌC)\n';
             const emblemsHeaders = [
                 'Số phù hiệu', 'Biển số xe', 'Tên đơn vị', 'Ngày cấp',
                 'Ngày hết hạn', 'Loại phù hiệu', 'Trạng thái'
             ];
             csvContent += emblemsHeaders.join(',') + '\n';
 
-            emblemsData.forEach(emblem => {
+            filteredEmblemsData.forEach(emblem => {
                 const row = [
                     emblem.SoPhuHieu || '',
                     emblem.BienSo || '',
@@ -2003,15 +1610,15 @@
                 csvContent += row.map(field => `"${field}"`).join(',') + '\n';
             });
 
-            // Export international data
-            csvContent += '\n\nDANH SÁCH GIẤY PHÉP LIÊN VẬN QUỐC TẾ\n';
+            // Export filtered international data
+            csvContent += '\n\nDANH SÁCH GIẤY PHÉP LIÊN VẬN QUỐC TẾ (ĐÃ LỌC)\n';
             const internationalHeaders = [
                 'Số GP', 'Tên đơn vị', 'Ngày cấp', 'Loại cấp',
                 'Mô hình hoạt động', 'Trạng thái'
             ];
             csvContent += internationalHeaders.join(',') + '\n';
 
-            internationalData.forEach(license => {
+            filteredInternationalData.forEach(license => {
                 const row = [
                     license.SoGPLienVanQT || '',
                     license.TenDonViHienThi || '',
@@ -2040,7 +1647,25 @@
             }
         }
 
-        // Chart Functions
+        // Chart Functions - Updated to use filtered data
+        function updateChartsWithFilteredData() {
+            // Destroy existing charts
+            Chart.helpers.each(Chart.instances, function (instance) {
+                instance.destroy();
+            });
+
+            // Reinitialize charts with filtered data
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+
+            if (activeTab === 'dashboard') {
+                setTimeout(initDashboardCharts, 100);
+            } else if (activeTab === 'statistics') {
+                setTimeout(initStatisticsCharts, 100);
+            } else if (activeTab === 'reports') {
+                setTimeout(initReportCharts, 100);
+            }
+        }
+
         function initDashboardCharts() {
             initLicenseChart();
             initEmblemChart();
@@ -2048,9 +1673,8 @@
 
         function initLicenseChart() {
             const ctx = document.getElementById('licenseChart');
-            if (ctx && licensesData.length > 0) {
-                // Group licenses by month
-                const monthlyData = groupLicensesByMonth();
+            if (ctx && filteredLicensesData.length > 0) {
+                const monthlyData = groupLicensesByMonth(filteredLicensesData);
 
                 new Chart(ctx, {
                     type: 'line',
@@ -2090,9 +1714,8 @@
 
         function initEmblemChart() {
             const ctx = document.getElementById('emblemChart');
-            if (ctx && emblemsData.length > 0) {
-                // Group emblems by type
-                const typeData = groupEmblemsByType();
+            if (ctx && filteredEmblemsData.length > 0) {
+                const typeData = groupEmblemsByType(filteredEmblemsData);
 
                 new Chart(ctx, {
                     type: 'doughnut',
@@ -2130,8 +1753,8 @@
 
         function initTransportTypeChart() {
             const ctx = document.getElementById('transportTypeChart');
-            if (ctx && licensesData.length > 0) {
-                const transportData = groupLicensesByTransportType();
+            if (ctx && filteredLicensesData.length > 0) {
+                const transportData = groupLicensesByTransportType(filteredLicensesData);
 
                 new Chart(ctx, {
                     type: 'pie',
@@ -2163,8 +1786,8 @@
 
         function initStatusChart() {
             const ctx = document.getElementById('statusChart');
-            if (ctx && licensesData.length > 0 && emblemsData.length > 0) {
-                const statusData = getStatusStatistics();
+            if (ctx && filteredLicensesData.length > 0 && filteredEmblemsData.length > 0) {
+                const statusData = getStatusStatistics(filteredLicensesData, filteredEmblemsData, filteredInternationalData);
 
                 new Chart(ctx, {
                     type: 'bar',
@@ -2209,8 +1832,8 @@
 
         function initLicenseTrendChart() {
             const ctx = document.getElementById('licenseTrendChart');
-            if (ctx && licensesData.length > 0) {
-                const trendData = getLicenseTrendData();
+            if (ctx && filteredLicensesData.length > 0) {
+                const trendData = getLicenseTrendData(filteredLicensesData);
 
                 new Chart(ctx, {
                     type: 'line',
@@ -2244,8 +1867,8 @@
 
         function initEmblemTrendChart() {
             const ctx = document.getElementById('emblemTrendChart');
-            if (ctx && emblemsData.length > 0) {
-                const trendData = getEmblemTrendData();
+            if (ctx && filteredEmblemsData.length > 0) {
+                const trendData = getEmblemTrendData(filteredEmblemsData);
 
                 new Chart(ctx, {
                     type: 'bar',
@@ -2279,25 +1902,31 @@
             }
         }
 
-        function groupLicensesByMonth(dataToUse = licensesData) {
+        function groupLicensesByMonth(dataToUse = filteredLicensesData) {
             const monthCounts = {};
             const revokedCounts = {};
 
             dataToUse.forEach(license => {
                 if (license.NgayCap) {
-                    const month = new Date(license.NgayCap).toLocaleDateString('vi-VN', {
-                        year: 'numeric',
-                        month: 'short'
-                    });
-                    monthCounts[month] = (monthCounts[month] || 0) + 1;
+                    const date = parseAppSheetDate(license.NgayCap);
+                    if (date) {
+                        const month = date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'short'
+                        });
+                        monthCounts[month] = (monthCounts[month] || 0) + 1;
+                    }
                 }
 
                 if (license.NgayThuHoi) {
-                    const month = new Date(license.NgayThuHoi).toLocaleDateString('vi-VN', {
-                        year: 'numeric',
-                        month: 'short'
-                    });
-                    revokedCounts[month] = (revokedCounts[month] || 0) + 1;
+                    const date = parseAppSheetDate(license.NgayThuHoi);
+                    if (date) {
+                        const month = date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'short'
+                        });
+                        revokedCounts[month] = (revokedCounts[month] || 0) + 1;
+                    }
                 }
             });
 
@@ -2310,7 +1939,7 @@
             };
         }
 
-        function groupEmblemsByType(dataToUse = emblemsData) {
+        function groupEmblemsByType(dataToUse = filteredEmblemsData) {
             const typeCounts = {};
 
             dataToUse.forEach(emblem => {
@@ -2324,17 +1953,27 @@
             };
         }
 
-        function groupLicensesByTransportType(dataToUse = licensesData) {
+        function groupLicensesByTransportType(dataToUse = filteredLicensesData) {
             const typeCounts = {};
 
             dataToUse.forEach(license => {
-                if (Array.isArray(license.LoaiHinhVanTai)) {
-                    license.LoaiHinhVanTai.forEach(type => {
-                        typeCounts[type] = (typeCounts[type] || 0) + 1;
-                    });
-                } else if (license.LoaiHinhVanTai) {
-                    const type = license.LoaiHinhVanTai;
-                    typeCounts[type] = (typeCounts[type] || 0) + 1;
+                if (license.LoaiHinhVanTai) {
+                    if (Array.isArray(license.LoaiHinhVanTai)) {
+                        license.LoaiHinhVanTai.forEach(type => {
+                            const cleanType = type ? type.trim() : '';
+                            if (cleanType) {
+                                typeCounts[cleanType] = (typeCounts[cleanType] || 0) + 1;
+                            }
+                        });
+                    } else if (typeof license.LoaiHinhVanTai === 'string') {
+                        const transportArray = license.LoaiHinhVanTai.split(',');
+                        transportArray.forEach(type => {
+                            const cleanType = type ? type.trim() : '';
+                            if (cleanType) {
+                                typeCounts[cleanType] = (typeCounts[cleanType] || 0) + 1;
+                            }
+                        });
+                    }
                 }
             });
 
@@ -2344,7 +1983,7 @@
             };
         }
 
-        function getStatusStatistics(filteredLicenses = licensesData, filteredEmblems = emblemsData, filteredInternational = internationalData) {
+        function getStatusStatistics(filteredLicenses = filteredLicensesData, filteredEmblems = filteredEmblemsData, filteredInternational = filteredInternationalData) {
             const today = new Date();
 
             // License statistics
@@ -2362,7 +2001,7 @@
             const activeEmblems = filteredEmblems.filter(item => {
                 if (item.TrangThai === 'Đã thu hồi' || item.NgayThuHoi) return false;
                 if (item.NgayHetHan) {
-                    const expireDate = new Date(item.NgayHetHan);
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
                     return expireDate >= today;
                 }
                 return true;
@@ -2370,7 +2009,7 @@
 
             const expiredEmblems = filteredEmblems.filter(item => {
                 if (item.NgayHetHan) {
-                    const expireDate = new Date(item.NgayHetHan);
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
                     return expireDate < today && item.TrangThai !== 'Đã thu hồi';
                 }
                 return false;
@@ -2412,7 +2051,7 @@
             };
         }
 
-        function getLicenseTrendData() {
+        function getLicenseTrendData(dataToUse = filteredLicensesData) {
             const last12Months = [];
             const today = new Date();
 
@@ -2422,13 +2061,16 @@
             }
 
             const counts = last12Months.map(month => {
-                return licensesData.filter(license => {
+                return dataToUse.filter(license => {
                     if (license.NgayCap) {
-                        const licenseMonth = new Date(license.NgayCap).toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                        return licenseMonth === month;
+                        const issueDate = parseAppSheetDate(license.NgayCap);
+                        if (issueDate) {
+                            const licenseMonth = issueDate.toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'short'
+                            });
+                            return licenseMonth === month;
+                        }
                     }
                     return false;
                 }).length;
@@ -2440,7 +2082,7 @@
             };
         }
 
-        function getEmblemTrendData() {
+        function getEmblemTrendData(dataToUse = filteredEmblemsData) {
             const last12Months = [];
             const today = new Date();
 
@@ -2450,26 +2092,32 @@
             }
 
             const issuedCounts = last12Months.map(month => {
-                return emblemsData.filter(emblem => {
+                return dataToUse.filter(emblem => {
                     if (emblem.NgayCap) {
-                        const emblemMonth = new Date(emblem.NgayCap).toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                        return emblemMonth === month;
+                        const issueDate = parseAppSheetDate(emblem.NgayCap);
+                        if (issueDate) {
+                            const emblemMonth = issueDate.toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'short'
+                            });
+                            return emblemMonth === month;
+                        }
                     }
                     return false;
                 }).length;
             });
 
             const revokedCounts = last12Months.map(month => {
-                return emblemsData.filter(emblem => {
+                return dataToUse.filter(emblem => {
                     if (emblem.NgayThuHoi) {
-                        const revokeMonth = new Date(emblem.NgayThuHoi).toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                        return revokeMonth === month;
+                        const revokeDate = parseAppSheetDate(emblem.NgayThuHoi);
+                        if (revokeDate) {
+                            const revokeMonth = revokeDate.toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'short'
+                            });
+                            return revokeMonth === month;
+                        }
                     }
                     return false;
                 }).length;
@@ -2480,6 +2128,161 @@
                 issued: issuedCounts,
                 revoked: revokedCounts
             };
+        }
+
+        // Populate filter options
+        function populateFilterOptions() {
+            populateLicenseFilters();
+            populateEmblemFilters();
+            populateInternationalFilters();
+        }
+
+        function populateLicenseFilters() {
+            if (!originalLicensesData.length) return;
+
+            const typeFilter = document.getElementById('licenseTypeFilter');
+            const transportFilter = document.getElementById('licenseTransportFilter');
+
+            const types = [...new Set(originalLicensesData.map(item => item.LoaiCap).filter(Boolean))];
+
+            const transports = new Set();
+            originalLicensesData.forEach(item => {
+                if (item.LoaiHinhVanTai) {
+                    if (Array.isArray(item.LoaiHinhVanTai)) {
+                        item.LoaiHinhVanTai.forEach(transport => {
+                            if (transport && transport.trim()) {
+                                transports.add(transport.trim());
+                            }
+                        });
+                    } else if (typeof item.LoaiHinhVanTai === 'string') {
+                        const transportArray = item.LoaiHinhVanTai.split(',');
+                        transportArray.forEach(transport => {
+                            const cleanTransport = transport.trim();
+                            if (cleanTransport) {
+                                transports.add(cleanTransport);
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Clear existing options except first one
+            while (typeFilter.children.length > 1) {
+                typeFilter.removeChild(typeFilter.lastChild);
+            }
+            while (transportFilter.children.length > 1) {
+                transportFilter.removeChild(transportFilter.lastChild);
+            }
+
+            types.sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            const sortedTransports = Array.from(transports).sort();
+            sortedTransports.forEach(transport => {
+                const option = document.createElement('option');
+                option.value = transport;
+                option.textContent = transport;
+                transportFilter.appendChild(option);
+            });
+        }
+
+        function populateEmblemFilters() {
+            if (!originalEmblemsData.length) return;
+
+            const typeFilter = document.getElementById('emblemTypeFilter');
+            const capFilter = document.getElementById('emblemCapFilter');
+
+            const types = [...new Set(originalEmblemsData.map(item => item.LoaiPH).filter(Boolean))];
+            const caps = [...new Set(originalEmblemsData.map(item => item.LoaiCap).filter(Boolean))];
+
+            // Clear existing options except first one
+            while (typeFilter.children.length > 1) {
+                typeFilter.removeChild(typeFilter.lastChild);
+            }
+            while (capFilter.children.length > 1) {
+                capFilter.removeChild(capFilter.lastChild);
+            }
+
+            types.sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            caps.sort().forEach(cap => {
+                const option = document.createElement('option');
+                option.value = cap;
+                option.textContent = cap;
+                capFilter.appendChild(option);
+            });
+        }
+
+        function populateInternationalFilters() {
+            if (!originalInternationalData.length) return;
+
+            const typeFilter = document.getElementById('internationalTypeFilter');
+            const modelFilter = document.getElementById('internationalModelFilter');
+
+            const types = [...new Set(originalInternationalData.map(item => item.LoaiCap).filter(Boolean))];
+            const models = [...new Set(originalInternationalData.flatMap(item =>
+                Array.isArray(item.MoHinhHoatDong) ? item.MoHinhHoatDong : [item.MoHinhHoatDong]
+            ).filter(Boolean))];
+
+            // Clear existing options except first one
+            while (typeFilter.children.length > 1) {
+                typeFilter.removeChild(typeFilter.lastChild);
+            }
+            while (modelFilter.children.length > 1) {
+                modelFilter.removeChild(modelFilter.lastChild);
+            }
+
+            types.sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            models.sort().forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelFilter.appendChild(option);
+            });
+        }
+
+        function updateStatisticsData() {
+            // Count unique companies from filtered data
+            const uniqueCompanies = new Set();
+            filteredLicensesData.forEach(license => {
+                if (license.TenDonVi) {
+                    uniqueCompanies.add(license.TenDonVi);
+                }
+            });
+            filteredEmblemsData.forEach(emblem => {
+                if (emblem.Ten_don_vi) {
+                    uniqueCompanies.add(emblem.Ten_don_vi);
+                }
+            });
+            filteredInternationalData.forEach(international => {
+                if (international.TenDonViHienThi) {
+                    uniqueCompanies.add(international.TenDonViHienThi);
+                }
+            });
+
+            // Count active vehicles from filtered data
+            const activeVehicles = filteredEmblemsData.filter(emblem =>
+                !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
+            ).length;
+
+            // Update statistics UI
+            document.getElementById('statsCompanies').textContent = uniqueCompanies.size;
+            document.getElementById('statsActiveVehicles').textContent = activeVehicles;
         }
 
         // Notification function
@@ -2502,11 +2305,11 @@
             }
 
             notification.innerHTML = `
-             <div class="flex items-center">
-                 <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
-                 <span>${message}</span>
-             </div>
-         `;
+           <div class="flex items-center">
+               <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
+               <span>${message}</span>
+           </div>
+       `;
 
             document.body.appendChild(notification);
 
@@ -2523,41 +2326,6 @@
                 }, 300);
             }, 3000);
         }
-
-        // Tab functionality
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active class from all buttons and content
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.add('hidden');
-                    content.classList.remove('active');
-                });
-
-                // Add active class to clicked button
-                btn.classList.add('active');
-
-                // Show corresponding content
-                const tabId = btn.getAttribute('data-tab');
-                const tabContent = document.getElementById(tabId);
-                tabContent.classList.remove('hidden');
-                tabContent.classList.add('active');
-
-                // Show appropriate filters if not applying to all
-                if (!document.getElementById('applyToAll').checked) {
-                    showCurrentTabFilters();
-                }
-
-                // Initialize charts when switching tabs
-                if (tabId === 'dashboard') {
-                    setTimeout(initDashboardCharts, 100);
-                } else if (tabId === 'statistics') {
-                    setTimeout(initStatisticsCharts, 100);
-                } else if (tabId === 'reports') {
-                    setTimeout(initReportCharts, 100);
-                }
-            });
-        });
 
         // Initialize application
         async function initializeApp() {
@@ -2584,38 +2352,19 @@
                 // Populate filter options
                 populateFilterOptions();
 
+                // Update all UI with initial data
+                updateAllUI();
+
                 // Initialize dashboard charts
                 setTimeout(() => {
                     initDashboardCharts();
                     showNotification('Hệ thống đã sẵn sàng!', 'success');
                 }, 500);
 
-                // Update statistics
-                updateStatisticsData();
-
             } catch (error) {
                 console.error('Lỗi khởi tạo ứng dụng:', error);
                 showNotification('Có lỗi xảy ra khi khởi tạo hệ thống', 'error');
             }
-        }
-
-        function updateStatisticsData() {
-            // Count unique companies
-            const uniqueCompanies = new Set();
-            licensesData.forEach(license => {
-                if (license.TenDonVi) {
-                    uniqueCompanies.add(license.TenDonVi);
-                }
-            });
-
-            // Count active vehicles (emblems that are not expired or revoked)
-            const activeVehicles = emblemsData.filter(emblem =>
-                !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
-            ).length;
-
-            // Update statistics UI
-            document.getElementById('statsCompanies').textContent = uniqueCompanies.size;
-            document.getElementById('statsActiveVehicles').textContent = activeVehicles;
         }
 
         // Event listeners
@@ -2651,7 +2400,7 @@
                         break;
                     case 'f':
                         e.preventDefault();
-                        filterData();
+                        applyFilters();
                         break;
                     case 'e':
                         e.preventDefault();
@@ -2670,7 +2419,7 @@
                     fetchEmblemsData(),
                     fetchInternationalData()
                 ]);
-                updateStatisticsData();
+                updateAllUI();
                 showNotification('Dữ liệu đã được làm mới!', 'success');
             } catch (error) {
                 console.error('Lỗi khi làm mới dữ liệu:', error);
@@ -2687,342 +2436,6 @@
                 }
             }
         });
-
-        // Clear filters functions
-        function clearLicenseFilters() {
-            document.getElementById('licenseCompanyFilter').value = '';
-            document.getElementById('licenseTypeFilter').value = '';
-            document.getElementById('licenseTransportFilter').value = '';
-            document.getElementById('licenseStatusFilter').value = '';
-
-            filteredLicensesData = [...licensesData];
-            updateLicensesTableWithFiltered();
-            showNotification('Đã xóa bộ lọc giấy phép', 'info');
-        }
-
-        function clearEmblemFilters() {
-            document.getElementById('emblemCompanyFilter').value = '';
-            document.getElementById('emblemTypeFilter').value = '';
-            document.getElementById('emblemCapFilter').value = '';
-            document.getElementById('emblemStatusFilter').value = '';
-
-            filteredEmblemsData = [...emblemsData];
-            updateEmblemsTableWithFiltered();
-            showNotification('Đã xóa bộ lọc phù hiệu', 'info');
-        }
-
-        // Add CSS styles
-        const style = document.createElement('style');
-        style.textContent = `
-         .nav-btn.active {
-             background-color: #1e40af !important;
-             border-bottom: 3px solid #fbbf24;
-         }
-         
-         .tab-content {
-             animation: fadeIn 0.3s ease-in-out;
-         }
-         
-         @keyframes fadeIn {
-             from { opacity: 0; transform: translateY(10px); }
-             to { opacity: 1; transform: translateY(0); }
-         }
-         
-         ::-webkit-scrollbar {
-             width: 8px;
-         }
-         
-         ::-webkit-scrollbar-track {
-             background: #f1f5f9;
-         }
-         
-         ::-webkit-scrollbar-thumb {
-             background: #cbd5e1;
-             border-radius: 4px;
-         }
-         
-         ::-webkit-scrollbar-thumb:hover {
-             background: #94a3b8;
-         }
-         
-         .hover-card:hover {
-             transform: translateY(-2px);
-             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-             transition: all 0.3s ease;
-         }
-         
-         .loading {
-             position: relative;
-             overflow: hidden;
-         }
-         
-         .loading::after {
-             content: '';
-             position: absolute;
-             top: 0;
-             left: -100%;
-             width: 100%;
-             height: 100%;
-             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-             animation: loading 1.5s infinite;
-         }
-         
-         @keyframes loading {
-             0% { left: -100%; }
-             100% { left: 100%; }
-         }
-
-         /* Table hover effects */
-         tbody tr:hover {
-             background-color: #f8fafc;
-             transition: background-color 0.2s ease;
-         }
-
-         /* Button hover effects */
-         button:hover {
-             transform: translateY(-1px);
-             transition: transform 0.2s ease;
-         }
-
-         /* Modal animation */
-         .fixed.inset-0 {
-             animation: modalFadeIn 0.3s ease-out;
-             backdrop-filter: blur(4px);
-         }
-
-         @keyframes modalFadeIn {
-             from { 
-                 opacity: 0;
-                 backdrop-filter: blur(0px);
-             }
-             to { 
-                 opacity: 1;
-                 backdrop-filter: blur(4px);
-             }
-         }
-
-         .fixed.inset-0 > div {
-             animation: modalSlideIn 0.3s ease-out;
-         }
-
-         @keyframes modalSlideIn {
-             from {
-                 transform: scale(0.9) translateY(-20px);
-                 opacity: 0;
-             }
-             to {
-                 transform: scale(1) translateY(0);
-                 opacity: 1;
-             }
-         }
-
-         /* Filter disabled state */
-         .filter-disabled {
-             opacity: 0.5;
-             pointer-events: none;
-             transition: opacity 0.3s ease;
-         }
-
-         /* Responsive navigation */
-         @media (max-width: 768px) {
-             .nav-btn {
-                 font-size: 0.875rem;
-                 padding: 0.75rem 0.5rem;
-             }
-             
-             .nav-btn i {
-                 display: none;
-             }
-         }
-
-         /* Enhanced stats cards */
-         .stats-grid > div {
-             transition: all 0.3s ease;
-         }
-
-         .stats-grid > div:hover {
-             transform: translateY(-4px);
-             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-         }
-
-         /* Custom checkbox style */
-         input[type="checkbox"] {
-             accent-color: #3B82F6;
-         }
-
-         /* Notification improvements */
-         .notification-enter {
-             transform: translateX(100%);
-             opacity: 0;
-         }
-
-         .notification-enter-active {
-             transform: translateX(0);
-             opacity: 1;
-             transition: all 0.3s ease-out;
-         }
-
-         .notification-exit {
-             transform: translateX(0);
-             opacity: 1;
-         }
-
-         .notification-exit-active {
-             transform: translateX(100%);
-             opacity: 0;
-             transition: all 0.3s ease-in;
-         }
-
-         /* Table improvements */
-         .table-container {
-             border-radius: 0.5rem;
-             overflow: hidden;
-             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-         }
-
-         thead th {
-             background: linear-gradient(to right, #f8fafc, #f1f5f9);
-             font-weight: 600;
-             text-transform: uppercase;
-             font-size: 0.75rem;
-             letter-spacing: 0.05em;
-             border-bottom: 2px solid #e2e8f0;
-         }
-
-         /* Loading states */
-         .skeleton {
-             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-             background-size: 200% 100%;
-             animation: loading 1.5s infinite;
-         }
-
-         /* Chart container improvements */
-         .chart-container {
-             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-             border-radius: 0.5rem;
-             padding: 1rem;
-             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-         }
-
-         /* Status badge improvements */
-         .status-badge {
-             display: inline-flex;
-             align-items: center;
-             font-weight: 500;
-             border: 1px solid;
-         }
-
-         .status-badge::before {
-             content: '';
-             width: 6px;
-             height: 6px;
-             border-radius: 50%;
-             margin-right: 0.375rem;
-             background-color: currentColor;
-         }
-
-         /* Specific filter styles */
-         .specific-filters {
-             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-             border: 1px solid #e2e8f0;
-             border-radius: 0.5rem;
-             padding: 1.5rem;
-             margin-top: 1rem;
-             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-         }
-
-         .filter-row {
-             display: grid;
-             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-             gap: 1rem;
-             align-items: end;
-         }
-
-         .filter-group {
-             display: flex;
-             flex-direction: column;
-             gap: 0.5rem;
-         }
-
-         .filter-group label {
-             font-size: 0.875rem;
-             font-weight: 600;
-             color: #374151;
-             text-transform: uppercase;
-             letter-spacing: 0.025em;
-         }
-
-         .filter-group select,
-         .filter-group input {
-             padding: 0.75rem;
-             border: 1px solid #d1d5db;
-             border-radius: 0.5rem;
-             font-size: 0.875rem;
-             background: white;
-             transition: all 0.2s ease;
-         }
-
-         .filter-group select:focus,
-         .filter-group input:focus {
-             outline: none;
-             border-color: #3b82f6;
-             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-             transform: translateY(-1px);
-         }
-
-         .filter-group button {
-             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-             border: none;
-             border-radius: 0.5rem;
-             color: white;
-             font-weight: 600;
-             padding: 0.75rem 1.5rem;
-             cursor: pointer;
-             transition: all 0.2s ease;
-             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-         }
-
-         .filter-group button:hover {
-             background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-             transform: translateY(-2px);
-             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-         }
-
-         .filter-group button:active {
-             transform: translateY(0);
-         }
-
-         /* Clear filter button */
-         .clear-filter-btn {
-             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-             border: none;
-             border-radius: 0.5rem;
-             color: white;
-             font-weight: 600;
-             padding: 0.75rem 1.5rem;
-             cursor: pointer;
-             transition: all 0.2s ease;
-             box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
-         }
-
-         .clear-filter-btn:hover {
-             background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-             transform: translateY(-2px);
-             box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
-         }
-
-         /* Responsive filter layout */
-         @media (max-width: 768px) {
-             .filter-row {
-                 grid-template-columns: 1fr;
-             }
-             
-             .specific-filters {
-                 padding: 1rem;
-             }
-         }
-     `;
-        document.head.appendChild(style);
 
     </script>
 </body>
