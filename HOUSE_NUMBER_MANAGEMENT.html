@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Thống Kê Quản Lý Số Nhà</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-center"> THỐNG KÊ QUẢN LÝ SỐ NHÀ</h1>
+        </div>
+    </header>
+
+    <!-- Navigation Filters -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex flex-wrap gap-4 items-center justify-center">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-700">Chọn Huyện:</label>
+                    <select id="huyenSelect"
+                        class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tất cả Huyện</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-700">Chọn Xã:</label>
+                    <select id="xaSelect"
+                        class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tất cả Xã</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Tổng số nhà</h3>
+                        <p class="text-3xl font-bold text-gray-900" id="tongSoNha">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Thiếu CCCD</h3>
+                        <p class="text-3xl font-bold text-red-600" id="thieuCCCD">0</p>
+                        <p class="text-sm text-gray-500" id="tyLeThieuCCCD">0%</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Thiếu Chủ hộ</h3>
+                        <p class="text-3xl font-bold text-yellow-600" id="thieuChuHo">0</p>
+                        <p class="text-sm text-gray-500" id="tyLeThieuChuHo">0%</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Thiếu cả hai</h3>
+                        <p class="text-3xl font-bold text-purple-600" id="thieuCaHai">0</p>
+                        <p class="text-sm text-gray-500" id="tyLeThieuCaHai">0%</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Pie Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Tỷ lệ thiếu thông tin</h3>
+                <div class="relative h-64">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Số nhà theo Huyện</h3>
+                <div class="relative h-64">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables Section -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+            <!-- Summary Table by District -->
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Tổng hợp theo Huyện</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Huyện</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tổng số</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thiếu CCCD</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thiếu Chủ hộ</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thiếu cả hai</th>
+                            </tr>
+                        </thead>
+                        <tbody id="huyenTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detail Table by Commune -->
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Chi tiết theo Xã</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Xã</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Huyện</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tổng số</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thiếu CCCD</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thiếu Chủ hộ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="xaTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Lists Section -->
+        <div class="space-y-8">
+            <!-- Danh sách thiếu CCCD -->
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-red-600">Danh sách chi tiết nhà thiếu CCCD</h3>
+                    <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium"
+                        id="countThieuCCCD">0 nhà</span>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-red-50 sticky top-0">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    STT</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Số nhà</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Địa chỉ</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Xã</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Huyện</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Chủ hộ</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="danhSachThieuCCCD" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Danh sách thiếu Chủ hộ -->
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-yellow-600">Danh sách chi tiết nhà thiếu Chủ hộ</h3>
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium"
+                        id="countThieuChuHo">0 nhà</span>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-yellow-50 sticky top-0">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    STT</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Số nhà</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Địa chỉ</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Xã</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Huyện</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    CCCD</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="danhSachThieuChuHo" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Danh sách thiếu cả hai -->
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-purple-600">Danh sách chi tiết nhà thiếu cả CCCD và Chủ hộ
+                    </h3>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium"
+                        id="countThieuCaHai">0 nhà</span>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-purple-50 sticky top-0">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    STT</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Số nhà</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Địa chỉ</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Xã</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Huyện</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Trường thiếu</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="danhSachThieuCaHai" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-6 py-4">
+            <p class="text-center text-sm">&copy; 2025 Hệ thống Quản lý Số Nhà. Tất cả quyền được bảo lưu.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Cấu hình API AppSheet
+        const appId = '738e08f5-2238-4a86-aa66-669a26a32787';
+        const accessKey = 'V2-tpO1H-pGDbB-0QG0R-IRLVd-zaLwD-inB4d-6JPu0-zaKuG';
+        const region = 'www';
+
+        // Biến lưu trữ dữ liệu
+        let soNhaData = [];
+        let huyenData = [];
+        let xaPhuongData = [];
+
+        // Chart instances
+        let pieChart, barChart;
+
+        // Helper functions để kiểm tra dữ liệu trống
+        function isBlank(value) {
+            return value === null || value === undefined || value === '' || value === 'null' || value === 'undefined';
+        }
+
+        function isNotBlank(value) {
+            return !isBlank(value);
+        }
+
+        // Function to make API requests
+        function apiRequest(tableName, action, data) {
+            const apiUrl = `https://${region}.appsheet.com/api/v2/apps/${appId}/tables/${tableName}/Action`;
+            return fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'ApplicationAccessKey': accessKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    Action: action,
+                    Properties: {},
+                    ...data
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error("Lỗi API:", error);
+                    throw error;
+                });
+        }
+
+        // Fetch data functions
+        async function fetchSoNhaData() {
+            try {
+                const response = await apiRequest('DM_SoNha', 'Find', {
+                    Selector: "Filter(DM_SoNha, true)"
+                });
+                if (!Array.isArray(response) || response.length === 0) {
+                    throw new Error("Dữ liệu không hợp lệ");
+                }
+                soNhaData = response;
+                console.log("Dữ liệu từ DM_SoNha:", soNhaData);
+                populateFilters();
+                updateData();
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu từ DM_SoNha:", error);
+            }
+        }
+
+        async function fetchHuyenData() {
+            try {
+                const response = await apiRequest('DM_Huyen', 'Find', {
+                    Selector: "Filter(DM_Huyen, true)"
+                });
+                huyenData = response || [];
+                console.log("Dữ liệu từ DM_Huyen:", huyenData);
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu từ DM_Huyen:", error);
+            }
+        }
+
+        async function fetchXaPhuongData() {
+            try {
+                const response = await apiRequest('DM_XaPhuong', 'Find', {
+                    Selector: "Filter(DM_XaPhuong, true)"
+                });
+                xaPhuongData = response || [];
+                console.log("Dữ liệu từ DM_XaPhuong:", xaPhuongData);
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu từ DM_XaPhuong:", error);
+            }
+        }
+
+        // Populate filter dropdowns
+        function populateFilters() {
+            const huyenSelect = document.getElementById('huyenSelect');
+            huyenSelect.innerHTML = '<option value="">Tất cả Huyện</option>';
+
+            const huyenList = [...new Set(soNhaData.map(item => item.MaHuyen))].filter(Boolean);
+            huyenList.forEach(maHuyen => {
+                const huyenInfo = huyenData.find(h => h.MaHuyen === maHuyen);
+                const option = document.createElement('option');
+                option.value = maHuyen;
+                option.textContent = huyenInfo ? huyenInfo.QuanHuyen : maHuyen;
+                huyenSelect.appendChild(option);
+            });
+
+            populateXaFilter();
+        }
+
+        function populateXaFilter(selectedHuyen = null) {
+            const xaSelect = document.getElementById('xaSelect');
+            xaSelect.innerHTML = '<option value="">Tất cả Xã</option>';
+
+            let xaList = [...new Set(soNhaData.map(item => item.MaXa))].filter(Boolean);
+
+            if (selectedHuyen) {
+                xaList = [...new Set(soNhaData
+                    .filter(item => item.MaHuyen === selectedHuyen)
+                    .map(item => item.MaXa)
+                )].filter(Boolean);
+            }
+
+            xaList.forEach(maXa => {
+                const xaInfo = xaPhuongData.find(x => x.MaXa === maXa);
+                const option = document.createElement('option');
+                option.value = maXa;
+                option.textContent = xaInfo ? xaInfo.TenXa : maXa;
+                xaSelect.appendChild(option);
+            });
+        }
+
+        // Initialize charts
+        function initCharts() {
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Thiếu CCCD', 'Thiếu Chủ hộ', 'Thiếu cả hai', 'Đầy đủ'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#EF4444',
+                            '#F59E0B',
+                            '#8B5CF6',
+                            '#10B981'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Số nhà',
+                        data: [],
+                        backgroundColor: '#3B82F6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update data and charts
+        function updateData() {
+            const huyenFilter = document.getElementById('huyenSelect').value;
+            const xaFilter = document.getElementById('xaSelect').value;
+
+            let filteredData = soNhaData;
+            if (huyenFilter) {
+                filteredData = filteredData.filter(item => item.MaHuyen === huyenFilter);
+            }
+            if (xaFilter) {
+                filteredData = filteredData.filter(item => item.MaXa === xaFilter);
+            }
+
+            updateStatistics(filteredData);
+            updateCharts(filteredData);
+            updateTables(filteredData);
+            updateDetailLists(filteredData); // Thêm function mới
+        }
+
+        // Update statistics cards
+        function updateStatistics(data) {
+            const total = data.length;
+            const thieuCCCD = data.filter(item => isBlank(item.CCCD)).length;
+            const thieuChuHo = data.filter(item => isBlank(item.ChuHo)).length;
+            const thieuCaHai = data.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo)).length;
+
+            document.getElementById('tongSoNha').textContent = total.toLocaleString('vi-VN');
+            document.getElementById('thieuCCCD').textContent = thieuCCCD.toLocaleString('vi-VN');
+            document.getElementById('thieuChuHo').textContent = thieuChuHo.toLocaleString('vi-VN');
+            document.getElementById('thieuCaHai').textContent = thieuCaHai.toLocaleString('vi-VN');
+
+            document.getElementById('tyLeThieuCCCD').textContent =
+                total > 0 ? `${((thieuCCCD / total) * 100).toFixed(1)}%` : '0%';
+            document.getElementById('tyLeThieuChuHo').textContent =
+                total > 0 ? `${((thieuChuHo / total) * 100).toFixed(1)}%` : '0%';
+            document.getElementById('tyLeThieuCaHai').textContent =
+                total > 0 ? `${((thieuCaHai / total) * 100).toFixed(1)}%` : '0%';
+        }
+
+        // Update charts
+        function updateCharts(data) {
+            const total = data.length;
+            const thieuCCCD = data.filter(item => isBlank(item.CCCD)).length;
+            const thieuChuHo = data.filter(item => isBlank(item.ChuHo)).length;
+            const thieuCaHai = data.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo)).length;
+            const dayDu = total - thieuCCCD - thieuChuHo + thieuCaHai;
+
+            pieChart.data.datasets[0].data = [thieuCCCD, thieuChuHo, thieuCaHai, dayDu];
+            pieChart.update();
+
+            const huyenStats = {};
+            data.forEach(item => {
+                const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                const huyenName = huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định');
+                huyenStats[huyenName] = (huyenStats[huyenName] || 0) + 1;
+            });
+
+            barChart.data.labels = Object.keys(huyenStats);
+            barChart.data.datasets[0].data = Object.values(huyenStats);
+            barChart.update();
+        }
+
+        // Update tables
+        function updateTables(data) {
+            // Update Huyện table
+            const huyenStats = {};
+            data.forEach(item => {
+                const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                const huyenName = huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định');
+
+                if (!huyenStats[huyenName]) {
+                    huyenStats[huyenName] = { total: 0, thieuCCCD: 0, thieuChuHo: 0, thieuCaHai: 0 };
+                }
+
+                huyenStats[huyenName].total++;
+                if (isBlank(item.CCCD)) huyenStats[huyenName].thieuCCCD++;
+                if (isBlank(item.ChuHo)) huyenStats[huyenName].thieuChuHo++;
+                if (isBlank(item.CCCD) && isBlank(item.ChuHo)) huyenStats[huyenName].thieuCaHai++;
+            });
+
+            const huyenTableBody = document.getElementById('huyenTableBody');
+            huyenTableBody.innerHTML = '';
+
+            Object.entries(huyenStats).forEach(([huyenName, stats]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${huyenName}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">${stats.thieuCaHai}</td>
+               `;
+                huyenTableBody.appendChild(row);
+            });
+
+            // Update Xã table
+            const xaStats = {};
+            data.forEach(item => {
+                const xaInfo = xaPhuongData.find(x => x.MaXa === item.MaXa);
+                const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                const xaName = xaInfo ? xaInfo.TenXa : (item.MaXa || 'Không xác định');
+                const huyenName = huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định');
+
+                const key = `${xaName}_${huyenName}`;
+                if (!xaStats[key]) {
+                    xaStats[key] = { xaName, huyenName, total: 0, thieuCCCD: 0, thieuChuHo: 0 };
+                }
+
+                xaStats[key].total++;
+                if (isBlank(item.CCCD)) xaStats[key].thieuCCCD++;
+                if (isBlank(item.ChuHo)) xaStats[key].thieuChuHo++;
+            });
+
+            const xaTableBody = document.getElementById('xaTableBody');
+            xaTableBody.innerHTML = '';
+
+            Object.values(xaStats).forEach(stats => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${stats.xaName}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.huyenName}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
+                   <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
+               `;
+                xaTableBody.appendChild(row);
+            });
+        }
+
+        // Update detailed lists - Function mới
+        function updateDetailLists(data) {
+            // Lọc dữ liệu theo từng trường hợp
+            const danhSachThieuCCCD = data.filter(item => isBlank(item.CCCD));
+            const danhSachThieuChuHo = data.filter(item => isBlank(item.ChuHo));
+            const danhSachThieuCaHai = data.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo));
+
+            // Update counts
+            document.getElementById('countThieuCCCD').textContent = `${danhSachThieuCCCD.length} nhà`;
+            document.getElementById('countThieuChuHo').textContent = `${danhSachThieuChuHo.length} nhà`;
+            document.getElementById('countThieuCaHai').textContent = `${danhSachThieuCaHai.length} nhà`;
+
+            // Update danh sách thiếu CCCD
+            updateDetailTable('danhSachThieuCCCD', danhSachThieuCCCD, 'thieuCCCD');
+
+            // Update danh sách thiếu Chủ hộ
+            updateDetailTable('danhSachThieuChuHo', danhSachThieuChuHo, 'thieuChuHo');
+
+            // Update danh sách thiếu cả hai
+            updateDetailTable('danhSachThieuCaHai', danhSachThieuCaHai, 'thieuCaHai');
+        }
+
+        function updateDetailTable(tableId, data, type) {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                   <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                       <div class="flex flex-col items-center">
+                           <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                           </svg>
+                           <p>Không có dữ liệu</p>
+                       </div>
+                   </td>
+               `;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            data.forEach((item, index) => {
+                const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                const xaInfo = xaPhuongData.find(x => x.MaXa === item.MaXa);
+                const huyenName = huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định');
+                const xaName = xaInfo ? xaInfo.TenXa : (item.MaXa || 'Không xác định');
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+
+                if (type === 'thieuCCCD') {
+                    row.innerHTML = `
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                       <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.ChuHo || 'Trống'}</td>
+                       <td class="px-6 py-4 text-sm text-red-600">Thiếu CCCD</td>
+                   `;
+                } else if (type === 'thieuChuHo') {
+                    row.innerHTML = `
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                       <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.CCCD || 'Trống'}</td>
+                       <td class="px-6 py-4 text-sm text-yellow-600">Thiếu Chủ hộ</td>
+                   `;
+                } else if (type === 'thieuCaHai') {
+                    row.innerHTML = `
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                       <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.TruongThieu || 'CCCD & Chủ hộ'}</td>
+                       <td class="px-6 py-4 text-sm text-purple-600">Thiếu cả hai</td>
+                   `;
+                }
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Filter change handlers
+        document.getElementById('huyenSelect').addEventListener('change', function () {
+            const selectedHuyen = this.value;
+            populateXaFilter(selectedHuyen);
+            updateData();
+        });
+
+        document.getElementById('xaSelect').addEventListener('change', function () {
+            updateData();
+        });
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', async function () {
+            initCharts();
+
+            try {
+                await Promise.all([
+                    fetchHuyenData(),
+                    fetchXaPhuongData(),
+                    fetchSoNhaData()
+                ]);
+            } catch (error) {
+                console.error("Lỗi khởi tạo:", error);
+            }
+        });
+    </script>
+</body>
+
+</html>
