@@ -4,16 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Thống Kê Quản Lý Số Nhà</title>
+    <title> BÁO CÁO TỔNG HỢP HIỆN TRẠNG SỐ NHÀ TOÀN TỈNH BẮC GIANG</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Thêm SheetJS để xuất Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body class="bg-gray-50">
     <!-- Header -->
     <header class="bg-blue-600 text-white shadow-lg">
         <div class="container mx-auto px-6 py-4">
-            <h1 class="text-3xl font-bold text-center"> THỐNG KÊ QUẢN LÝ SỐ NHÀ</h1>
+            <h1 class="text-3xl font-bold text-center"> BÁO CÁO TỔNG HỢP HIỆN TRẠNG SỐ NHÀ TOÀN TỈNH BẮC GIANG</h1>
         </div>
     </header>
 
@@ -35,6 +37,29 @@
                         class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Tất cả Xã</option>
                     </select>
+                </div>
+
+                <!-- Thêm các nút xuất Excel -->
+                <div class="flex items-center gap-2">
+                    <button id="exportSummaryBtn"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Xuất Tổng hợp
+                    </button>
+
+                    <button id="exportDetailBtn"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Xuất Chi tiết thiếu
+                    </button>
                 </div>
             </div>
         </div>
@@ -328,7 +353,7 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-white mt-12">
         <div class="container mx-auto px-6 py-4">
-            <p class="text-center text-sm">&copy; 2025 Hệ thống Quản lý Số Nhà. Tất cả quyền được bảo lưu.</p>
+            <p class="text-center text-sm">&copy; 2025 Hệ thống Quản lý số nhà. Copyright by Quý Hoàng.</p>
         </div>
     </footer>
 
@@ -393,8 +418,7 @@
                 }
                 soNhaData = response;
                 console.log("Dữ liệu từ DM_SoNha:", soNhaData);
-                populateFilters();
-                updateData();
+
             } catch (error) {
                 console.error("Lỗi khi lấy dữ liệu từ DM_SoNha:", error);
             }
@@ -530,10 +554,10 @@
             updateStatistics(filteredData);
             updateCharts(filteredData);
             updateTables(filteredData);
-            updateDetailLists(filteredData); // Thêm function mới
+            updateDetailLists(filteredData);
         }
 
-        // Update statistics cards
+        // Update statistics cards (tiếp tục)
         function updateStatistics(data) {
             const total = data.length;
             const thieuCCCD = data.filter(item => isBlank(item.CCCD)).length;
@@ -600,12 +624,12 @@
             Object.entries(huyenStats).forEach(([huyenName, stats]) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${huyenName}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">${stats.thieuCaHai}</td>
-               `;
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${huyenName}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">${stats.thieuCaHai}</td>
+              `;
                 huyenTableBody.appendChild(row);
             });
 
@@ -633,35 +657,47 @@
             Object.values(xaStats).forEach(stats => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${stats.xaName}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.huyenName}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
-                   <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
-               `;
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${stats.xaName}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.huyenName}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
+              `;
                 xaTableBody.appendChild(row);
             });
         }
 
-        // Update detailed lists - Function mới
+        // Update detailed lists
         function updateDetailLists(data) {
-            // Lọc dữ liệu theo từng trường hợp
-            const danhSachThieuCCCD = data.filter(item => isBlank(item.CCCD));
-            const danhSachThieuChuHo = data.filter(item => isBlank(item.ChuHo));
-            const danhSachThieuCaHai = data.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo));
+            const danhSachThieuCCCD = data.filter(item => isBlank(item.CCCD))
+                .sort((a, b) => {
+                    const soNhaA = (a.SoNha || '').toString().toLowerCase();
+                    const soNhaB = (b.SoNha || '').toString().toLowerCase();
+                    return soNhaA.localeCompare(soNhaB, 'vi-VN', { numeric: true });
+                });
+
+            const danhSachThieuChuHo = data.filter(item => isBlank(item.ChuHo))
+                .sort((a, b) => {
+                    const soNhaA = (a.SoNha || '').toString().toLowerCase();
+                    const soNhaB = (b.SoNha || '').toString().toLowerCase();
+                    return soNhaA.localeCompare(soNhaB, 'vi-VN', { numeric: true });
+                });
+
+            const danhSachThieuCaHai = data.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo))
+                .sort((a, b) => {
+                    const soNhaA = (a.SoNha || '').toString().toLowerCase();
+                    const soNhaB = (b.SoNha || '').toString().toLowerCase();
+                    return soNhaA.localeCompare(soNhaB, 'vi-VN', { numeric: true });
+                });
 
             // Update counts
             document.getElementById('countThieuCCCD').textContent = `${danhSachThieuCCCD.length} nhà`;
             document.getElementById('countThieuChuHo').textContent = `${danhSachThieuChuHo.length} nhà`;
             document.getElementById('countThieuCaHai').textContent = `${danhSachThieuCaHai.length} nhà`;
 
-            // Update danh sách thiếu CCCD
+            // Update tables
             updateDetailTable('danhSachThieuCCCD', danhSachThieuCCCD, 'thieuCCCD');
-
-            // Update danh sách thiếu Chủ hộ
             updateDetailTable('danhSachThieuChuHo', danhSachThieuChuHo, 'thieuChuHo');
-
-            // Update danh sách thiếu cả hai
             updateDetailTable('danhSachThieuCaHai', danhSachThieuCaHai, 'thieuCaHai');
         }
 
@@ -672,15 +708,15 @@
             if (data.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                   <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                       <div class="flex flex-col items-center">
-                           <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                           </svg>
-                           <p>Không có dữ liệu</p>
-                       </div>
-                   </td>
-               `;
+                  <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                      <div class="flex flex-col items-center">
+                          <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                          </svg>
+                          <p>Không có dữ liệu</p>
+                      </div>
+                  </td>
+              `;
                 tableBody.appendChild(row);
                 return;
             }
@@ -696,38 +732,361 @@
 
                 if (type === 'thieuCCCD') {
                     row.innerHTML = `
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
-                       <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.ChuHo || 'Trống'}</td>
-                       <td class="px-6 py-4 text-sm text-red-600">Thiếu CCCD</td>
-                   `;
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                      <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.ChuHo || 'Trống'}</td>
+                      <td class="px-6 py-4 text-sm text-red-600">Thiếu CCCD</td>
+                  `;
                 } else if (type === 'thieuChuHo') {
                     row.innerHTML = `
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
-                       <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.CCCD || 'Trống'}</td>
-                       <td class="px-6 py-4 text-sm text-yellow-600">Thiếu Chủ hộ</td>
-                   `;
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                      <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.CCCD || 'Trống'}</td>
+                      <td class="px-6 py-4 text-sm text-yellow-600">Thiếu Chủ hộ</td>
+                  `;
                 } else if (type === 'thieuCaHai') {
                     row.innerHTML = `
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
-                       <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
-                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.TruongThieu || 'CCCD & Chủ hộ'}</td>
-                       <td class="px-6 py-4 text-sm text-purple-600">Thiếu cả hai</td>
-                   `;
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                      <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">CCCD & Chủ hộ</td>
+                      <td class="px-6 py-4 text-sm text-purple-600">Thiếu cả hai</td>
+                  `;
                 }
 
                 tableBody.appendChild(row);
             });
+        }
+
+        // FUNCTIONS XUẤT EXCEL - PHẦN MỚI
+
+        // Hàm tạo tên file với thời gian
+        // Hàm tạo tên file với thời gian và bộ lọc
+        function createFileName(prefix) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('vi-VN').replace(/\//g, '-');
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false }).replace(/:/g, '-');
+
+            // Lấy thông tin bộ lọc
+            const huyenFilter = document.getElementById('huyenSelect').value;
+            const xaFilter = document.getElementById('xaSelect').value;
+
+            let locationSuffix = 'BacGiang'; // Mặc định toàn tỉnh
+
+            if (huyenFilter && xaFilter) {
+                // Có cả huyện và xã
+                const huyenInfo = huyenData.find(h => h.MaHuyen === huyenFilter);
+                const xaInfo = xaPhuongData.find(x => x.MaXa === xaFilter);
+                const huyenName = huyenInfo ? huyenInfo.QuanHuyen : huyenFilter;
+                const xaName = xaInfo ? xaInfo.TenXa : xaFilter;
+                locationSuffix = `${huyenName}_${xaName}`;
+            } else if (huyenFilter) {
+                // Chỉ có huyện
+                const huyenInfo = huyenData.find(h => h.MaHuyen === huyenFilter);
+                const huyenName = huyenInfo ? huyenInfo.QuanHuyen : huyenFilter;
+                locationSuffix = huyenName;
+            }
+
+            // Loại bỏ ký tự đặc biệt trong tên file
+            locationSuffix = locationSuffix.replace(/[\/\\:*?"<>|]/g, '_');
+
+            return `${prefix}_${locationSuffix}_${dateStr}_${timeStr}.xlsx`;
+        }
+
+        // Hàm xuất báo cáo tổng hợp
+        function exportSummaryReport() {
+            try {
+                const huyenFilter = document.getElementById('huyenSelect').value;
+                const xaFilter = document.getElementById('xaSelect').value;
+
+                let filteredData = soNhaData;
+                if (huyenFilter) {
+                    filteredData = filteredData.filter(item => item.MaHuyen === huyenFilter);
+                }
+                if (xaFilter) {
+                    filteredData = filteredData.filter(item => item.MaXa === xaFilter);
+                }
+
+                const wb = XLSX.utils.book_new();
+
+                // Sheet 1: Tổng hợp theo Huyện
+                const huyenStats = {};
+                filteredData.forEach(item => {
+                    const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                    const huyenName = huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định');
+
+                    if (!huyenStats[huyenName]) {
+                        huyenStats[huyenName] = { total: 0, thieuCCCD: 0, thieuChuHo: 0, thieuCaHai: 0 };
+                    }
+
+                    huyenStats[huyenName].total++;
+                    if (isBlank(item.CCCD)) huyenStats[huyenName].thieuCCCD++;
+                    if (isBlank(item.ChuHo)) huyenStats[huyenName].thieuChuHo++;
+                    if (isBlank(item.CCCD) && isBlank(item.ChuHo)) huyenStats[huyenName].thieuCaHai++;
+                });
+
+                const huyenData_export = Object.entries(huyenStats).map(([huyenName, stats]) => ({
+                    'Huyện': huyenName,
+                    'Tổng số nhà': stats.total,
+                    'Thiếu CCCD': stats.thieuCCCD,
+                    'Tỷ lệ thiếu CCCD (%)': stats.total > 0 ? ((stats.thieuCCCD / stats.total) * 100).toFixed(1) : '0',
+                    'Thiếu Chủ hộ': stats.thieuChuHo,
+                    'Tỷ lệ thiếu Chủ hộ (%)': stats.total > 0 ? ((stats.thieuChuHo / stats.total) * 100).toFixed(1) : '0',
+                    'Thiếu cả hai': stats.thieuCaHai,
+                    'Tỷ lệ thiếu cả hai (%)': stats.total > 0 ? ((stats.thieuCaHai / stats.total) * 100).toFixed(1) : '0'
+                }));
+
+                const ws1 = XLSX.utils.json_to_sheet(huyenData_export);
+                XLSX.utils.book_append_sheet(wb, ws1, "Tổng hợp theo Huyện");
+
+                // Sheet 2: Tổng hợp theo Xã
+                const xaStats = {};
+                filteredData.forEach(item => {
+                    const xaInfo = xaPhuongData.find(x => x.MaXa === item.MaXa);
+                    const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                    const xaName = xaInfo ? xaInfo.TenXa : (item.MaXa || 'Không xác định');
+                    const huyenName = huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định');
+
+                    const key = `${xaName}_${huyenName}`;
+                    if (!xaStats[key]) {
+                        xaStats[key] = { xaName, huyenName, total: 0, thieuCCCD: 0, thieuChuHo: 0, thieuCaHai: 0 };
+                    }
+
+                    xaStats[key].total++;
+                    if (isBlank(item.CCCD)) xaStats[key].thieuCCCD++;
+                    if (isBlank(item.ChuHo)) xaStats[key].thieuChuHo++;
+                    if (isBlank(item.CCCD) && isBlank(item.ChuHo)) xaStats[key].thieuCaHai++;
+                });
+
+                const xaData_export = Object.values(xaStats).map(stats => ({
+                    'Xã/Phường': stats.xaName,
+                    'Huyện': stats.huyenName,
+                    'Tổng số nhà': stats.total,
+                    'Thiếu CCCD': stats.thieuCCCD,
+                    'Tỷ lệ thiếu CCCD (%)': stats.total > 0 ? ((stats.thieuCCCD / stats.total) * 100).toFixed(1) : '0',
+                    'Thiếu Chủ hộ': stats.thieuChuHo,
+                    'Tỷ lệ thiếu Chủ hộ (%)': stats.total > 0 ? ((stats.thieuChuHo / stats.total) * 100).toFixed(1) : '0',
+                    'Thiếu cả hai': stats.thieuCaHai,
+                    'Tỷ lệ thiếu cả hai (%)': stats.total > 0 ? ((stats.thieuCaHai / stats.total) * 100).toFixed(1) : '0'
+                }));
+
+                const ws2 = XLSX.utils.json_to_sheet(xaData_export);
+                XLSX.utils.book_append_sheet(wb, ws2, "Tổng hợp theo Xã");
+
+                // Sheet 3: Thống kê tổng quan
+                const total = filteredData.length;
+                const thieuCCCD = filteredData.filter(item => isBlank(item.CCCD)).length;
+                const thieuChuHo = filteredData.filter(item => isBlank(item.ChuHo)).length;
+                const thieuCaHai = filteredData.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo)).length;
+                const dayDu = total - thieuCCCD - thieuChuHo + thieuCaHai;
+
+                const tongQuanData = [
+                    { 'Chỉ tiêu': 'Tổng số nhà', 'Số lượng': total, 'Tỷ lệ (%)': '100.0' },
+                    { 'Chỉ tiêu': 'Nhà thiếu CCCD', 'Số lượng': thieuCCCD, 'Tỷ lệ (%)': total > 0 ? ((thieuCCCD / total) * 100).toFixed(1) : '0' },
+                    { 'Chỉ tiêu': 'Nhà thiếu Chủ hộ', 'Số lượng': thieuChuHo, 'Tỷ lệ (%)': total > 0 ? ((thieuChuHo / total) * 100).toFixed(1) : '0' },
+                    { 'Chỉ tiêu': 'Nhà thiếu cả hai', 'Số lượng': thieuCaHai, 'Tỷ lệ (%)': total > 0 ? ((thieuCaHai / total) * 100).toFixed(1) : '0' },
+                    { 'Chỉ tiêu': 'Nhà đầy đủ thông tin', 'Số lượng': dayDu, 'Tỷ lệ (%)': total > 0 ? ((dayDu / total) * 100).toFixed(1) : '0' }
+                ];
+
+                const ws3 = XLSX.utils.json_to_sheet(tongQuanData);
+                XLSX.utils.book_append_sheet(wb, ws3, "Thống kê tổng quan");
+
+                // Xuất file
+                const fileName = createFileName('BaoCao_TongHop_SoNha_BacGiang');
+                XLSX.writeFile(wb, fileName);
+
+                // Hiển thị thông báo thành công
+                showNotification('Xuất báo cáo tổng hợp thành công!', 'success');
+
+            } catch (error) {
+                console.error('Lỗi xuất Excel:', error);
+                showNotification('Có lỗi xảy ra khi xuất file Excel!', 'error');
+            }
+        }
+
+        // Hàm xuất danh sách chi tiết thiếu thông tin
+        function exportDetailReport() {
+            try {
+                const huyenFilter = document.getElementById('huyenSelect').value;
+                const xaFilter = document.getElementById('xaSelect').value;
+
+                let filteredData = soNhaData;
+                if (huyenFilter) {
+                    filteredData = filteredData.filter(item => item.MaHuyen === huyenFilter);
+                }
+                if (xaFilter) {
+                    filteredData = filteredData.filter(item => item.MaXa === xaFilter);
+                }
+
+                const wb = XLSX.utils.book_new();
+
+                // Sheet 1: Danh sách thiếu CCCD
+                const danhSachThieuCCCD = filteredData.filter(item => isBlank(item.CCCD))
+                    .sort((a, b) => {
+                        const soNhaA = (a.SoNha || '').toString().toLowerCase();
+                        const soNhaB = (b.SoNha || '').toString().toLowerCase();
+                        return soNhaA.localeCompare(soNhaB, 'vi-VN', { numeric: true });
+                    })
+                    .map((item, index) => {
+                        const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                        const xaInfo = xaPhuongData.find(x => x.MaXa === item.MaXa);
+                        return {
+                            'STT': index + 1,
+                            'Số nhà': item.SoNha || '',
+                            'Địa chỉ': item.MaTuyen || '',
+                            'Xã/Phường': xaInfo ? xaInfo.TenXa : (item.MaXa || 'Không xác định'),
+                            'Huyện': huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định'),
+                            'Chủ hộ': item.ChuHo || 'Trống',
+                            'Ghi chú': 'Thiếu CCCD'
+                        };
+                    });
+
+                if (danhSachThieuCCCD.length > 0) {
+                    const ws1 = XLSX.utils.json_to_sheet(danhSachThieuCCCD);
+                    XLSX.utils.book_append_sheet(wb, ws1, "Danh sách thiếu CCCD");
+                }
+
+                // Sheet 2: Danh sách thiếu Chủ hộ
+                const danhSachThieuChuHo = filteredData.filter(item => isBlank(item.ChuHo))
+                    .sort((a, b) => {
+                        const soNhaA = (a.SoNha || '').toString().toLowerCase();
+                        const soNhaB = (b.SoNha || '').toString().toLowerCase();
+                        return soNhaA.localeCompare(soNhaB, 'vi-VN', { numeric: true });
+                    })
+                    .map((item, index) => {
+                        const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                        const xaInfo = xaPhuongData.find(x => x.MaXa === item.MaXa);
+                        return {
+                            'STT': index + 1,
+                            'Số nhà': item.SoNha || '',
+                            'Địa chỉ': item.MaTuyen || '',
+                            'Xã/Phường': xaInfo ? xaInfo.TenXa : (item.MaXa || 'Không xác định'),
+                            'Huyện': huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định'),
+                            'CCCD': item.CCCD || 'Trống',
+                            'Ghi chú': 'Thiếu Chủ hộ'
+                        };
+                    });
+
+                if (danhSachThieuChuHo.length > 0) {
+                    const ws2 = XLSX.utils.json_to_sheet(danhSachThieuChuHo);
+                    XLSX.utils.book_append_sheet(wb, ws2, "Danh sách thiếu Chủ hộ");
+                }
+
+                // Sheet 3: Danh sách thiếu cả hai
+                const danhSachThieuCaHai = filteredData.filter(item => isBlank(item.CCCD) && isBlank(item.ChuHo))
+                    .sort((a, b) => {
+                        const soNhaA = (a.SoNha || '').toString().toLowerCase();
+                        const soNhaB = (b.SoNha || '').toString().toLowerCase();
+                        return soNhaA.localeCompare(soNhaB, 'vi-VN', { numeric: true });
+                    })
+                    .map((item, index) => {
+                        const huyenInfo = huyenData.find(h => h.MaHuyen === item.MaHuyen);
+                        const xaInfo = xaPhuongData.find(x => x.MaXa === item.MaXa);
+                        return {
+                            'STT': index + 1,
+                            'Số nhà': item.SoNha || '',
+                            'Địa chỉ': item.MaTuyen || '',
+                            'Xã/Phường': xaInfo ? xaInfo.TenXa : (item.MaXa || 'Không xác định'),
+                            'Huyện': huyenInfo ? huyenInfo.QuanHuyen : (item.MaHuyen || 'Không xác định'),
+                            'Trường thiếu': 'CCCD & Chủ hộ',
+                            'Ghi chú': 'Thiếu cả hai'
+                        };
+                    });
+
+                if (danhSachThieuCaHai.length > 0) {
+                    const ws3 = XLSX.utils.json_to_sheet(danhSachThieuCaHai);
+                    XLSX.utils.book_append_sheet(wb, ws3, "Danh sách thiếu cả hai");
+                }
+
+                // Kiểm tra xem có dữ liệu nào để xuất không
+                if (wb.SheetNames.length === 0) {
+                    showNotification('Không có dữ liệu thiếu thông tin để xuất!', 'warning');
+                    return;
+                }
+
+                // Thêm sheet tổng hợp số liệu
+                const summaryData = [
+                    { 'Loại thiếu': 'Thiếu CCCD', 'Số lượng': danhSachThieuCCCD.length },
+                    { 'Loại thiếu': 'Thiếu Chủ hộ', 'Số lượng': danhSachThieuChuHo.length },
+                    { 'Loại thiếu': 'Thiếu cả hai', 'Số lượng': danhSachThieuCaHai.length }
+                ];
+
+                const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, wsSummary, "Tổng hợp");
+
+                // Xuất file
+                const fileName = createFileName('BaoCao_ChiTiet_ThieuThongTin_BacGiang');
+                XLSX.writeFile(wb, fileName);
+
+                // Hiển thị thông báo thành công
+                showNotification('Xuất báo cáo chi tiết thành công!', 'success');
+
+            } catch (error) {
+                console.error('Lỗi xuất Excel:', error);
+                showNotification('Có lỗi xảy ra khi xuất file Excel!', 'error');
+            }
+        }
+
+        // Hàm hiển thị thông báo
+        function showNotification(message, type = 'info') {
+            // Tạo element thông báo
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full`;
+
+            // Thiết lập màu sắc theo loại thông báo
+            switch (type) {
+                case 'success':
+                    notification.className += ' bg-green-500 text-white';
+                    break;
+                case 'error':
+                    notification.className += ' bg-red-500 text-white';
+                    break;
+                case 'warning':
+                    notification.className += ' bg-yellow-500 text-white';
+                    break;
+                default:
+                    notification.className += ' bg-blue-500 text-white';
+            }
+
+            notification.innerHTML = `
+               <div class="flex items-center gap-2">
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                             d="${type === 'success' ? 'M5 13l4 4L19 7' :
+                    type === 'error' ? 'M6 18L18 6M6 6l12 12' :
+                        type === 'warning' ? 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z' :
+                            'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}">
+                       </path>
+                   </svg>
+                   <span>${message}</span>
+               </div>
+           `;
+
+            // Thêm vào DOM
+            document.body.appendChild(notification);
+
+            // Animate vào
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Tự động ẩn sau 3 giây
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
         }
 
         // Filter change handlers
@@ -741,9 +1100,16 @@
             updateData();
         });
 
+        // Event listeners cho các nút xuất Excel
+        document.getElementById('exportSummaryBtn').addEventListener('click', exportSummaryReport);
+        document.getElementById('exportDetailBtn').addEventListener('click', exportDetailReport);
+
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', async function () {
             initCharts();
+
+            // Hiển thị loading
+            console.log("Đang tải dữ liệu...");
 
             try {
                 await Promise.all([
@@ -751,8 +1117,14 @@
                     fetchXaPhuongData(),
                     fetchSoNhaData()
                 ]);
+
+                populateFilters();
+                updateData();
+                console.log("✓ Hoàn thành tải dữ liệu");
+
             } catch (error) {
                 console.error("Lỗi khởi tạo:", error);
+                showNotification('Có lỗi xảy ra khi tải dữ liệu!', 'error');
             }
         });
     </script>
