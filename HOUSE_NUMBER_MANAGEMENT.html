@@ -165,19 +165,19 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Huyện</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Tổng số</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Thiếu CCCD</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Thiếu Chủ hộ</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Thiếu cả hai</th>
                             </tr>
                         </thead>
@@ -198,20 +198,23 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Xã</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Huyện</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Tổng số</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Thiếu CCCD</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Thiếu Chủ hộ</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thiếu cả hai</th>
                             </tr>
                         </thead>
                         <tbody id="xaTableBody" class="bg-white divide-y divide-gray-200">
@@ -600,7 +603,7 @@
             barChart.update();
         }
 
-        // Update tables
+        // Update tables với tỷ lệ phần trăm
         function updateTables(data) {
             // Update Huyện table
             const huyenStats = {};
@@ -624,12 +627,12 @@
             Object.entries(huyenStats).forEach(([huyenName, stats]) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${huyenName}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">${stats.thieuCaHai}</td>
-              `;
+                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${huyenName}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD} (${stats.total > 0 ? ((stats.thieuCCCD / stats.total) * 100).toFixed(1) : '0.0'}%)</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo} (${stats.total > 0 ? ((stats.thieuChuHo / stats.total) * 100).toFixed(1) : '0.0'}%)</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">${stats.thieuCaHai} (${stats.total > 0 ? ((stats.thieuCaHai / stats.total) * 100).toFixed(1) : '0.0'}%)</td>
+             `;
                 huyenTableBody.appendChild(row);
             });
 
@@ -643,12 +646,13 @@
 
                 const key = `${xaName}_${huyenName}`;
                 if (!xaStats[key]) {
-                    xaStats[key] = { xaName, huyenName, total: 0, thieuCCCD: 0, thieuChuHo: 0 };
+                    xaStats[key] = { xaName, huyenName, total: 0, thieuCCCD: 0, thieuChuHo: 0, thieuCaHai: 0 };
                 }
 
                 xaStats[key].total++;
                 if (isBlank(item.CCCD)) xaStats[key].thieuCCCD++;
                 if (isBlank(item.ChuHo)) xaStats[key].thieuChuHo++;
+                if (isBlank(item.CCCD) && isBlank(item.ChuHo)) xaStats[key].thieuCaHai++;
             });
 
             const xaTableBody = document.getElementById('xaTableBody');
@@ -657,12 +661,13 @@
             Object.values(xaStats).forEach(stats => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${stats.xaName}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.huyenName}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo}</td>
-              `;
+                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${stats.xaName}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.huyenName}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.total}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${stats.thieuCCCD} (${stats.total > 0 ? ((stats.thieuCCCD / stats.total) * 100).toFixed(1) : '0.0'}%)</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">${stats.thieuChuHo} (${stats.total > 0 ? ((stats.thieuChuHo / stats.total) * 100).toFixed(1) : '0.0'}%)</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-600">${stats.thieuCaHai} (${stats.total > 0 ? ((stats.thieuCaHai / stats.total) * 100).toFixed(1) : '0.0'}%)</td>
+             `;
                 xaTableBody.appendChild(row);
             });
         }
@@ -708,15 +713,15 @@
             if (data.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                  <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                      <div class="flex flex-col items-center">
-                          <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                          </svg>
-                          <p>Không có dữ liệu</p>
-                      </div>
-                  </td>
-              `;
+                 <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                     <div class="flex flex-col items-center">
+                         <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                         </svg>
+                         <p>Không có dữ liệu</p>
+                     </div>
+                 </td>
+             `;
                 tableBody.appendChild(row);
                 return;
             }
@@ -732,34 +737,34 @@
 
                 if (type === 'thieuCCCD') {
                     row.innerHTML = `
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
-                      <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.ChuHo || 'Trống'}</td>
-                      <td class="px-6 py-4 text-sm text-red-600">Thiếu CCCD</td>
-                  `;
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                     <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.ChuHo || 'Trống'}</td>
+                     <td class="px-6 py-4 text-sm text-red-600">Thiếu CCCD</td>
+                 `;
                 } else if (type === 'thieuChuHo') {
                     row.innerHTML = `
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
-                      <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.CCCD || 'Trống'}</td>
-                      <td class="px-6 py-4 text-sm text-yellow-600">Thiếu Chủ hộ</td>
-                  `;
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                     <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.CCCD || 'Trống'}</td>
+                     <td class="px-6 py-4 text-sm text-yellow-600">Thiếu Chủ hộ</td>
+                 `;
                 } else if (type === 'thieuCaHai') {
                     row.innerHTML = `
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
-                      <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">CCCD & Chủ hộ</td>
-                      <td class="px-6 py-4 text-sm text-purple-600">Thiếu cả hai</td>
-                  `;
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.SoNha || ''}</td>
+                     <td class="px-6 py-4 text-sm text-gray-900">${item.MaTuyen || ''}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${xaName}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${huyenName}</td>
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">CCCD & Chủ hộ</td>
+                     <td class="px-6 py-4 text-sm text-purple-600">Thiếu cả hai</td>
+                 `;
                 }
 
                 tableBody.appendChild(row);
@@ -768,7 +773,6 @@
 
         // FUNCTIONS XUẤT EXCEL - PHẦN MỚI
 
-        // Hàm tạo tên file với thời gian
         // Hàm tạo tên file với thời gian và bộ lọc
         function createFileName(prefix) {
             const now = new Date();
@@ -1057,18 +1061,18 @@
             }
 
             notification.innerHTML = `
-               <div class="flex items-center gap-2">
-                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                             d="${type === 'success' ? 'M5 13l4 4L19 7' :
+              <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="${type === 'success' ? 'M5 13l4 4L19 7' :
                     type === 'error' ? 'M6 18L18 6M6 6l12 12' :
                         type === 'warning' ? 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z' :
                             'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}">
-                       </path>
-                   </svg>
-                   <span>${message}</span>
-               </div>
-           `;
+                      </path>
+                  </svg>
+                  <span>${message}</span>
+              </div>
+          `;
 
             // Thêm vào DOM
             document.body.appendChild(notification);
