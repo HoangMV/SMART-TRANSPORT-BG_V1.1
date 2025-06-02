@@ -7,9 +7,12 @@
     <title>Hệ thống Quản lý Vận tải</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Thêm thư viện SheetJS cho xuất Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Giữ nguyên toàn bộ CSS cũ -->
     <style>
-        /* Giữ nguyên CSS cũ */
+        /* CSS cũ không thay đổi */
         .chart-container {
             position: relative;
             height: 300px;
@@ -191,6 +194,29 @@
                 opacity: 1;
             }
         }
+
+        /* Warning styles for expiring items */
+        .warning-badge {
+            background-color: #FEF3C7;
+            color: #D97706;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .expiring-row {
+            background-color: #FEF3C7 !important;
+        }
     </style>
 </head>
 
@@ -220,6 +246,12 @@
                 </button>
                 <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="international">
                     <i class="fas fa-globe mr-2"></i>GP Liên vận QT
+                </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="international-emblems">
+                    <i class="fas fa-shield-alt mr-2"></i>Phù hiệu LV
+                </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="international-books">
+                    <i class="fas fa-book mr-2"></i>Sổ liên vận
                 </button>
                 <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="statistics">
                     <i class="fas fa-chart-bar mr-2"></i>Thống kê
@@ -259,15 +291,14 @@
                 <button onclick="clearAllFilters()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">
                     <i class="fas fa-times mr-2"></i>Xóa bộ lọc
                 </button>
-                <button onclick="exportData()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                <button onclick="exportCurrentTabData()"
+                    class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
                     <i class="fas fa-download mr-2"></i>Xuất Excel
                 </button>
             </div>
 
             <!-- Bộ lọc riêng cho từng tab -->
             <div id="specificFilters" class="specific-filters filter-disabled">
-                <!-- <h4 class="font-semibold text-gray-800 mb-3">Bộ lọc chi tiết</h4> -->
-
                 <!-- Bộ lọc cho Giấy phép -->
                 <div id="licenseFilters" class="filter-section hidden">
                     <div class="filter-row">
@@ -362,13 +393,70 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Bộ lọc cho Phù hiệu Liên vận -->
+                <div id="internationalEmblemFilters" class="filter-section hidden">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>TÊN DOANH NGHIỆP</label>
+                            <input type="text" id="intEmblemCompanyFilter" placeholder="Nhập tên doanh nghiệp..."
+                                class="w-full">
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI</label>
+                            <select id="intEmblemStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI HÌNH LIÊN VẬN</label>
+                            <select id="intEmblemTypeFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI CẤP</label>
+                            <select id="intEmblemCapStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bộ lọc cho Sổ Liên vận -->
+                <div id="internationalBookFilters" class="filter-section hidden">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>TÊN CHÍNH</label>
+                            <input type="text" id="intBookCompanyFilter" placeholder="Nhập tên..." class="w-full">
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI</label>
+                            <select id="intBookStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>LOẠI HÌNH LIÊN VẬN</label>
+                            <select id="intBookTypeFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TRẠNG THÁI CẤP</label>
+                            <select id="intBookCapStatusFilter" class="w-full">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <!-- Quick Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-6 mb-8">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
                     <div class="flex items-center justify-between">
                         <div>
@@ -412,6 +500,24 @@
                             <p class="text-3xl font-bold" id="revokedLicenses">0</p>
                         </div>
                         <i class="fas fa-ban text-4xl text-red-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-cyan-100">Phù hiệu LV</p>
+                            <p class="text-3xl font-bold" id="totalIntEmblems">0</p>
+                        </div>
+                        <i class="fas fa-shield-alt text-4xl text-cyan-200"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-100">Sổ liên vận</p>
+                            <p class="text-3xl font-bold" id="totalIntBooks">0</p>
+                        </div>
+                        <i class="fas fa-book text-4xl text-indigo-200"></i>
                     </div>
                 </div>
             </div>
@@ -569,6 +675,135 @@
             </div>
         </div>
 
+        <!-- International Emblems Tab -->
+        <div id="international-emblems" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quản lý Phù hiệu Liên vận</h3>
+
+                <!-- International Emblem Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-cyan-50 border-l-4 border-cyan-500 p-4">
+                        <h4 class="font-semibold text-cyan-800">Phù hiệu được cấp</h4>
+                        <p class="text-2xl font-bold text-cyan-600" id="intEmblemsIssued">0</p>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <h4 class="font-semibold text-green-800">Còn hiệu lực</h4>
+                        <p class="text-2xl font-bold text-green-600" id="intEmblemsActive">0</p>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <h4 class="font-semibold text-yellow-800">Sắp đến hạn</h4>
+                        <p class="text-2xl font-bold text-yellow-600" id="intEmblemsExpiring">0</p>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <h4 class="font-semibold text-red-800">Hết hạn/Thu hồi</h4>
+                        <p class="text-2xl font-bold text-red-600" id="intEmblemsExpired">0</p>
+                    </div>
+                </div>
+
+                <!-- Warning Banner for Expiring Items -->
+                <div id="intEmblemWarningBanner" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 hidden">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Cảnh báo:</strong> Có <span id="intEmblemWarningCount">0</span> phù hiệu liên
+                                vận sắp đến hạn!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- International Emblem Details Table -->
+                <div class="overflow-x-auto mt-6">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Số phù hiệu</th>
+                                <th class="px-4 py-2 text-left">Biển số</th>
+                                <th class="px-4 py-2 text-left">Doanh nghiệp</th>
+                                <th class="px-4 py-2 text-center">Ngày cấp</th>
+                                <th class="px-4 py-2 text-center">Ngày hết hạn</th>
+                                <th class="px-4 py-2 text-center">Loại hình LV</th>
+                                <th class="px-4 py-2 text-center">Trạng thái</th>
+                                <th class="px-4 py-2 text-center">Hiệu lực</th>
+                                <th class="px-4 py-2 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="intEmblemsTableBody">
+                            <!-- Dữ liệu sẽ được load từ API -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- International Books Tab -->
+        <div id="international-books" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quản lý Sổ Liên vận</h3>
+
+                <!-- International Book Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                        <h4 class="font-semibold text-indigo-800">Sổ được cấp</h4>
+                        <p class="text-2xl font-bold text-indigo-600" id="intBooksIssued">0</p>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <h4 class="font-semibold text-green-800">Còn hiệu lực</h4>
+                        <p class="text-2xl font-bold text-green-600" id="intBooksActive">0</p>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <h4 class="font-semibold text-yellow-800">Sắp đến hạn</h4>
+                        <p class="text-2xl font-bold text-yellow-600" id="intBooksExpiring">0</p>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <h4 class="font-semibold text-red-800">Hết hạn/Thu hồi</h4>
+                        <p class="text-2xl font-bold text-red-600" id="intBooksExpired">0</p>
+                    </div>
+                </div>
+
+                <!-- Warning Banner for Expiring Items -->
+                <div id="intBookWarningBanner" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 hidden">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Cảnh báo:</strong> Có <span id="intBookWarningCount">0</span> sổ liên vận sắp
+                                đến hạn!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- International Book Details Table -->
+                <div class="overflow-x-auto mt-6">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Số sổ LV</th>
+                                <th class="px-4 py-2 text-left">Biển số</th>
+                                <th class="px-4 py-2 text-left">Tên chính</th>
+                                <th class="px-4 py-2 text-center">Ngày cấp</th>
+                                <th class="px-4 py-2 text-center">Ngày hết hạn</th>
+                                <th class="px-4 py-2 text-center">Loại hình LV</th>
+                                <th class="px-4 py-2 text-center">Cửa khẩu</th>
+                                <th class="px-4 py-2 text-center">Trạng thái</th>
+                                <th class="px-4 py-2 text-center">Hiệu lực</th>
+                                <th class="px-4 py-2 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="intBooksTableBody">
+                            <!-- Dữ liệu sẽ được load từ API -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Statistics Tab -->
         <div id="statistics" class="tab-content hidden">
             <div class="space-y-6">
@@ -590,6 +825,16 @@
                             class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
                             <div class="text-3xl font-bold text-purple-600 mb-2" id="statsTotalInternational">0</div>
                             <div class="text-sm font-medium text-purple-800">GP Liên vận QT</div>
+                        </div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg border border-cyan-200">
+                            <div class="text-3xl font-bold text-cyan-600 mb-2" id="statsTotalIntEmblems">0</div>
+                            <div class="text-sm font-medium text-cyan-800">Phù hiệu LV</div>
+                        </div>
+                        <div
+                            class="text-center p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                            <div class="text-3xl font-bold text-indigo-600 mb-2" id="statsTotalIntBooks">0</div>
+                            <div class="text-sm font-medium text-indigo-800">Sổ liên vận</div>
                         </div>
                         <div
                             class="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
@@ -656,11 +901,647 @@
         let originalLicensesData = [];
         let originalEmblemsData = [];
         let originalInternationalData = [];
+        let originalIntEmblemsData = [];
+        let originalIntBooksData = [];
 
         // Filtered data variables (dữ liệu sau khi lọc)
         let filteredLicensesData = [];
         let filteredEmblemsData = [];
         let filteredInternationalData = [];
+        let filteredIntEmblemsData = [];
+        let filteredIntBooksData = [];
+
+        // CHỨC NĂNG XUẤT EXCEL MỚI - SỬ DỤNG SHEETJS
+        function exportCurrentTabData() {
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            // Tạo tên file dựa trên tab hiện tại và khoảng thời gian
+            const tabNames = {
+                'dashboard': 'Tong_quan',
+                'licenses': 'Giay_phep_KDVT',
+                'emblems': 'Phu_hieu_xe',
+                'international': 'GP_Lien_van_QT',
+                'international-emblems': 'Phu_hieu_LV',
+                'international-books': 'So_lien_van',
+                'statistics': 'Thong_ke',
+                'reports': 'Bao_cao'
+            };
+
+            const today = new Date();
+            const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
+            const fileName = `${tabNames[activeTab]}_${dateStr}.xlsx`;
+
+            showNotification('Đang chuẩn bị xuất dữ liệu Excel...', 'info');
+
+            try {
+                let workbook;
+
+                switch (activeTab) {
+                    case 'dashboard':
+                        workbook = exportDashboardData();
+                        break;
+                    case 'licenses':
+                        workbook = exportLicensesData();
+                        break;
+                    case 'emblems':
+                        workbook = exportEmblemsData();
+                        break;
+                    case 'international':
+                        workbook = exportInternationalData();
+                        break;
+                    case 'international-emblems':
+                        workbook = exportIntEmblemsData();
+                        break;
+                    case 'international-books':
+                        workbook = exportIntBooksData();
+                        break;
+                    case 'statistics':
+                        workbook = exportStatisticsData();
+                        break;
+                    case 'reports':
+                        workbook = exportReportsData();
+                        break;
+                    default:
+                        throw new Error('Tab không được hỗ trợ');
+                }
+
+                // Xuất file Excel
+                XLSX.writeFile(workbook, fileName);
+                showNotification(`Đã xuất thành công file: ${fileName}`, 'success');
+
+            } catch (error) {
+                console.error('Lỗi khi xuất Excel:', error);
+                showNotification('Có lỗi xảy ra khi xuất Excel', 'error');
+            }
+        }
+
+        // Xuất dữ liệu Dashboard (tổng hợp tất cả)
+        function exportDashboardData() {
+            const workbook = XLSX.utils.book_new();
+
+            // Sheet 1: Tổng quan thống kê
+            const summaryData = [
+                ['THỐNG KÊ TỔNG QUAN HỆ THỐNG QUẢN LÝ VẬN TẢI'],
+                ['Ngày xuất:', new Date().toLocaleString('vi-VN')],
+                ['Khoảng thời gian:', `${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                ['Loại dữ liệu', 'Số lượng'],
+                ['GPKD được cấp', filteredLicensesData.length],
+                ['Phù hiệu có hiệu lực', filteredEmblemsData.filter(e => !isEmblemExpired(e.NgayHetHan) && e.TrangThai !== 'Đã thu hồi').length],
+                ['GP Liên vận QT', filteredInternationalData.length],
+                ['Phù hiệu LV', filteredIntEmblemsData.length],
+                ['Sổ liên vận', filteredIntBooksData.length]
+            ];
+
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(workbook, summarySheet, 'Tổng quan');
+
+            // Sheet 2: Giấy phép
+            if (filteredLicensesData.length > 0) {
+                const licenseSheet = createLicenseSheet();
+                XLSX.utils.book_append_sheet(workbook, licenseSheet, 'Giấy phép KDVT');
+            }
+
+            // Sheet 3: Phù hiệu
+            if (filteredEmblemsData.length > 0) {
+                const emblemSheet = createEmblemSheet();
+                XLSX.utils.book_append_sheet(workbook, emblemSheet, 'Phù hiệu xe');
+            }
+
+            // Sheet 4: GP Liên vận QT
+            if (filteredInternationalData.length > 0) {
+                const intSheet = createInternationalSheet();
+                XLSX.utils.book_append_sheet(workbook, intSheet, 'GP Liên vận QT');
+            }
+
+            // Sheet 5: Phù hiệu Liên vận - THÊM MỚI
+            if (filteredIntEmblemsData.length > 0) {
+                const intEmblemSheet = createIntEmblemSheet();
+                XLSX.utils.book_append_sheet(workbook, intEmblemSheet, 'Phù hiệu LV');
+            }
+
+            // Sheet 6: Sổ liên vận - THÊM MỚI
+            if (filteredIntBooksData.length > 0) {
+                const intBookSheet = createIntBookSheet();
+                XLSX.utils.book_append_sheet(workbook, intBookSheet, 'Sổ liên vận');
+            }
+
+            return workbook;
+        }
+
+        // Xuất dữ liệu Giấy phép
+        function exportLicensesData() {
+            const workbook = XLSX.utils.book_new();
+            const sheet = createLicenseSheet();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'Giấy phép KDVT');
+            return workbook;
+        }
+
+        // Tạo sheet Giấy phép
+        function createLicenseSheet() {
+            const headers = [
+                'STT',
+                'Số giấy phép',
+                'Mã hồ sơ',
+                'Tên đơn vị',
+                'Địa chỉ',
+                'Ngày cấp',
+                'Loại cấp',
+                'Loại hình vận tải',
+                'Trạng thái',
+                'Ngày thu hồi',
+                'Lý do thu hồi',
+                'Ghi chú'
+            ];
+
+            const data = [
+                ['DANH SÁCH GIẤY PHÉP KINH DOANH VẬN TẢI'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Tổng số: ${filteredLicensesData.length} giấy phép`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                headers
+            ];
+
+            filteredLicensesData.forEach((license, index) => {
+                const transportTypes = Array.isArray(license.LoaiHinhVanTai)
+                    ? license.LoaiHinhVanTai.join(', ')
+                    : license.LoaiHinhVanTai || '';
+
+                data.push([
+                    index + 1,
+                    license.SoGiayPhep || '',
+                    license.MaHoSo || '',
+                    license.TenDonVi || '',
+                    license.DiaChi || '',
+                    formatDate(license.NgayCap),
+                    license.LoaiCap || '',
+                    transportTypes,
+                    license.TrangThai || '',
+                    formatDate(license.NgayThuHoi),
+                    license.LyDoThuHoi || '',
+                    license.GhiChu || ''
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+            // Thiết lập độ rộng cột
+            const colWidths = [
+                { wch: 5 },   // STT
+                { wch: 20 },  // Số giấy phép
+                { wch: 15 },  // Mã hồ sơ
+                { wch: 30 },  // Tên đơn vị
+                { wch: 40 },  // Địa chỉ
+                { wch: 12 },  // Ngày cấp
+                { wch: 15 },  // Loại cấp
+                { wch: 25 },  // Loại hình vận tải
+                { wch: 15 },  // Trạng thái
+                { wch: 12 },  // Ngày thu hồi
+                { wch: 25 },  // Lý do thu hồi
+                { wch: 20 }   // Ghi chú
+            ];
+            worksheet['!cols'] = colWidths;
+
+            return worksheet;
+        }
+
+        // Xuất dữ liệu Phù hiệu
+        function exportEmblemsData() {
+            const workbook = XLSX.utils.book_new();
+            const sheet = createEmblemSheet();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'Phù hiệu xe');
+            return workbook;
+        }
+
+        // Tạo sheet Phù hiệu
+        function createEmblemSheet() {
+            const headers = [
+                'STT',
+                'Số phù hiệu',
+                'Biển số xe',
+                'Tên đơn vị',
+                'Địa chỉ',
+                'Ngày cấp',
+                'Ngày hết hạn',
+                'Loại phù hiệu',
+                'Màu phù hiệu',
+                'Loại cấp',
+                'Tuyến khai thác',
+                'Trạng thái',
+                'Ngày thu hồi',
+                'Ghi chú'
+            ];
+
+            const data = [
+                ['DANH SÁCH PHÙ HIỆU XE'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Tổng số: ${filteredEmblemsData.length} phù hiệu`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                headers
+            ];
+
+            filteredEmblemsData.forEach((emblem, index) => {
+                const actualStatus = isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || '');
+
+                data.push([
+                    index + 1,
+                    emblem.SoPhuHieu || '',
+                    emblem.BienSo || '',
+                    emblem.Ten_don_vi || '',
+                    emblem['Địa chỉ'] || '',
+                    formatDate(emblem.NgayCap),
+                    formatDate(emblem.NgayHetHan),
+                    emblem.LoaiPH || '',
+                    emblem.MauPhuHieu || '',
+                    emblem.LoaiCap || '',
+                    emblem['Tuyến khai thác'] || '',
+                    actualStatus,
+                    formatDate(emblem.NgayThuHoi),
+                    emblem.GhiChu || ''
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+            // Thiết lập độ rộng cột
+            const colWidths = [
+                { wch: 5 },   // STT
+                { wch: 20 },  // Số phù hiệu
+                { wch: 15 },  // Biển số xe
+                { wch: 30 },  // Tên đơn vị
+                { wch: 40 },  // Địa chỉ
+                { wch: 12 },  // Ngày cấp
+                { wch: 12 },  // Ngày hết hạn
+                { wch: 15 },  // Loại phù hiệu
+                { wch: 12 },  // Màu phù hiệu
+                { wch: 12 },  // Loại cấp
+                { wch: 30 },  // Tuyến khai thác
+                { wch: 15 },  // Trạng thái
+                { wch: 12 },  // Ngày thu hồi
+                { wch: 20 }   // Ghi chú
+            ];
+            worksheet['!cols'] = colWidths;
+
+            return worksheet;
+        }
+
+        // Xuất dữ liệu GP Liên vận QT
+        function exportInternationalData() {
+            const workbook = XLSX.utils.book_new();
+            const sheet = createInternationalSheet();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'GP Liên vận QT');
+            return workbook;
+        }
+
+        // Tạo sheet GP Liên vận QT
+        function createInternationalSheet() {
+            const headers = [
+                'STT',
+                'Số GP Liên vận QT',
+                'Mã doanh nghiệp',
+                'Tên đơn vị',
+                'Ngày cấp',
+                'Loại cấp',
+                'Mô hình hoạt động',
+                'Trạng thái hoạt động',
+                'Lý do cấp lại'
+            ];
+
+            const data = [
+                ['DANH SÁCH GIẤY PHÉP LIÊN VẬN QUỐC TẾ'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Tổng số: ${filteredInternationalData.length} giấy phép`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                headers
+            ];
+
+            filteredInternationalData.forEach((license, index) => {
+                const models = Array.isArray(license.MoHinhHoatDong)
+                    ? license.MoHinhHoatDong.join(', ')
+                    : license.MoHinhHoatDong || '';
+
+                data.push([
+                    index + 1,
+                    license.SoGPLienVanQT || '',
+                    license.IDDoanhNghiep || '',
+                    license.TenDonViHienThi || '',
+                    formatDate(license.NgayCap),
+                    license.LoaiCap || '',
+                    models,
+                    license.TrangThaiHoatDong || '',
+                    license.Lydocaplai || ''
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+            // Thiết lập độ rộng cột
+            const colWidths = [
+                { wch: 5 },   // STT
+                { wch: 20 },  // Số GP
+                { wch: 15 },  // Mã DN
+                { wch: 30 },  // Tên đơn vị
+                { wch: 12 },  // Ngày cấp
+                { wch: 15 },  // Loại cấp
+                { wch: 25 },  // Mô hình hoạt động
+                { wch: 18 },  // Trạng thái
+                { wch: 25 }   // Lý do cấp lại
+            ];
+            worksheet['!cols'] = colWidths;
+
+            return worksheet;
+        }
+
+        // Xuất dữ liệu Phù hiệu Liên vận
+        function exportIntEmblemsData() {
+            const workbook = XLSX.utils.book_new();
+            const sheet = createIntEmblemSheet();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'Phù hiệu Liên vận');
+            return workbook;
+        }
+
+        // Tạo sheet Phù hiệu Liên vận
+        function createIntEmblemSheet() {
+            const headers = [
+                'STT',
+                'Số phù hiệu',
+                'Số thứ tự',
+                'Biển số',
+                'Tên doanh nghiệp',
+                'Ngày cấp',
+                'Ngày hết hạn',
+                'Loại hình liên vận',
+                'Trạng thái cấp',
+                'Trạng thái',
+                'Hiệu lực'
+            ];
+
+            const data = [
+                ['DANH SÁCH PHÙ HIỆU LIÊN VẬN'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Tổng số: ${filteredIntEmblemsData.length} phù hiệu`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                headers
+            ];
+
+            filteredIntEmblemsData.forEach((emblem, index) => {
+                data.push([
+                    index + 1,
+                    emblem.SoPhuHieu || '',
+                    emblem.SoThuTu || '',
+                    emblem.Bienso || '',
+                    emblem.TenDoanhNghiep || '',
+                    formatDate(emblem.NgayCap),
+                    formatDate(emblem.NgayHetHan),
+                    emblem.LoaiHinhLienVan || '',
+                    emblem.TrangThaiCap || '',
+                    emblem.TrangThai || '',
+                    emblem.HieuLuc || ''
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+            // Thiết lập độ rộng cột
+            const colWidths = [
+                { wch: 5 },   // STT
+                { wch: 20 },  // Số phù hiệu
+                { wch: 10 },  // Số thứ tự
+                { wch: 15 },  // Biển số
+                { wch: 30 },  // Tên DN
+                { wch: 12 },  // Ngày cấp
+                { wch: 12 },  // Ngày hết hạn
+                { wch: 18 },  // Loại hình LV
+                { wch: 15 },  // Trạng thái cấp
+                { wch: 15 },  // Trạng thái
+                { wch: 15 }  // Hiệu lực
+            ];
+            worksheet['!cols'] = colWidths;
+
+            return worksheet;
+        }
+
+        // Xuất dữ liệu Sổ Liên vận
+        function exportIntBooksData() {
+            const workbook = XLSX.utils.book_new();
+            const sheet = createIntBookSheet();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'Sổ Liên vận');
+            return workbook;
+        }
+
+        // Tạo sheet Sổ Liên vận
+        function createIntBookSheet() {
+            const headers = [
+                'STT',
+                'Số sổ liên vận',
+                'Số thứ tự',
+                'Biển số',
+                'Tên chính',
+                'Ngày cấp',
+                'Ngày hết hạn',
+                'Ngày cấp GP',
+                'Loại hình liên vận',
+                'Cửa khẩu',
+                'Vùng hoạt động',
+                'Nơi đến',
+                'Mô hình hoạt động',
+                'Trạng thái cấp',
+                'Trạng thái',
+                'Hiệu lực'
+            ];
+
+            const data = [
+                ['DANH SÁCH SỔ LIÊN VẬN'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Tổng số: ${filteredIntBooksData.length} sổ liên vận`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                headers
+            ];
+
+            filteredIntBooksData.forEach((book, index) => {
+                const models = Array.isArray(book.MoHinhHoatDong)
+                    ? book.MoHinhHoatDong.join(', ')
+                    : book.MoHinhHoatDong || '';
+
+                data.push([
+                    index + 1,
+                    book.SoSoLienVan || '',
+                    book.SoThuTu || '',
+                    book.BienSo || '',
+                    book.TenChinh || '',
+                    formatDate(book.NgayCap),
+                    formatDate(book.NgayHetHan),
+                    formatDate(book.NgayCapGP),
+                    book.LoaiHinhLienVan || '',
+                    book.CuaKhau || '',
+                    book.VungHoatDong || '',
+                    book.NoiDen || '',
+                    models,
+                    book.TrangThaiCap || '',
+                    book.TrangThai || '',
+                    book.HieuLuc || ''
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+            // Thiết lập độ rộng cột
+            const colWidths = [
+                { wch: 5 },   // STT
+                { wch: 20 },  // Số sổ LV
+                { wch: 10 },  // Số thứ tự
+                { wch: 15 },  // Biển số
+                { wch: 25 },  // Tên chính
+                { wch: 12 },  // Ngày cấp
+                { wch: 12 },  // Ngày hết hạn
+                { wch: 12 },  // Ngày cấp GP
+                { wch: 18 },  // Loại hình LV
+                { wch: 15 },  // Cửa khẩu
+                { wch: 20 },  // Vùng hoạt động
+                { wch: 20 },  // Nơi đến
+                { wch: 25 },  // Mô hình hoạt động
+                { wch: 15 },  // Trạng thái cấp
+                { wch: 15 },  // Trạng thái
+                { wch: 15 }  // Hiệu lực
+            ];
+            worksheet['!cols'] = colWidths;
+
+            return worksheet;
+        }
+
+        // Xuất dữ liệu Thống kê
+        function exportStatisticsData() {
+            const workbook = XLSX.utils.book_new();
+
+            // Sheet 1: Thống kê tổng quan
+            const summaryData = [
+                ['THỐNG KÊ HỆ THỐNG QUẢN LÝ VẬN TẢI'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                ['CHỈ TIÊU', 'SỐ LƯỢNG'],
+                ['Tổng số GPKD', filteredLicensesData.length],
+                ['Tổng số phù hiệu', filteredEmblemsData.length],
+                ['GP Liên vận QT', filteredInternationalData.length],
+                ['Phù hiệu LV', filteredIntEmblemsData.length],
+                ['Sổ liên vận', filteredIntBooksData.length],
+                [],
+                ['THỐNG KÊ TRẠNG THÁI GPKD'],
+                ['Còn hiệu lực', filteredLicensesData.filter(l => l.TrangThai !== 'Đã thu hồi' && l.TrangThai !== 'Hết hiệu lực').length],
+                ['Hết hiệu lực', filteredLicensesData.filter(l => l.TrangThai === 'Hết hiệu lực').length],
+                ['Bị thu hồi', filteredLicensesData.filter(l => l.TrangThai === 'Đã thu hồi' || l.NgayThuHoi).length],
+                [],
+                ['THỐNG KÊ TRẠNG THÁI PHÙ HIỆU'],
+                ['Còn hiệu lực', filteredEmblemsData.filter(e => !isEmblemExpired(e.NgayHetHan) && e.TrangThai !== 'Đã thu hồi').length],
+                ['Hết hạn', filteredEmblemsData.filter(e => isEmblemExpired(e.NgayHetHan) && e.TrangThai !== 'Đã thu hồi').length],
+                ['Bị thu hồi', filteredEmblemsData.filter(e => e.TrangThai === 'Đã thu hồi' || e.NgayThuHoi).length]
+            ];
+
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(workbook, summarySheet, 'Thống kê tổng quan');
+
+            // Sheet 2: Thống kê theo loại hình vận tải
+            const transportTypeData = getTransportTypeStatistics();
+            const transportSheet = XLSX.utils.aoa_to_sheet([
+                ['THỐNG KÊ THEO LOẠI HÌNH VẬN TẢI'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [],
+                ['Loại hình vận tải', 'Số lượng GPKD'],
+                ...transportTypeData.map(item => [item.type, item.count])
+            ]);
+            XLSX.utils.book_append_sheet(workbook, transportSheet, 'Theo loại hình VT');
+
+            return workbook;
+        }
+
+        // Xuất dữ liệu Báo cáo
+        function exportReportsData() {
+            const workbook = XLSX.utils.book_new();
+
+            // Sheet 1: Báo cáo tổng hợp
+            const reportData = [
+                ['BÁO CÁO HỆ THỐNG QUẢN LÝ VẬN TẢI'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Khoảng thời gian: ${formatDate(document.getElementById('startDate').value)} - ${formatDate(document.getElementById('endDate').value)}`],
+                [],
+                ['1. TỔNG QUAN'],
+                ['- Tổng số GPKD được cấp:', filteredLicensesData.length],
+                ['- Tổng số phù hiệu được cấp:', filteredEmblemsData.length],
+                ['- Tổng số GP Liên vận QT:', filteredInternationalData.length],
+                ['- Tổng số phù hiệu LV:', filteredIntEmblemsData.length],
+                ['- Tổng số sổ liên vận:', filteredIntBooksData.length],
+                [],
+                ['2. TÌNH HÌNH HOẠT ĐỘNG'],
+                ['- GPKD còn hiệu lực:', filteredLicensesData.filter(l => l.TrangThai !== 'Đã thu hồi' && l.TrangThai !== 'Hết hiệu lực').length],
+                ['- Phù hiệu còn hiệu lực:', filteredEmblemsData.filter(e => !isEmblemExpired(e.NgayHetHan) && e.TrangThai !== 'Đã thu hồi').length],
+                ['- GP Liên vận QT đang hoạt động:', filteredInternationalData.filter(i => i.TrangThaiHoatDong === 'Đang hoạt động').length],
+                [],
+                ['3. CẢNH BÁO'],
+                ['- Phù hiệu LV sắp đến hạn:', filteredIntEmblemsData.filter(e => e.HieuLuc === 'Sắp đến hạn').length],
+                ['- Sổ liên vận sắp đến hạn:', filteredIntBooksData.filter(b => b.HieuLuc === 'Sắp đến hạn').length],
+                [],
+                ['4. KẾT LUẬN VÀ KHUYẾN NGHỊ'],
+                ['- Hệ thống đang quản lý tổng cộng:',
+                    filteredLicensesData.length + filteredEmblemsData.length +
+                    filteredInternationalData.length + filteredIntEmblemsData.length +
+                    filteredIntBooksData.length + ' hồ sơ'],
+                ['- Cần theo dõi và gia hạn kịp thời các giấy tờ sắp hết hạn'],
+                ['- Đảm bảo tính chính xác và cập nhật thông tin định kỳ']
+            ];
+
+            const reportSheet = XLSX.utils.aoa_to_sheet(reportData);
+            XLSX.utils.book_append_sheet(workbook, reportSheet, 'Báo cáo tổng hợp');
+
+            // Sheet 2: Xu hướng theo tháng
+            const trendData = getLicenseTrendData(filteredLicensesData);
+            const trendSheet = XLSX.utils.aoa_to_sheet([
+                ['XU HƯỚNG CẤP GPKD THEO THÁNG'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [],
+                ['Tháng/Năm', 'Số GPKD được cấp'],
+                ...trendData.labels.map((label, index) => [label, trendData.values[index]])
+            ]);
+            XLSX.utils.book_append_sheet(workbook, trendSheet, 'Xu hướng theo tháng');
+
+            return workbook;
+        }
+
+        // Helper function để lấy thống kê theo loại hình vận tải
+        function getTransportTypeStatistics() {
+            const typeCounts = {};
+
+            filteredLicensesData.forEach(license => {
+                if (license.LoaiHinhVanTai) {
+                    if (Array.isArray(license.LoaiHinhVanTai)) {
+                        license.LoaiHinhVanTai.forEach(type => {
+                            const cleanType = type ? type.trim() : '';
+                            if (cleanType) {
+                                typeCounts[cleanType] = (typeCounts[cleanType] || 0) + 1;
+                            }
+                        });
+                    } else if (typeof license.LoaiHinhVanTai === 'string') {
+                        const transportArray = license.LoaiHinhVanTai.split(',');
+                        transportArray.forEach(type => {
+                            const cleanType = type ? type.trim() : '';
+                            if (cleanType) {
+                                typeCounts[cleanType] = (typeCounts[cleanType] || 0) + 1;
+                            }
+                        });
+                    }
+                }
+            });
+
+            return Object.entries(typeCounts)
+                .map(([type, count]) => ({ type, count }))
+                .sort((a, b) => b.count - a.count);
+        }
 
         // API Request Function
         async function apiRequest(tableName, action, data = {}) {
@@ -695,7 +1576,6 @@
         // Fetch Licenses Data
         async function fetchLicensesData() {
             try {
-                showNotification('Đang tải dữ liệu giấy phép...', 'info');
                 const response = await apiRequest('GIAYPHEPKINHDOANHNOIDIA', 'Find', {
                     Selector: "Filter(GIAYPHEPKINHDOANHNOIDIA, true)"
                 });
@@ -716,7 +1596,6 @@
         // Fetch Emblems Data
         async function fetchEmblemsData() {
             try {
-                showNotification('Đang tải dữ liệu phù hiệu...', 'info');
                 const response = await apiRequest('PHUHIEUXE', 'Find', {
                     Selector: "Filter(PHUHIEUXE, true)"
                 });
@@ -737,7 +1616,6 @@
         // Fetch International Licenses Data
         async function fetchInternationalData() {
             try {
-                showNotification('Đang tải dữ liệu GP Liên vận QT...', 'info');
                 const response = await apiRequest('DoanhNghiep', 'Find', {
                     Selector: "Filter(DoanhNghiep, [SoGPLienVanQT] <> \"\")"
                 });
@@ -752,6 +1630,46 @@
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu GP Liên vận QT:', error);
                 showNotification('Không thể tải dữ liệu GP Liên vận QT', 'error');
+            }
+        }
+
+        // Fetch International Emblems Data
+        async function fetchIntEmblemsData() {
+            try {
+                const response = await apiRequest('PhuHieuLienVan', 'Find', {
+                    Selector: "Filter(PhuHieuLienVan, true)"
+                });
+
+                if (Array.isArray(response)) {
+                    originalIntEmblemsData = response;
+                    filteredIntEmblemsData = [...originalIntEmblemsData];
+                    console.log('Dữ liệu phù hiệu liên vận:', originalIntEmblemsData);
+                } else {
+                    throw new Error('Dữ liệu không hợp lệ');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu phù hiệu liên vận:', error);
+                showNotification('Không thể tải dữ liệu phù hiệu liên vận', 'error');
+            }
+        }
+
+        // Fetch International Books Data
+        async function fetchIntBooksData() {
+            try {
+                const response = await apiRequest('SoLienVan', 'Find', {
+                    Selector: "Filter(SoLienVan, true)"
+                });
+
+                if (Array.isArray(response)) {
+                    originalIntBooksData = response;
+                    filteredIntBooksData = [...originalIntBooksData];
+                    console.log('Dữ liệu sổ liên vận:', originalIntBooksData);
+                } else {
+                    throw new Error('Dữ liệu không hợp lệ');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu sổ liên vận:', error);
+                showNotification('Không thể tải dữ liệu sổ liên vận', 'error');
             }
         }
 
@@ -772,6 +1690,8 @@
             let tempLicenses = filterByDateRange(originalLicensesData, startDate, endDate, 'NgayCap');
             let tempEmblems = filterByDateRange(originalEmblemsData, startDate, endDate, 'NgayCap');
             let tempInternational = filterByDateRange(originalInternationalData, startDate, endDate, 'NgayCap');
+            let tempIntEmblems = filterByDateRange(originalIntEmblemsData, startDate, endDate, 'NgayCap');
+            let tempIntBooks = filterByDateRange(originalIntBooksData, startDate, endDate, 'NgayCap');
 
             // Bước 2: Nếu không áp dụng cho tất cả, thêm bộ lọc chi tiết
             if (!applyToAll) {
@@ -787,6 +1707,12 @@
                     case 'international':
                         tempInternational = applyInternationalSpecificFilters(tempInternational);
                         break;
+                    case 'international-emblems':
+                        tempIntEmblems = applyIntEmblemSpecificFilters(tempIntEmblems);
+                        break;
+                    case 'international-books':
+                        tempIntBooks = applyIntBookSpecificFilters(tempIntBooks);
+                        break;
                 }
             }
 
@@ -794,6 +1720,8 @@
             filteredLicensesData = tempLicenses;
             filteredEmblemsData = tempEmblems;
             filteredInternationalData = tempInternational;
+            filteredIntEmblemsData = tempIntEmblems;
+            filteredIntBooksData = tempIntBooks;
 
             // Bước 4: Cập nhật toàn bộ UI
             updateAllUI();
@@ -801,7 +1729,9 @@
             // Bước 5: Cập nhật biểu đồ
             updateChartsWithFilteredData();
 
-            const totalFiltered = filteredLicensesData.length + filteredEmblemsData.length + filteredInternationalData.length;
+            const totalFiltered = filteredLicensesData.length + filteredEmblemsData.length +
+                filteredInternationalData.length + filteredIntEmblemsData.length +
+                filteredIntBooksData.length;
             showNotification(`Đã lọc được ${totalFiltered} bản ghi!`, 'success');
         }
 
@@ -904,7 +1834,6 @@
             const typeFilter = document.getElementById('internationalTypeFilter').value;
             const modelFilter = document.getElementById('internationalModelFilter').value;
             const statusFilter = document.getElementById('internationalStatusFilter').value;
-
             return data.filter(license => {
                 // Company name filter
                 if (companyFilter && !license.TenDonViHienThi?.toLowerCase().includes(companyFilter)) {
@@ -935,6 +1864,70 @@
             });
         }
 
+        // Áp dụng bộ lọc chi tiết cho International Emblems
+        function applyIntEmblemSpecificFilters(data) {
+            const companyFilter = document.getElementById('intEmblemCompanyFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('intEmblemStatusFilter').value;
+            const typeFilter = document.getElementById('intEmblemTypeFilter').value;
+            const capStatusFilter = document.getElementById('intEmblemCapStatusFilter').value;
+
+            return data.filter(emblem => {
+                // Company name filter
+                if (companyFilter && !emblem.TenDoanhNghiep?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Status filter
+                if (statusFilter && emblem.TrangThai !== statusFilter) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && emblem.LoaiHinhLienVan !== typeFilter) {
+                    return false;
+                }
+
+                // Cap status filter
+                if (capStatusFilter && emblem.TrangThaiCap !== capStatusFilter) {
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        // Áp dụng bộ lọc chi tiết cho International Books
+        function applyIntBookSpecificFilters(data) {
+            const companyFilter = document.getElementById('intBookCompanyFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('intBookStatusFilter').value;
+            const typeFilter = document.getElementById('intBookTypeFilter').value;
+            const capStatusFilter = document.getElementById('intBookCapStatusFilter').value;
+
+            return data.filter(book => {
+                // Company name filter
+                if (companyFilter && !book.TenChinh?.toLowerCase().includes(companyFilter)) {
+                    return false;
+                }
+
+                // Status filter
+                if (statusFilter && book.TrangThai !== statusFilter) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && book.LoaiHinhLienVan !== typeFilter) {
+                    return false;
+                }
+
+                // Cap status filter
+                if (capStatusFilter && book.TrangThaiCap !== capStatusFilter) {
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
         // Xóa tất cả bộ lọc
         function clearAllFilters() {
             // Reset date filters
@@ -950,6 +1943,8 @@
             filteredLicensesData = [...originalLicensesData];
             filteredEmblemsData = [...originalEmblemsData];
             filteredInternationalData = [...originalInternationalData];
+            filteredIntEmblemsData = [...originalIntEmblemsData];
+            filteredIntBooksData = [...originalIntBooksData];
 
             // Update UI
             updateAllUI();
@@ -977,6 +1972,18 @@
             document.getElementById('internationalTypeFilter').value = '';
             document.getElementById('internationalModelFilter').value = '';
             document.getElementById('internationalStatusFilter').value = '';
+
+            // Clear international emblem filters
+            document.getElementById('intEmblemCompanyFilter').value = '';
+            document.getElementById('intEmblemStatusFilter').value = '';
+            document.getElementById('intEmblemTypeFilter').value = '';
+            document.getElementById('intEmblemCapStatusFilter').value = '';
+
+            // Clear international book filters
+            document.getElementById('intBookCompanyFilter').value = '';
+            document.getElementById('intBookStatusFilter').value = '';
+            document.getElementById('intBookTypeFilter').value = '';
+            document.getElementById('intBookCapStatusFilter').value = '';
         }
 
         // Cập nhật toàn bộ UI với dữ liệu đã lọc
@@ -984,6 +1991,8 @@
             updateLicensesUI();
             updateEmblemsUI();
             updateInternationalUI();
+            updateIntEmblemsUI();
+            updateIntBooksUI();
             updateStatisticsData();
         }
 
@@ -1068,6 +2077,96 @@
             updateInternationalTable();
         }
 
+        function updateIntEmblemsUI() {
+            const activeIntEmblems = filteredIntEmblemsData.filter(item => {
+                const today = new Date();
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate >= today && item.TrangThai !== 'Đã thu hồi';
+                }
+                return item.TrangThai !== 'Đã thu hồi';
+            });
+
+            const expiringIntEmblems = filteredIntEmblemsData.filter(item =>
+                item.HieuLuc === 'Sắp đến hạn'
+            );
+
+            const expiredIntEmblems = filteredIntEmblemsData.filter(item => {
+                const today = new Date();
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate < today || item.TrangThai === 'Đã thu hồi';
+                }
+                return item.TrangThai === 'Đã thu hồi';
+            });
+
+            // Update dashboard stats
+            document.getElementById('totalIntEmblems').textContent = filteredIntEmblemsData.length;
+            document.getElementById('intEmblemsIssued').textContent = filteredIntEmblemsData.length;
+            document.getElementById('intEmblemsActive').textContent = activeIntEmblems.length;
+            document.getElementById('intEmblemsExpiring').textContent = expiringIntEmblems.length;
+            document.getElementById('intEmblemsExpired').textContent = expiredIntEmblems.length;
+            document.getElementById('statsTotalIntEmblems').textContent = filteredIntEmblemsData.length;
+
+            // Show warning banner if there are expiring items
+            const warningBanner = document.getElementById('intEmblemWarningBanner');
+            const warningCount = document.getElementById('intEmblemWarningCount');
+            if (expiringIntEmblems.length > 0) {
+                warningBanner.classList.remove('hidden');
+                warningCount.textContent = expiringIntEmblems.length;
+            } else {
+                warningBanner.classList.add('hidden');
+            }
+
+            // Update table
+            updateIntEmblemsTable();
+        }
+
+        function updateIntBooksUI() {
+            const activeIntBooks = filteredIntBooksData.filter(item => {
+                const today = new Date();
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate >= today && item.TrangThai !== 'Đã thu hồi';
+                }
+                return item.TrangThai !== 'Đã thu hồi';
+            });
+
+            const expiringIntBooks = filteredIntBooksData.filter(item =>
+                item.HieuLuc === 'Sắp đến hạn'
+            );
+
+            const expiredIntBooks = filteredIntBooksData.filter(item => {
+                const today = new Date();
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate < today || item.TrangThai === 'Đã thu hồi';
+                }
+                return item.TrangThai === 'Đã thu hồi';
+            });
+
+            // Update dashboard stats
+            document.getElementById('totalIntBooks').textContent = filteredIntBooksData.length;
+            document.getElementById('intBooksIssued').textContent = filteredIntBooksData.length;
+            document.getElementById('intBooksActive').textContent = activeIntBooks.length;
+            document.getElementById('intBooksExpiring').textContent = expiringIntBooks.length;
+            document.getElementById('intBooksExpired').textContent = expiredIntBooks.length;
+            document.getElementById('statsTotalIntBooks').textContent = filteredIntBooksData.length;
+
+            // Show warning banner if there are expiring items
+            const warningBanner = document.getElementById('intBookWarningBanner');
+            const warningCount = document.getElementById('intBookWarningCount');
+            if (expiringIntBooks.length > 0) {
+                warningBanner.classList.remove('hidden');
+                warningCount.textContent = expiringIntBooks.length;
+            } else {
+                warningBanner.classList.add('hidden');
+            }
+
+            // Update table
+            updateIntBooksTable();
+        }
+
         // Update Tables với dữ liệu đã lọc
         function updateLicensesTable() {
             const tableBody = document.getElementById('licensesTableBody');
@@ -1081,7 +2180,7 @@
 
                 const statusClass = getStatusClass(license.TrangThai);
 
-                let transportTypes = 'N/A';
+                let transportTypes = '';
                 if (license.LoaiHinhVanTai) {
                     if (Array.isArray(license.LoaiHinhVanTai)) {
                         transportTypes = license.LoaiHinhVanTai.join(', ');
@@ -1092,21 +2191,21 @@
                 }
 
                 row.innerHTML = `
-                   <td class="px-4 py-2 font-medium">${license.SoGiayPhep || 'N/A'}</td>
-                   <td class="px-4 py-2">${license.TenDonVi || 'N/A'}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                   <td class="px-4 py-2 text-center">${transportTypes}</td>
-                   <td class="px-4 py-2 text-center">
-                       <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                           ${license.TrangThai || 'N/A'}
-                       </span>
-                   </td>
-                   <td class="px-4 py-2 text-center">
-                       <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
-                           Chi tiết
-                       </button>
-                   </td>
-               `;
+              <td class="px-4 py-2 font-medium">${license.SoGiayPhep || ''}</td>
+              <td class="px-4 py-2">${license.TenDonVi || ''}</td>
+              <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+              <td class="px-4 py-2 text-center">${transportTypes}</td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                      ${license.TrangThai || ''}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <button class="text-blue-600 hover:text-blue-800" onclick="viewLicenseDetail('${license.ID_GPKD}')">
+                      Chi tiết
+                  </button>
+              </td>
+          `;
                 tableBody.appendChild(row);
             });
         }
@@ -1125,22 +2224,22 @@
                 const isExpired = isEmblemExpired(emblem.NgayHetHan);
 
                 row.innerHTML = `
-                   <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || 'N/A'}</td>
-                   <td class="px-4 py-2">${emblem.BienSo || 'N/A'}</td>
-                   <td class="px-4 py-2">${emblem.Ten_don_vi || 'N/A'}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
-                   <td class="px-4 py-2 text-center">
-                       <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
-                           ${isExpired ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                       </span>
-                   </td>
-                   <td class="px-4 py-2 text-center">
-                       <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
-                           Chi tiết
-                       </button>
-                   </td>
-               `;
+              <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || ''}</td>
+              <td class="px-4 py-2">${emblem.BienSo || ''}</td>
+              <td class="px-4 py-2">${emblem.Ten_don_vi || ''}</td>
+              <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
+              <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${isExpired ? 'bg-red-100 text-red-800' : statusClass}">
+                      ${isExpired ? 'Hết hạn' : (emblem.TrangThai || '')}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <button class="text-blue-600 hover:text-blue-800" onclick="viewEmblemDetail('${emblem.ID_PhuHieu}')">
+                      Chi tiết
+                  </button>
+              </td>
+          `;
                 tableBody.appendChild(row);
             });
         }
@@ -1156,25 +2255,106 @@
                 const statusClass = getInternationalStatusClass(license.TrangThaiHoatDong);
                 const moHinhHoatDong = Array.isArray(license.MoHinhHoatDong)
                     ? license.MoHinhHoatDong.join(', ')
-                    : license.MoHinhHoatDong || 'N/A';
+                    : license.MoHinhHoatDong || '';
 
                 row.innerHTML = `
-                   <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || 'N/A'}</td>
-                   <td class="px-4 py-2">${license.TenDonViHienThi || 'N/A'}</td>
-                   <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
-                   <td class="px-4 py-2 text-center">${license.LoaiCap || 'N/A'}</td>
-                   <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
-                   <td class="px-4 py-2 text-center">
-                       <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
-                           ${license.TrangThaiHoatDong || 'N/A'}
-                       </span>
-                   </td>
-                   <td class="px-4 py-2 text-center">
-                       <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
-                           Chi tiết
-                       </button>
-                   </td>
-               `;
+              <td class="px-4 py-2 font-medium">${license.SoGPLienVanQT || ''}</td>
+              <td class="px-4 py-2">${license.TenDonViHienThi || ''}</td>
+              <td class="px-4 py-2 text-center">${formatDate(license.NgayCap)}</td>
+              <td class="px-4 py-2 text-center">${license.LoaiCap || ''}</td>
+              <td class="px-4 py-2 text-center">${moHinhHoatDong}</td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                      ${license.TrangThaiHoatDong || ''}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <button class="text-blue-600 hover:text-blue-800" onclick="viewInternationalDetail('${license.IDDoanhNghiep}')">
+                      Chi tiết
+                  </button>
+              </td>
+          `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateIntEmblemsTable() {
+            const tableBody = document.getElementById('intEmblemsTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            filteredIntEmblemsData.slice(0, 50).forEach(emblem => {
+                const row = document.createElement('tr');
+                const isExpiring = emblem.HieuLuc === 'Sắp đến hạn';
+                row.className = `border-b hover:bg-gray-50 ${isExpiring ? 'expiring-row' : ''}`;
+
+                const statusClass = getStatusClass(emblem.TrangThai);
+
+                row.innerHTML = `
+              <td class="px-4 py-2 font-medium">${emblem.SoPhuHieu || ''}</td>
+              <td class="px-4 py-2">${emblem.Bienso || ''}</td>
+              <td class="px-4 py-2">${emblem.TenDoanhNghiep || ''}</td>
+              <td class="px-4 py-2 text-center">${formatDate(emblem.NgayCap)}</td>
+              <td class="px-4 py-2 text-center">${formatDate(emblem.NgayHetHan)}</td>
+              <td class="px-4 py-2 text-center">${emblem.LoaiHinhLienVan || ''}</td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                      ${emblem.TrangThai || ''}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${isExpiring ? 'warning-badge' : 'bg-green-100 text-green-800'}">
+                      ${emblem.HieuLuc || ''}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <button class="text-blue-600 hover:text-blue-800" onclick="viewIntEmblemDetail('${emblem.IDPhuHieu}')">
+                      Chi tiết
+                  </button>
+              </td>
+          `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateIntBooksTable() {
+            const tableBody = document.getElementById('intBooksTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            filteredIntBooksData.slice(0, 50).forEach(book => {
+                const row = document.createElement('tr');
+                const isExpiring = book.HieuLuc === 'Sắp đến hạn';
+                row.className = `border-b hover:bg-gray-50 ${isExpiring ? 'expiring-row' : ''}`;
+
+                const statusClass = getStatusClass(book.TrangThai);
+
+                row.innerHTML = `
+              <td class="px-4 py-2 font-medium">${book.SoSoLienVan || ''}</td>
+              <td class="px-4 py-2">${book.BienSo || ''}</td>
+              <td class="px-4 py-2">${book.TenChinh || ''}</td>
+              <td class="px-4 py-2 text-center">${formatDate(book.NgayCap)}</td>
+              <td class="px-4 py-2 text-center">${formatDate(book.NgayHetHan)}</td>
+              <td class="px-4 py-2 text-center">${book.LoaiHinhLienVan || ''}</td>
+              <td class="px-4 py-2 text-center">${book.CuaKhau || ''}</td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+                      ${book.TrangThai || ''}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <span class="px-2 py-1 text-xs rounded-full ${isExpiring ? 'warning-badge' : 'bg-green-100 text-green-800'}">
+                      ${book.HieuLuc || ''}
+                  </span>
+              </td>
+              <td class="px-4 py-2 text-center">
+                  <button class="text-blue-600 hover:text-blue-800" onclick="viewIntBookDetail('${book.IDSo}')">
+                      Chi tiết
+                  </button>
+              </td>
+          `;
                 tableBody.appendChild(row);
             });
         }
@@ -1223,11 +2403,11 @@
 
         // Helper Functions
         function formatDate(dateString) {
-            if (!dateString) return 'N/A';
+            if (!dateString) return '';
 
             try {
                 const date = parseAppSheetDate(dateString);
-                if (!date) return 'N/A';
+                if (!date) return '';
 
                 return date.toLocaleDateString('vi-VN', {
                     year: 'numeric',
@@ -1236,7 +2416,7 @@
                 });
             } catch (error) {
                 console.error('Error formatting date:', dateString, error);
-                return 'N/A';
+                return '';
             }
         }
 
@@ -1317,7 +2497,6 @@
         });
 
         // Filter handling with apply to all option
-        // Filter handling with apply to all option
         function handleFilterToggle() {
             const applyToAll = document.getElementById('applyToAll').checked;
             const specificFilters = document.getElementById('specificFilters');
@@ -1353,6 +2532,12 @@
                     break;
                 case 'international':
                     document.getElementById('internationalFilters').classList.remove('hidden');
+                    break;
+                case 'international-emblems':
+                    document.getElementById('internationalEmblemFilters').classList.remove('hidden');
+                    break;
+                case 'international-books':
+                    document.getElementById('internationalBookFilters').classList.remove('hidden');
                     break;
                 default:
                     // Ẩn tất cả nếu không phải tab có bộ lọc riêng
@@ -1421,130 +2606,264 @@
             }
         }
 
+        function viewIntEmblemDetail(emblemId) {
+            const emblem = originalIntEmblemsData.find(item => item.IDPhuHieu === emblemId);
+            if (emblem) {
+                showIntEmblemModal(emblem);
+            }
+        }
+
+        function viewIntBookDetail(bookId) {
+            const book = originalIntBooksData.find(item => item.IDSo === bookId);
+            if (book) {
+                showIntBookModal(book);
+            }
+        }
+
         function showLicenseModal(license) {
             const modalContent = `
-           <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
-               <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                   <div class="flex justify-between items-center mb-4">
-                       <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
-                       <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
-                           <i class="fas fa-times"></i>
-                       </button>
-                   </div>
-                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || 'N/A'}</div>
-                       <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || 'N/A'}</div>
-                       <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || 'N/A'}</div>
-                       <div><strong>Địa chỉ:</strong> ${license.DiaChi || 'N/A'}</div>
-                       <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                       <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                       <div><strong>Trạng thái:</strong> 
-                           <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
-                               ${license.TrangThai || 'N/A'}
-                           </span>
-                       </div>
-                       <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || 'N/A'}</div>
-                   </div>
-                   ${license.NgayThuHoi ? `
-                       <div class="mt-4 p-4 bg-red-50 rounded">
-                           <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                           <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                               <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
-                               <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || 'N/A'}</div>
-                               <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || 'N/A'}</div>
-                           </div>
-                       </div>
-                   ` : ''}
-                   ${license.GhiChu ? `
-                       <div class="mt-4">
-                           <strong>Ghi chú:</strong> ${license.GhiChu}
-                       </div>
-                   ` : ''}
-               </div>
-           </div>
-       `;
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="licenseModal">
+          <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+              <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-bold">Chi tiết Giấy phép</h3>
+                  <button onclick="closeModal('licenseModal')" class="text-gray-500 hover:text-gray-700">
+                      <i class="fas fa-times"></i>
+                  </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><strong>Số giấy phép:</strong> ${license.SoGiayPhep || ''}</div>
+                  <div><strong>Mã hồ sơ:</strong> ${license.MaHoSo || ''}</div>
+                  <div><strong>Tên đơn vị:</strong> ${license.TenDonVi || ''}</div>
+                  <div><strong>Địa chỉ:</strong> ${license.DiaChi || ''}</div>
+                  <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                  <div><strong>Loại cấp:</strong> ${license.LoaiCap || ''}</div>
+                  <div><strong>Trạng thái:</strong> 
+                      <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(license.TrangThai)}">
+                          ${license.TrangThai || ''}
+                      </span>
+                  </div>
+                  <div><strong>Loại hình vận tải:</strong> ${Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join(', ') : license.LoaiHinhVanTai || ''}</div>
+              </div>
+              ${license.NgayThuHoi ? `
+                  <div class="mt-4 p-4 bg-red-50 rounded">
+                      <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                      <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div><strong>Ngày thu hồi:</strong> ${formatDate(license.NgayThuHoi)}</div>
+                          <div><strong>Số quyết định:</strong> ${license.SoQuyetDinhThuHoi || ''}</div>
+                          <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${license.LyDoThuHoi || ''}</div>
+                      </div>
+                  </div>
+              ` : ''}
+              ${license.GhiChu ? `
+                  <div class="mt-4">
+                      <strong>Ghi chú:</strong> ${license.GhiChu}
+                  </div>
+              ` : ''}
+          </div>
+      </div>
+  `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
         function showEmblemModal(emblem) {
             const modalContent = `
-           <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
-               <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                   <div class="flex justify-between items-center mb-4">
-                       <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
-                       <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
-                           <i class="fas fa-times"></i>
-                       </button>
-                   </div>
-                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || 'N/A'}</div>
-                       <div><strong>Biển số xe:</strong> ${emblem.BienSo || 'N/A'}</div>
-                       <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || 'N/A'}</div>
-                       <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || 'N/A'}</div>
-                       <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
-                       <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
-                       <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || 'N/A'}</div>
-                       <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || 'N/A'}</div>
-                       <div><strong>Trạng thái:</strong> 
-                           <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
-                               ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || 'N/A')}
-                           </span>
-                       </div>
-                       <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || 'N/A'}</div>
-                   </div>
-                   ${emblem.NgayThuHoi ? `
-                       <div class="mt-4 p-4 bg-red-50 rounded">
-                           <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
-                           <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                               <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
-                               <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || 'N/A'}</div>
-                               <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || 'N/A'}</div>
-                           </div>
-                       </div>
-                   ` : ''}
-                   ${emblem.GhiChu ? `
-                       <div class="mt-4">
-                           <strong>Ghi chú:</strong> ${emblem.GhiChu}
-                       </div>
-                   ` : ''}
-               </div>
-           </div>
-       `;
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="emblemModal">
+          <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+              <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-bold">Chi tiết Phù hiệu</h3>
+                  <button onclick="closeModal('emblemModal')" class="text-gray-500 hover:text-gray-700">
+                      <i class="fas fa-times"></i>
+                  </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || ''}</div>
+                  <div><strong>Biển số xe:</strong> ${emblem.BienSo || ''}</div>
+                  <div><strong>Tên đơn vị:</strong> ${emblem.Ten_don_vi || ''}</div>
+                  <div><strong>Địa chỉ:</strong> ${emblem['Địa chỉ'] || ''}</div>
+                  <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
+                  <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
+                  <div><strong>Loại phù hiệu:</strong> ${emblem.LoaiPH || ''}</div>
+                  <div><strong>Màu phù hiệu:</strong> ${emblem.MauPhuHieu || ''}</div>
+                  <div><strong>Trạng thái:</strong> 
+                      <span class="px-2 py-1 text-xs rounded-full ${isEmblemExpired(emblem.NgayHetHan) ? 'bg-red-100 text-red-800' : getStatusClass(emblem.TrangThai)}">
+                          ${isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || '')}
+                      </span>
+                  </div>
+                  <div><strong>Tuyến khai thác:</strong> ${emblem['Tuyến khai thác'] || ''}</div>
+              </div>
+              ${emblem.NgayThuHoi ? `
+                  <div class="mt-4 p-4 bg-red-50 rounded">
+                      <h4 class="font-semibold text-red-800">Thông tin thu hồi:</h4>
+                      <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div><strong>Ngày thu hồi:</strong> ${formatDate(emblem.NgayThuHoi)}</div>
+                          <div><strong>Quyết định thu hồi:</strong> ${emblem.QDThuHoi || ''}</div>
+                          <div class="md:col-span-2"><strong>Lý do thu hồi:</strong> ${emblem.LyDoThuHoi || ''}</div>
+                      </div>
+                  </div>
+              ` : ''}
+              ${emblem.GhiChu ? `
+                  <div class="mt-4">
+                      <strong>Ghi chú:</strong> ${emblem.GhiChu}
+                  </div>
+              ` : ''}
+          </div>
+      </div>
+  `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
         function showInternationalModal(license) {
             const modalContent = `
-            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
-                <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
-                        <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || 'N/A'}</div>
-                        <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || 'N/A'}</div>
-                        <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || 'N/A'}</div>
-                        <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
-                        <div><strong>Loại cấp:</strong> ${license.LoaiCap || 'N/A'}</div>
-                        <div><strong>Trạng thái hoạt động:</strong> 
-                            <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
-                                ${license.TrangThaiHoatDong || 'N/A'}
-                            </span>
-                        </div>
-                        <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || 'N/A'}</div>
-                    </div>
-                    ${license.Lydocaplai ? `
-                        <div class="mt-4 p-4 bg-blue-50 rounded">
-                            <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
-                            <div class="mt-2">${license.Lydocaplai}</div>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
+       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="internationalModal">
+           <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
+               <div class="flex justify-between items-center mb-4">
+                   <h3 class="text-lg font-bold">Chi tiết Giấy phép Liên vận Quốc tế</h3>
+                   <button onclick="closeModal('internationalModal')" class="text-gray-500 hover:text-gray-700">
+                       <i class="fas fa-times"></i>
+                   </button>
+               </div>
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div><strong>Số GP Liên vận QT:</strong> ${license.SoGPLienVanQT || ''}</div>
+                   <div><strong>Mã doanh nghiệp:</strong> ${license.IDDoanhNghiep || ''}</div>
+                   <div><strong>Tên đơn vị:</strong> ${license.TenDonViHienThi || ''}</div>
+                   <div><strong>Ngày cấp:</strong> ${formatDate(license.NgayCap)}</div>
+                   <div><strong>Loại cấp:</strong> ${license.LoaiCap || ''}</div>
+                   <div><strong>Trạng thái hoạt động:</strong> 
+                       <span class="px-2 py-1 text-xs rounded-full ${getInternationalStatusClass(license.TrangThaiHoatDong)}">
+                           ${license.TrangThaiHoatDong || ''}
+                       </span>
+                   </div>
+                   <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join(', ') : license.MoHinhHoatDong || ''}</div>
+               </div>
+               ${license.Lydocaplai ? `
+                   <div class="mt-4 p-4 bg-blue-50 rounded">
+                       <h4 class="font-semibold text-blue-800">Lý do cấp lại:</h4>
+                       <div class="mt-2">${license.Lydocaplai}</div>
+                   </div>
+               ` : ''}
+           </div>
+       </div>
+   `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function showIntEmblemModal(emblem) {
+            const isExpiring = emblem.HieuLuc === 'Sắp đến hạn';
+            const modalContent = `
+       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="intEmblemModal">
+           <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-96 overflow-y-auto">
+               <div class="flex justify-between items-center mb-4">
+                   <h3 class="text-lg font-bold">Chi tiết Phù hiệu Liên vận</h3>
+                   <button onclick="closeModal('intEmblemModal')" class="text-gray-500 hover:text-gray-700">
+                       <i class="fas fa-times"></i>
+                   </button>
+               </div>
+               ${isExpiring ? `
+                   <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+                       <div class="flex">
+                           <div class="flex-shrink-0">
+                               <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                           </div>
+                           <div class="ml-3">
+                               <p class="text-sm text-yellow-700">
+                                   <strong>Cảnh báo:</strong> Phù hiệu này sắp đến hạn!
+                               </p>
+                           </div>
+                       </div>
+                   </div>
+               ` : ''}
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div><strong>Số phù hiệu:</strong> ${emblem.SoPhuHieu || ''}</div>
+                   <div><strong>Số thứ tự:</strong> ${emblem.SoThuTu || ''}</div>
+                   <div><strong>Biển số:</strong> ${emblem.Bienso || ''}</div>
+                   <div><strong>Tên doanh nghiệp:</strong> ${emblem.TenDoanhNghiep || ''}</div>
+                   <div><strong>Ngày cấp:</strong> ${formatDate(emblem.NgayCap)}</div>
+                   <div><strong>Ngày hết hạn:</strong> ${formatDate(emblem.NgayHetHan)}</div>
+                   <div><strong>Loại hình liên vận:</strong> ${emblem.LoaiHinhLienVan || ''}</div>
+                   <div><strong>Trạng thái cấp:</strong> ${emblem.TrangThaiCap || ''}</div>
+                   <div><strong>Trạng thái:</strong> 
+                       <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(emblem.TrangThai)}">
+                           ${emblem.TrangThai || ''}
+                       </span>
+                   </div>
+                   <div><strong>Hiệu lực:</strong> 
+                       <span class="px-2 py-1 text-xs rounded-full ${isExpiring ? 'warning-badge' : 'bg-green-100 text-green-800'}">
+                           ${emblem.HieuLuc || ''}
+                       </span>
+                   </div>
+               </div>
+               ${emblem.QRLink ? `
+                   <div class="mt-4">
+                       <strong>QR Link:</strong> <a href="${emblem.QRLink}" target="_blank" class="text-blue-600 hover:underline">${emblem.QRLink}</a>
+                   </div>
+               ` : ''}
+           </div>
+       </div>
+   `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function showIntBookModal(book) {
+            const isExpiring = book.HieuLuc === 'Sắp đến hạn';
+            const modalContent = `
+       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="intBookModal">
+           <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+               <div class="flex justify-between items-center mb-4">
+                   <h3 class="text-lg font-bold">Chi tiết Sổ Liên vận</h3>
+                   <button onclick="closeModal('intBookModal')" class="text-gray-500 hover:text-gray-700">
+                       <i class="fas fa-times"></i>
+                   </button>
+               </div>
+               ${isExpiring ? `
+                   <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+                       <div class="flex">
+                           <div class="flex-shrink-0">
+                               <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                           </div>
+                           <div class="ml-3">
+                               <p class="text-sm text-yellow-700">
+                                   <strong>Cảnh báo:</strong> Sổ liên vận này sắp đến hạn!
+                               </p>
+                           </div>
+                       </div>
+                   </div>
+               ` : ''}
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div><strong>Số sổ liên vận:</strong> ${book.SoSoLienVan || ''}</div>
+                   <div><strong>Số thứ tự:</strong> ${book.SoThuTu || ''}</div>
+                   <div><strong>Biển số:</strong> ${book.BienSo || ''}</div>
+                   <div><strong>Tên chính:</strong> ${book.TenChinh || ''}</div>
+                   <div><strong>Ngày cấp:</strong> ${formatDate(book.NgayCap)}</div>
+                   <div><strong>Ngày hết hạn:</strong> ${formatDate(book.NgayHetHan)}</div>
+                   <div><strong>Ngày cấp GP:</strong> ${formatDate(book.NgayCapGP)}</div>
+                   <div><strong>Loại hình liên vận:</strong> ${book.LoaiHinhLienVan || ''}</div>
+                   <div><strong>Cửa khẩu:</strong> ${book.CuaKhau || ''}</div>
+                   <div><strong>Vùng hoạt động:</strong> ${book.VungHoatDong || ''}</div>
+                   <div><strong>Nơi đến:</strong> ${book.NoiDen || ''}</div>
+                   <div><strong>Trạng thái cấp:</strong> ${book.TrangThaiCap || ''}</div>
+                   <div><strong>Trạng thái:</strong> 
+                       <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(book.TrangThai)}">
+                           ${book.TrangThai || ''}
+                       </span>
+                   </div>
+                   <div><strong>Hiệu lực:</strong> 
+                       <span class="px-2 py-1 text-xs rounded-full ${isExpiring ? 'warning-badge' : 'bg-green-100 text-green-800'}">
+                           ${book.HieuLuc || ''}
+                       </span>
+                   </div>
+                   <div><strong>Nguồn bảng:</strong> ${book.NguonBang || ''}</div>
+               </div>
+               <div class="mt-4">
+                   <div class="md:col-span-2"><strong>Mô hình hoạt động:</strong> ${Array.isArray(book.MoHinhHoatDong) ? book.MoHinhHoatDong.join(', ') : book.MoHinhHoatDong || ''}</div>
+               </div>
+               ${book.QRLink ? `
+                   <div class="mt-4">
+                       <strong>QR Link:</strong> <a href="${book.QRLink}" target="_blank" class="text-blue-600 hover:underline">${book.QRLink}</a>
+                   </div>
+               ` : ''}
+           </div>
+       </div>
+   `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
@@ -1552,98 +2871,6 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.remove();
-            }
-        }
-
-        // Export function with filtered data
-        function exportData() {
-            showNotification('Đang xuất dữ liệu...', 'info');
-
-            setTimeout(() => {
-                const csvContent = generateCSVData();
-                downloadCSV(csvContent, 'bao_cao_van_tai_filtered.csv');
-                showNotification('Xuất dữ liệu thành công!', 'success');
-            }, 2000);
-        }
-
-        function generateCSVData() {
-            // Export filtered licenses data
-            const licensesHeaders = [
-                'Số GPKD', 'Tên đơn vị', 'Địa chỉ', 'Ngày cấp',
-                'Loại hình vận tải', 'Trạng thái', 'Ngày thu hồi'
-            ];
-
-            let csvContent = 'DANH SÁCH GIẤY PHÉP KINH DOANH VẬN TẢI (ĐÃ LỌC)\n';
-            csvContent += licensesHeaders.join(',') + '\n';
-
-            filteredLicensesData.forEach(license => {
-                const row = [
-                    license.SoGiayPhep || '',
-                    license.TenDonVi || '',
-                    license.DiaChi || '',
-                    formatDate(license.NgayCap),
-                    Array.isArray(license.LoaiHinhVanTai) ? license.LoaiHinhVanTai.join('; ') : license.LoaiHinhVanTai || '',
-                    license.TrangThai || '',
-                    formatDate(license.NgayThuHoi)
-                ];
-                csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-            });
-
-            // Export filtered emblems data
-            csvContent += '\n\nDANH SÁCH PHÙ HIỆU XE (ĐÃ LỌC)\n';
-            const emblemsHeaders = [
-                'Số phù hiệu', 'Biển số xe', 'Tên đơn vị', 'Ngày cấp',
-                'Ngày hết hạn', 'Loại phù hiệu', 'Trạng thái'
-            ];
-            csvContent += emblemsHeaders.join(',') + '\n';
-
-            filteredEmblemsData.forEach(emblem => {
-                const row = [
-                    emblem.SoPhuHieu || '',
-                    emblem.BienSo || '',
-                    emblem.Ten_don_vi || '',
-                    formatDate(emblem.NgayCap),
-                    formatDate(emblem.NgayHetHan),
-                    emblem.LoaiPH || '',
-                    isEmblemExpired(emblem.NgayHetHan) ? 'Hết hạn' : (emblem.TrangThai || '')
-                ];
-                csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-            });
-
-            // Export filtered international data
-            csvContent += '\n\nDANH SÁCH GIẤY PHÉP LIÊN VẬN QUỐC TẾ (ĐÃ LỌC)\n';
-            const internationalHeaders = [
-                'Số GP', 'Tên đơn vị', 'Ngày cấp', 'Loại cấp',
-                'Mô hình hoạt động', 'Trạng thái'
-            ];
-            csvContent += internationalHeaders.join(',') + '\n';
-
-            filteredInternationalData.forEach(license => {
-                const row = [
-                    license.SoGPLienVanQT || '',
-                    license.TenDonViHienThi || '',
-                    formatDate(license.NgayCap),
-                    license.LoaiCap || '',
-                    Array.isArray(license.MoHinhHoatDong) ? license.MoHinhHoatDong.join('; ') : license.MoHinhHoatDong || '',
-                    license.TrangThaiHoatDong || ''
-                ];
-                csvContent += row.map(field => `"${field}"`).join(',') + '\n';
-            });
-
-            return csvContent;
-        }
-
-        function downloadCSV(csvContent, filename) {
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
             }
         }
 
@@ -1786,25 +3013,53 @@
 
         function initStatusChart() {
             const ctx = document.getElementById('statusChart');
-            if (ctx && filteredLicensesData.length > 0 && filteredEmblemsData.length > 0) {
-                const statusData = getStatusStatistics(filteredLicensesData, filteredEmblemsData, filteredInternationalData);
+            if (ctx && (filteredLicensesData.length > 0 || filteredEmblemsData.length > 0 || filteredIntEmblemsData.length > 0 || filteredIntBooksData.length > 0)) {
+                const statusData = getStatusStatistics(filteredLicensesData, filteredEmblemsData, filteredInternationalData, filteredIntEmblemsData, filteredIntBooksData);
 
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: ['GPKD', 'Phù hiệu', 'GP Liên vận QT'],
+                        labels: ['GPKD', 'Phù hiệu', 'GP Liên vận QT', 'PH Liên vận', 'Sổ LV'],
                         datasets: [{
                             label: 'Còn hiệu lực',
-                            data: [statusData.licenses.active, statusData.emblems.active, statusData.international.active],
+                            data: [
+                                statusData.licenses.active,
+                                statusData.emblems.active,
+                                statusData.international.active,
+                                statusData.intEmblems.active,
+                                statusData.intBooks.active
+                            ],
                             backgroundColor: '#10B981'
                         }, {
                             label: 'Hết hạn/Tạm ngừng',
-                            data: [statusData.licenses.expired, statusData.emblems.expired, statusData.international.suspended],
+                            data: [
+                                statusData.licenses.expired,
+                                statusData.emblems.expired,
+                                statusData.international.suspended,
+                                statusData.intEmblems.expired,
+                                statusData.intBooks.expired
+                            ],
                             backgroundColor: '#F59E0B'
                         }, {
                             label: 'Bị thu hồi',
-                            data: [statusData.licenses.revoked, statusData.emblems.revoked, statusData.international.revoked],
+                            data: [
+                                statusData.licenses.revoked,
+                                statusData.emblems.revoked,
+                                statusData.international.revoked,
+                                statusData.intEmblems.revoked,
+                                statusData.intBooks.revoked
+                            ],
                             backgroundColor: '#EF4444'
+                        }, {
+                            label: 'Sắp đến hạn',
+                            data: [
+                                0,
+                                0,
+                                0,
+                                statusData.intEmblems.expiring,
+                                statusData.intBooks.expiring
+                            ],
+                            backgroundColor: '#F59E0B'
                         }]
                     },
                     options: {
@@ -1903,39 +3158,65 @@
         }
 
         function groupLicensesByMonth(dataToUse = filteredLicensesData) {
-            const monthCounts = {};
-            const revokedCounts = {};
+            const monthData = [];
+            const revokedData = [];
 
             dataToUse.forEach(license => {
                 if (license.NgayCap) {
                     const date = parseAppSheetDate(license.NgayCap);
                     if (date) {
-                        const month = date.toLocaleDateString('vi-VN', {
+                        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        const displayMonth = date.toLocaleDateString('vi-VN', {
                             year: 'numeric',
                             month: 'short'
                         });
-                        monthCounts[month] = (monthCounts[month] || 0) + 1;
+
+                        let existingMonth = monthData.find(item => item.key === yearMonth);
+                        if (!existingMonth) {
+                            monthData.push({ key: yearMonth, display: displayMonth, count: 0 });
+                            existingMonth = monthData[monthData.length - 1];
+                        }
+                        existingMonth.count++;
                     }
                 }
 
                 if (license.NgayThuHoi) {
                     const date = parseAppSheetDate(license.NgayThuHoi);
                     if (date) {
-                        const month = date.toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                        revokedCounts[month] = (revokedCounts[month] || 0) + 1;
+                        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+                        let existingMonth = revokedData.find(item => item.key === yearMonth);
+                        if (!existingMonth) {
+                            revokedData.push({ key: yearMonth, count: 0 });
+                            existingMonth = revokedData[revokedData.length - 1];
+                        }
+                        existingMonth.count++;
                     }
                 }
             });
 
-            const allMonths = [...new Set([...Object.keys(monthCounts), ...Object.keys(revokedCounts)])].sort();
+            // Sắp xếp theo thứ tự thời gian (key YYYY-MM)
+            monthData.sort((a, b) => a.key.localeCompare(b.key));
+
+            // Tạo danh sách tháng đầy đủ
+            const allMonths = [...new Set([...monthData.map(m => m.key), ...revokedData.map(r => r.key)])].sort();
 
             return {
-                labels: allMonths,
-                issued: allMonths.map(month => monthCounts[month] || 0),
-                revoked: allMonths.map(month => revokedCounts[month] || 0)
+                labels: allMonths.map(key => {
+                    const found = monthData.find(m => m.key === key);
+                    return found ? found.display : new Date(key + '-01').toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: 'short'
+                    });
+                }),
+                issued: allMonths.map(key => {
+                    const found = monthData.find(m => m.key === key);
+                    return found ? found.count : 0;
+                }),
+                revoked: allMonths.map(key => {
+                    const found = revokedData.find(r => r.key === key);
+                    return found ? found.count : 0;
+                })
             };
         }
 
@@ -1983,7 +3264,13 @@
             };
         }
 
-        function getStatusStatistics(filteredLicenses = filteredLicensesData, filteredEmblems = filteredEmblemsData, filteredInternational = filteredInternationalData) {
+        function getStatusStatistics(
+            filteredLicenses = filteredLicensesData,
+            filteredEmblems = filteredEmblemsData,
+            filteredInternational = filteredInternationalData,
+            filteredIntEmblems = filteredIntEmblemsData,
+            filteredIntBooks = filteredIntBooksData
+        ) {
             const today = new Date();
 
             // License statistics
@@ -2032,6 +3319,60 @@
                 item.TrangThaiHoatDong === 'Bị thu hồi GPKD'
             ).length;
 
+            // International Emblems statistics
+            const activeIntEmblems = filteredIntEmblems.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi') return false;
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate >= today;
+                }
+                return true;
+            }).length;
+
+            const expiredIntEmblems = filteredIntEmblems.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi') return true;
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate < today;
+                }
+                return false;
+            }).length;
+
+            const revokedIntEmblems = filteredIntEmblems.filter(item =>
+                item.TrangThai === 'Đã thu hồi'
+            ).length;
+
+            const expiringIntEmblems = filteredIntEmblems.filter(item =>
+                item.HieuLuc === 'Sắp đến hạn'
+            ).length;
+
+            // International Books statistics
+            const activeIntBooks = filteredIntBooks.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi') return false;
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate >= today;
+                }
+                return true;
+            }).length;
+
+            const expiredIntBooks = filteredIntBooks.filter(item => {
+                if (item.TrangThai === 'Đã thu hồi') return true;
+                if (item.NgayHetHan) {
+                    const expireDate = parseAppSheetDate(item.NgayHetHan);
+                    return expireDate < today;
+                }
+                return false;
+            }).length;
+
+            const revokedIntBooks = filteredIntBooks.filter(item =>
+                item.TrangThai === 'Đã thu hồi'
+            ).length;
+
+            const expiringIntBooks = filteredIntBooks.filter(item =>
+                item.HieuLuc === 'Sắp đến hạn'
+            ).length;
+
             return {
                 licenses: {
                     active: activeLicenses,
@@ -2047,6 +3388,18 @@
                     active: activeInternational,
                     suspended: suspendedInternational,
                     revoked: revokedInternational
+                },
+                intEmblems: {
+                    active: activeIntEmblems,
+                    expired: expiredIntEmblems,
+                    revoked: revokedIntEmblems,
+                    expiring: expiringIntEmblems
+                },
+                intBooks: {
+                    active: activeIntBooks,
+                    expired: expiredIntBooks,
+                    revoked: revokedIntBooks,
+                    expiring: expiringIntBooks
                 }
             };
         }
@@ -2135,6 +3488,8 @@
             populateLicenseFilters();
             populateEmblemFilters();
             populateInternationalFilters();
+            populateIntEmblemFilters();
+            populateIntBookFilters();
         }
 
         function populateLicenseFilters() {
@@ -2256,6 +3611,94 @@
             });
         }
 
+        function populateIntEmblemFilters() {
+            if (!originalIntEmblemsData.length) return;
+
+            const statusFilter = document.getElementById('intEmblemStatusFilter');
+            const typeFilter = document.getElementById('intEmblemTypeFilter');
+            const capStatusFilter = document.getElementById('intEmblemCapStatusFilter');
+
+            const statuses = [...new Set(originalIntEmblemsData.map(item => item.TrangThai).filter(Boolean))];
+            const types = [...new Set(originalIntEmblemsData.map(item => item.LoaiHinhLienVan).filter(Boolean))];
+            const capStatuses = [...new Set(originalIntEmblemsData.map(item => item.TrangThaiCap).filter(Boolean))];
+
+            // Clear existing options except first one
+            while (statusFilter.children.length > 1) {
+                statusFilter.removeChild(statusFilter.lastChild);
+            }
+            while (typeFilter.children.length > 1) {
+                typeFilter.removeChild(typeFilter.lastChild);
+            }
+            while (capStatusFilter.children.length > 1) {
+                capStatusFilter.removeChild(capStatusFilter.lastChild);
+            }
+
+            statuses.sort().forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                statusFilter.appendChild(option);
+            });
+
+            types.sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            capStatuses.sort().forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                capStatusFilter.appendChild(option);
+            });
+        }
+
+        function populateIntBookFilters() {
+            if (!originalIntBooksData.length) return;
+
+            const statusFilter = document.getElementById('intBookStatusFilter');
+            const typeFilter = document.getElementById('intBookTypeFilter');
+            const capStatusFilter = document.getElementById('intBookCapStatusFilter');
+
+            const statuses = [...new Set(originalIntBooksData.map(item => item.TrangThai).filter(Boolean))];
+            const types = [...new Set(originalIntBooksData.map(item => item.LoaiHinhLienVan).filter(Boolean))];
+            const capStatuses = [...new Set(originalIntBooksData.map(item => item.TrangThaiCap).filter(Boolean))];
+
+            // Clear existing options except first one
+            while (statusFilter.children.length > 1) {
+                statusFilter.removeChild(statusFilter.lastChild);
+            }
+            while (typeFilter.children.length > 1) {
+                typeFilter.removeChild(typeFilter.lastChild);
+            }
+            while (capStatusFilter.children.length > 1) {
+                capStatusFilter.removeChild(capStatusFilter.lastChild);
+            }
+
+            statuses.sort().forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                statusFilter.appendChild(option);
+            });
+
+            types.sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+
+            capStatuses.sort().forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                capStatusFilter.appendChild(option);
+            });
+        }
+
         function updateStatisticsData() {
             // Count unique companies from filtered data
             const uniqueCompanies = new Set();
@@ -2274,10 +3717,22 @@
                     uniqueCompanies.add(international.TenDonViHienThi);
                 }
             });
+            filteredIntEmblemsData.forEach(emblem => {
+                if (emblem.TenDoanhNghiep) {
+                    uniqueCompanies.add(emblem.TenDoanhNghiep);
+                }
+            });
+            filteredIntBooksData.forEach(book => {
+                if (book.TenChinh) {
+                    uniqueCompanies.add(book.TenChinh);
+                }
+            });
 
             // Count active vehicles from filtered data
             const activeVehicles = filteredEmblemsData.filter(emblem =>
                 !isEmblemExpired(emblem.NgayHetHan) && emblem.TrangThai !== 'Đã thu hồi'
+            ).length + filteredIntEmblemsData.filter(emblem =>
+                emblem.HieuLuc !== 'Sắp đến hạn' && emblem.TrangThai !== 'Đã thu hồi'
             ).length;
 
             // Update statistics UI
@@ -2305,11 +3760,11 @@
             }
 
             notification.innerHTML = `
-           <div class="flex items-center">
-               <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
-               <span>${message}</span>
-           </div>
-       `;
+      <div class="flex items-center">
+          <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
+          <span>${message}</span>
+      </div>
+  `;
 
             document.body.appendChild(notification);
 
@@ -2346,7 +3801,9 @@
                 await Promise.all([
                     fetchLicensesData(),
                     fetchEmblemsData(),
-                    fetchInternationalData()
+                    fetchInternationalData(),
+                    fetchIntEmblemsData(),
+                    fetchIntBooksData()
                 ]);
 
                 // Populate filter options
@@ -2370,46 +3827,6 @@
         // Event listeners
         document.addEventListener('DOMContentLoaded', initializeApp);
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function (e) {
-            if (e.ctrlKey) {
-                switch (e.key) {
-                    case '1':
-                        e.preventDefault();
-                        document.querySelector('[data-tab="dashboard"]').click();
-                        break;
-                    case '2':
-                        e.preventDefault();
-                        document.querySelector('[data-tab="licenses"]').click();
-                        break;
-                    case '3':
-                        e.preventDefault();
-                        document.querySelector('[data-tab="emblems"]').click();
-                        break;
-                    case '4':
-                        e.preventDefault();
-                        document.querySelector('[data-tab="international"]').click();
-                        break;
-                    case '5':
-                        e.preventDefault();
-                        document.querySelector('[data-tab="statistics"]').click();
-                        break;
-                    case '6':
-                        e.preventDefault();
-                        document.querySelector('[data-tab="reports"]').click();
-                        break;
-                    case 'f':
-                        e.preventDefault();
-                        applyFilters();
-                        break;
-                    case 'e':
-                        e.preventDefault();
-                        exportData();
-                        break;
-                }
-            }
-        });
-
         // Auto-refresh data every 10 minutes
         setInterval(async () => {
             showNotification('Đang làm mới dữ liệu...', 'info');
@@ -2417,7 +3834,9 @@
                 await Promise.all([
                     fetchLicensesData(),
                     fetchEmblemsData(),
-                    fetchInternationalData()
+                    fetchInternationalData(),
+                    fetchIntEmblemsData(),
+                    fetchIntBooksData()
                 ]);
                 updateAllUI();
                 showNotification('Dữ liệu đã được làm mới!', 'success');
@@ -2436,6 +3855,25 @@
                 }
             }
         });
+
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        }, false);
+
+        document.onkeydown = function (e) {
+            if (e.keyCode == 123) {
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+                return false;
+            }
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+                return false;
+            }
+        };
 
     </script>
 </body>
