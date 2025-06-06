@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Thông tin Tuyến Vận tải - Bộ Giao thông Vận tải</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#1e3c72',
+                        'primary-light': '#2a5298',
+                        'secondary': '#4a90e2',
+                        'secondary-light': '#357abd',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        .gradient-secondary {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #ffffff, #f8fbff);
+        }
+
+        .gradient-light {
+            background: linear-gradient(135deg, #f8fbff, #e8f4fd);
+        }
+
+        .gradient-table {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        }
+
+        .gradient-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .gradient-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .gradient-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .gradient-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .gradient-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+    </style>
+</head>
+
+<body class="font-sans min-h-screen leading-relaxed">
+    <div class="max-w-8xl mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
+        <!-- Header chính thức -->
+        <div class="gradient-primary text-white py-6 px-8 text-center relative">
+            <div class="flex items-center justify-center gap-5 mb-4">
+                <div
+                    class="w-15 h-15 bg-white rounded-full flex items-center justify-center text-2xl text-primary font-bold shadow-lg">
+                    🚌
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-shadow">HỆ THỐNG QUẢN LÝ THÔNG TIN TUYẾN VẬN TẢI</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation header -->
+        <div
+            class="gradient-secondary text-white py-5 px-8 flex justify-between items-center border-b-4 border-blue-700">
+            <h2 class="text-lg font-semibold flex items-center gap-3">
+                <span class="text-xl">📊</span>
+                THÔNG TIN TUYẾN
+            </h2>
+        </div>
+
+        <!-- Thông tin chi tiết tuyến -->
+        <div class="border-b-4 border-gray-100">
+            <div class="gradient-light py-5 px-6 border-b-2 border-blue-200 flex items-center gap-4">
+                <div class="text-xl text-secondary p-2 bg-white rounded-full shadow-md">📋</div>
+                <span class="font-bold text-gray-700 text-base uppercase tracking-wide">Thông tin chi tiết tuyến</span>
+            </div>
+
+            <div class="gradient-bg p-8">
+                <!-- Info rows -->
+                <div class="space-y-0">
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Mã tuyến:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">2398.1311.A
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Tỉnh nơi đi đến (và ngược lại):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Bắc Giang</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Tỉnh nơi đi đến (và ngược lại):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Hà Giang</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            BX nơi đi đến (và ngược lại):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Bắc Giang</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            BX nơi đi đến (và ngược lại):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Mèo Vạc</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[80px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Hành trình chạy xe:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div
+                            class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium text-justify leading-7">
+                            BX Huyện Mèo Vạc - TL176 - Yên Minh - Quản Bạ - QL4C - Quyết Tiến - QL4C - Đường Nguyễn Văn
+                            Linh - QL2 - Đường Nguyễn Trãi - Thành phố Hà Giang - QL2 - QL37 - Cầu Nông Tiến - Sơn Nam -
+                            Sơn Dương - QL18 - QL1A - Cao tốc Hà Nội Lang Sơn - QL17 - Đường Thần Nhân Trung - Đường
+                            Xương Giang - BX Bắc Giang
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Phân loại tuyến:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Tuyến vận tải
+                            nội tỉnh</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Tình trạng khai thác tuyến:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Tuyến mới</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Cự ly Tuyến (km):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">550</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Tổng số chuyến xe được khai thác (chuyến/ tháng):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">30</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Tổng số chuyến xe đã có đơn vị tham gia khai thác (chuyến/ tháng):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">30</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Thời gian giãn cách tối thiểu giữa các chuyến xe liên kế (phút/ chuyến):
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">45</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Quyết định ban hành:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">13270/BGTVT-VT
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Ngày ban hành:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">12/12/2022</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-b-2 border-gray-200 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Đơn vị ban hành:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">Bộ Giao Thông
+                            vận tải</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 min-h-[50px]">
+                        <div
+                            class="col-span-2 gradient-table p-2 text-sm text-gray-600 font-semibold flex items-center border-r-4 border-gray-300 relative">
+                            Kiểu lịch:
+                            <div class="absolute right-0 top-1/5 bottom-1/5 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 p-2 text-sm text-gray-800 flex items-center font-medium">
+                            <div class="flex gap-6 items-center">
+                                <div class="flex items-center gap-3 cursor-pointer py-2 px-4 rounded-full">
+                                    <div class="w-5 h-5 border-4 border-gray-300 rounded-full"></div>
+                                    <span class="text-gray-600">Âm lịch</span>
+                                </div>
+                                <div class="flex items-center gap-3 cursor-pointer py-2 px-4 rounded-full">
+                                    <div
+                                        class="w-5 h-5 border-4 border-secondary bg-secondary rounded-full relative shadow-md">
+                                        <div
+                                            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full">
+                                        </div>
+                                    </div>
+                                    <span class="text-secondary font-semibold">Dương lịch</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin thông báo đơn vị đăng ký khai thác thành công -->
+        <div class="border-b-4 border-gray-100">
+            <div class="gradient-light py-5 px-6 border-b-2 border-blue-200 flex items-center gap-4">
+                <div class="text-xl text-secondary p-2 bg-white rounded-full shadow-md">📋</div>
+                <span class="font-bold text-gray-700 text-base uppercase tracking-wide">Thông tin thông báo đơn vị đăng
+                    ký khai thác thành công</span>
+            </div>
+
+            <div class="gradient-bg p-6">
+                <table class="w-full border-collapse border-2 border-gray-200 rounded-lg overflow-hidden shadow-lg">
+                    <thead>
+                        <tr>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                STT</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Số thông báo</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Ngày văn bản thông báo</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Ngày bắt đầu khai thác</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                            </th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Số GCNĐKKD - Tên Đơn vị kinh doanh vận tải</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Cơ quan cấp</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="even:bg-blue-50">
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">1.</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">221024/TB-SGTVT</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">07/10/2022</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">07/10/2022</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">
+                                <span
+                                    class="gradient-blue text-white py-1 px-3 rounded-full text-xs font-bold uppercase tracking-wider shadow-md">TB1</span>
+                            </td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">1007A00079 - Hợp tác xã Vận
+                                tải Ngọc Hạnh</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">Sở Giao thông vận tải Hà
+                                Giang</td>
+                            <td class="py-4 px-3 text-center border border-gray-200">
+                                <div class="flex justify-center">
+                                    <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm"
+                                        title="Tải xuống">📄</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="even:bg-blue-50">
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">2.</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">230396/TB-SGTVT</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">11/04/2023</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">11/04/2023</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">
+                                <span
+                                    class="gradient-blue text-white py-1 px-3 rounded-full text-xs font-bold uppercase tracking-wider shadow-md">TB1</span>
+                            </td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">2400247703 - HỢP TÁC XÃ
+                                GIAO THÔNG VẬN TẢI YÊN THẾ</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">Sở Giao thông Vận tải Bắc
+                                Giang</td>
+                            <td class="py-4 px-3 text-center border border-gray-200">
+                                <div class="flex justify-center">
+                                    <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm"
+                                        title="Tải xuống">📄</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="even:bg-blue-50">
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">3.</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">
+                                221024/TB-SGTVT<br>
+                                <span class="text-xs text-gray-500 italic">Thông báo quá số ngày</span>
+                            </td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">10/10/2022</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">07/10/2022</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs"></td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">1007A00079 - Hợp tác xã Vận
+                                tải Ngọc Hạnh</td>
+                            <td class="py-4 px-3 text-center border border-gray-200 text-xs">Sở Giao thông vận tải Hà
+                                Giang</td>
+                            <td class="py-4 px-3 text-center border border-gray-200">
+                                <div class="flex justify-center">
+                                    <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm"
+                                        title="Tải xuống">📄</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Dự liệu biểu đồ xe chạy -->
+        <div class="border-b-4 border-gray-100">
+            <div class="gradient-light py-5 px-6 border-b-2 border-blue-200 flex items-center gap-4">
+                <div class="text-xl text-secondary p-2 bg-white rounded-full shadow-md">📋</div>
+                <span class="font-bold text-gray-700 text-base uppercase tracking-wide">
+                    Dự liệu biểu đồ xe chạy
+                    <span class="text-red-600 font-semibold">( Chỉ cập nhật các giờ đang có đơn vị KDVT khai thác
+                        )</span>
+                </span>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex gap-8 p-5 gradient-light text-xs justify-center flex-wrap border-b-2 border-gray-200">
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-4 h-4 bg-gray-100 border-2 border-gray-200 rounded-full shadow-sm"></div>
+                    <span>Chưa đăng ký</span>
+                </div>
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
+                    <span>Đang khai thác</span>
+                </div>
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-4 h-4 bg-yellow-500 border-2 border-white rounded-full shadow-sm"></div>
+                    <span>Còn lưu lượng</span>
+                </div>
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-4 h-4 bg-gray-500 border-2 border-white rounded-full shadow-sm"></div>
+                    <span>Hết lưu lượng</span>
+                </div>
+            </div>
+
+            <!-- Lịch nửa đầu tháng -->
+            <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
+                Giờ xuất bến theo ngày trong tháng (Ngày 1-15)
+            </div>
+
+            <table class="w-full border-collapse text-xs bg-white">
+                <thead>
+                    <tr>
+                        <th rowspan="2"
+                            class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">
+                            STT</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 1</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 2</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 3</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 4</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 5</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 6</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 7</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 8</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 9</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 10</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 11</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 12</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 13</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 14</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 15</th>
+                    </tr>
+                    <tr>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB1</td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB2</td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Lịch nửa cuối tháng -->
+            <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
+                Giờ xuất bến theo ngày trong tháng (Ngày 16-31)
+            </div>
+
+            <table class="w-full border-collapse text-xs bg-white">
+                <thead>
+                    <tr>
+                        <th rowspan="2"
+                            class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">
+                            STT</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 16</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 17</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 18</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 19</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 20</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 21</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 22</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 23</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 24</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 25</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 26</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 27</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 28</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 29</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 30</th>
+                        <th
+                            class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                            Ngày 31</th>
+                    </tr>
+                    <tr>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                        <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">
+                            Đi&nbsp;&nbsp;&nbsp;&nbsp;Về</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB1</td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                05:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                06:15</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB2</td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                13:50</div>
+                            <div
+                                class="gradient-success text-white text-xs py-1 px-1 m-1 rounded-md inline-block w-9 font-semibold shadow-sm">
+                                18:30</div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                        <td class="py-2 px-1 text-center border border-gray-200 h-15 bg-gray-50">
+                            <div class="gradient-warning h-6 rounded-md m-1 shadow-sm"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between py-5 px-6 gradient-table border-t-2 border-gray-300 text-xs">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1">
+                        <a href="#"
+                            class="py-2 px-3 text-gray-600 border-2 border-gray-300 rounded-lg no-underline mx-1 font-semibold"
+                            title="Trang đầu">«</a>
+                        <a href="#"
+                            class="py-2 px-3 text-gray-600 border-2 border-gray-300 rounded-lg no-underline mx-1 font-semibold"
+                            title="Trang trước">‹</a>
+                        <a href="#"
+                            class="py-2 px-3 gradient-secondary text-white border-2 border-secondary rounded-lg no-underline mx-1 font-semibold shadow-md">1</a>
+                        <span class="mx-1">/ 1</span>
+                        <a href="#"
+                            class="py-2 px-3 text-gray-600 border-2 border-gray-300 rounded-lg no-underline mx-1 font-semibold"
+                            title="Trang sau">›</a>
+                        <a href="#"
+                            class="py-2 px-3 text-gray-600 border-2 border-gray-300 rounded-lg no-underline mx-1 font-semibold"
+                            title="Trang cuối">»</a>
+                    </div>
+                    <span><strong>Tổng số bản ghi:</strong> 0</span>
+                </div>
+                <div>
+                    <span><strong>Hiển thị:</strong> 15 bản ghi/trang</span>
+                </div>
+            </div>
+
+            <!-- Bảng phương tiện -->
+            <div class="gradient-bg p-6">
+                <table class="w-full border-collapse border-2 border-gray-200 rounded-lg overflow-hidden shadow-lg">
+                    <thead>
+                        <tr>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                STT</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Biến kiểm soát</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Chủ phương tiện</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Nhãn hiệu xe</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Phân loại xe cơ giới</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Tình trạng phương tiện</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-gray-500 italic border border-gray-200">
+                                Chưa có dữ liệu phương tiện
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer thông tin -->
+        <div class="gradient-primary text-white py-5 text-center">
+            <p class="mt-1 mb-0 text-xs opacity-70">
+                Cập nhật lần cuối: <span id="current-time"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Cập nhật thời gian hiện tại
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        // Cập nhật thời gian mỗi giây
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Print function
+        function printDocument() {
+            window.print();
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printDocument();
+            }
+        });
+    </script>
+
+    <!-- Print styles -->
+    <style>
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            .container {
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            .back-link {
+                display: none !important;
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .container {
+                margin: 15px;
+            }
+
+            .grid-cols-6 {
+                grid-template-columns: 1fr 2fr;
+            }
+
+            .main-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-6 {
+                grid-template-columns: 1fr;
+            }
+
+            .legend {
+                gap: 15px;
+            }
+
+            .schedule-table {
+                font-size: 10px;
+            }
+
+            .flex {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</body>
+
+</html>
