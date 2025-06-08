@@ -4,1420 +4,844 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biểu Đồ Xe Chạy</title>
+    <title>Hệ thống Quản lý Thông tin Tuyến Vận tải - Bộ Giao thông Vận tải</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .status-active {
-            background-color: #dbeafe !important;
-        }
-
-        .status-pending {
-            background-color: #fef3c7 !important;
-        }
-
-        .status-completed {
-            background-color: #dcfce7 !important;
-        }
-
-        .status-cancelled {
-            background-color: #fee2e2 !important;
-        }
-
-        .date-item.selected::after {
-            content: '✓';
-            position: absolute;
-            right: 2px;
-            top: 2px;
-            font-size: 10px;
-            opacity: 0.9;
-            color: white;
-            font-weight: bold;
-        }
-
-        .dropdown-arrow {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-        }
-
-        .btn-active {
-            background-color: #2563eb !important;
-            color: white !important;
-        }
-
-        .date-item {
-            position: relative;
-            transition: all 0.2s ease;
-        }
-
-        .form-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .card-shadow {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .input-focus:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        @keyframes slide {
-            0% {
-                left: -100%;
-            }
-
-            100% {
-                left: 100%;
-            }
-        }
-    </style>
-</head>
-
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans">
-    <div class="">
-
-        <!-- Form Input -->
-        <div id="inputForm" class="bg-white rounded-2xl shadow-2xl mb-8 card-shadow">
-            <!-- Header -->
-            <div class="form-section text-white p-6 rounded-t-2xl">
-                <div class="flex items-center gap-4">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full">
-                        <i class="fas fa-plus-circle text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold">BIỂU ĐỒ TUYẾN CỐ ĐỊNH</h1>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Content -->
-            <div>
-                <form id="bieuDoForm" class="space-y-8">
-                    <!-- Thông tin cơ bản -->
-                    <div class="animated-border bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl">
-                        <h2 class="text-xl font-bold mb-6 flex items-center">
-                            <i class="fas fa-info-circle mr-3"></i>
-                            Thông tin cơ bản
-                        </h2>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    Số thông báo <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-focus transition-all duration-200"
-                                    id="soThongBao" required placeholder="Nhập số thông báo">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    Ngày bắt đầu khai thác <span class="text-red-500">*</span>
-                                </label>
-                                <input type="date"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-focus transition-all duration-200"
-                                    id="ngayBatDau" required>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    Ngày kết thúc khai thác <span class="text-red-500">*</span>
-                                </label>
-                                <input type="date"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-focus transition-all duration-200"
-                                    id="ngayKetThuc" required>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    Tên đơn vị kinh doanh vận tải <span class="text-red-500">*</span>
-                                </label>
-                                <select
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-focus transition-all duration-200"
-                                    id="donViKinhDoanh" required>
-                                    <option value="">-- Chọn đơn vị --</option>
-                                    <option value="CÔNG TY CỔ PHẦN THUYỀN THÁI HOÀNG">CÔNG TY CỔ PHẦN THUYỀN THÁI HOÀNG
-                                    </option>
-                                    <option value="CÔNG TY TNHH VẬN TẢI ABC">CÔNG TY TNHH VẬN TẢI ABC</option>
-                                    <option value="CÔNG TY CP VẬN TẢI XYZ">CÔNG TY CP VẬN TẢI XYZ</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    Tuyến xe <span class="text-red-500">*</span>
-                                </label>
-                                <select
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-focus transition-all duration-200"
-                                    id="tuyenXe" required>
-                                    <option value="">-- Chọn tuyến --</option>
-                                    <option value="Thái Nguyên - Hà Nội">Thái Nguyên - Hà Nội</option>
-                                    <option value="Hà Nội - TP.HCM">Hà Nội - TP.HCM</option>
-                                    <option value="Đà Nẵng - Nha Trang">Đà Nẵng - Nha Trang</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Chi tiết lịch trình - ĐÃ SỬA THÊM TRƯỜNG LỊCH -->
-                    <div class="animated-border bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl">
-                        <h2 class="text-xl font-bold mb-6 flex items-center">
-                            <i class="fas fa-route mr-3"></i>
-                            Chi tiết lịch trình
-                        </h2>
-
-                        <div id="lichTrinhContainer" class="space-y-6">
-                            <div class="lich-trinh-item bg-white p-6 rounded-xl border-2 border-gray-100 shadow-lg">
-
-                                <!-- Lượt đi & về trong 1 grid -->
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                                    <!-- Lượt đi -->
-                                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
-                                        <h4 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                                            <i class="fas fa-arrow-right mr-2"></i>
-                                            Lượt đi
-                                        </h4>
-
-                                        <div class="space-y-3">
-                                            <!-- Giờ xuất bến và Trạng thái trong 1 dòng -->
-                                            <div class="grid grid-cols-3 gap-3">
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Giờ xuất
-                                                        bến</label>
-                                                    <input type="time" name="gioXuatBenDi"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 input-focus">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Trạng
-                                                        thái</label>
-                                                    <select name="trangThaiDi"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-                                                        <option value="">-- Chọn --</option>
-                                                        <option value="DangKhaiThac">Đang khai thác</option>
-                                                        <option value="ConLuuLuong">Còn lưu lượng</option>
-                                                        <option value="HetLuuLuong">Hết lưu lượng</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Lịch</label>
-                                                    <select name="lichDi"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-                                                        <option value="">-- Chọn loại lịch --</option>
-                                                        <option value="LichAm">Lịch âm</option>
-                                                        <option value="LichDuong">Lịch dương</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <!-- THÊM MỚI: Lịch và Điểm đi trong 1 dòng -->
-                                            <div class="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Điểm
-                                                        đi</label>
-                                                    <input type="text" name="diemDi" placeholder="Nhập điểm đi"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 input-focus">
-                                                </div>
-
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành</label>
-                                                    <input type="text" name="tinhThanhDi" placeholder="Nhập tỉnh/thành"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 input-focus">
-                                                </div>
-                                            </div>
-
-                                            <!-- Date selector cho lượt đi -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-2">Chọn ngày
-                                                    hoạt động:</label>
-                                                <select name="dateSelectDi" onchange="toggleDateGrid(this, 'di')"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 mb-2">
-                                                    <option value="">-- Chọn ngày --</option>
-                                                    <option value="show">Chọn ngày cụ thể</option>
-                                                </select>
-
-                                                <div class="date-buttons-di flex gap-2 hidden mb-2">
-                                                    <button type="button" onclick="selectAllDates(this, 'di')"
-                                                        class="px-3 py-1 border-2 border-blue-600 text-blue-600 text-sm rounded hover:bg-blue-50">
-                                                        Tất cả
-                                                    </button>
-                                                    <button type="button" onclick="selectEvenDates(this, 'di')"
-                                                        class="px-3 py-1 border-2 border-blue-600 text-blue-600 text-sm rounded hover:bg-blue-50">
-                                                        Chẵn
-                                                    </button>
-                                                    <button type="button" onclick="selectOddDates(this, 'di')"
-                                                        class="px-3 py-1 border-2 border-blue-600 text-blue-600 text-sm rounded hover:bg-blue-50">
-                                                        Lẻ
-                                                    </button>
-                                                </div>
-
-                                                <div
-                                                    class="date-grid-di hidden grid grid-cols-7 gap-1 p-2 bg-gray-50 border border-gray-200 rounded">
-                                                    <!-- Dates will be generated here -->
-                                                </div>
-                                                <input type="hidden" name="ngayHoatDongDi" class="selected-days-di">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Lượt về -->
-                                    <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
-                                        <h4 class="text-lg font-semibold text-green-700 mb-4 flex items-center">
-                                            <i class="fas fa-arrow-left mr-2"></i>
-                                            Lượt về
-                                        </h4>
-
-                                        <div class="space-y-3">
-                                            <!-- Giờ xuất bến và Trạng thái trong 1 dòng -->
-                                            <div class="grid grid-cols-3 gap-3">
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Giờ xuất
-                                                        bến</label>
-                                                    <input type="time" name="gioXuatBenVe"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 input-focus">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Trạng
-                                                        thái</label>
-                                                    <select name="trangThaiVe"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-                                                        <option value="">-- Chọn --</option>
-                                                        <option value="DangKhaiThac">Đang khai thác</option>
-                                                        <option value="ConLuuLuong">Còn lưu lượng</option>
-                                                        <option value="HetLuuLuong">Hết lưu lượng</option>
-                                                    </select>
-                                                </div>
-                                                 <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Lịch</label>
-                                                    <select name="lichVe"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-                                                        <option value="">-- Chọn loại lịch --</option>
-                                                        <option value="LichAm">Lịch âm</option>
-                                                        <option value="LichDuong">Lịch dương</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <!-- THÊM MỚI: Lịch và Điểm về trong 1 dòng -->
-                                            <div class="grid grid-cols-2 gap-3">
-                                               
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Điểm
-                                                        về</label>
-                                                    <input type="text" name="diemVe" placeholder="Nhập điểm về"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 input-focus">
-                                                </div>
-
-                                                <div>
-                                                    <label
-                                                        class="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành</label>
-                                                    <input type="text" name="tinhThanhVe" placeholder="Nhập tỉnh/thành"
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 input-focus">
-                                                </div>
-                                            </div>
-                                            <!-- Date selector cho lượt về -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-2">Chọn ngày
-                                                    hoạt động:</label>
-                                                <select name="dateSelectVe" onchange="toggleDateGrid(this, 've')"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 mb-2">
-                                                    <option value="">-- Chọn ngày --</option>
-                                                    <option value="show">Chọn ngày cụ thể</option>
-                                                </select>
-
-                                                <div class="date-buttons-ve flex gap-2 hidden mb-2">
-                                                    <button type="button" onclick="selectAllDates(this, 've')"
-                                                        class="px-3 py-1 border-2 border-green-600 text-green-600 text-sm rounded hover:bg-green-50">
-                                                        Tất cả
-                                                    </button>
-                                                    <button type="button" onclick="selectEvenDates(this, 've')"
-                                                        class="px-3 py-1 border-2 border-green-600 text-green-600 text-sm rounded hover:bg-green-50">
-                                                        Chẵn
-                                                    </button>
-                                                    <button type="button" onclick="selectOddDates(this, 've')"
-                                                        class="px-3 py-1 border-2 border-green-600 text-green-600 text-sm rounded hover:bg-green-50">
-                                                        Lẻ
-                                                    </button>
-                                                </div>
-
-                                                <div
-                                                    class="date-grid-ve hidden grid grid-cols-7 gap-1 p-2 bg-gray-50 border border-gray-200 rounded">
-                                                    <!-- Dates will be generated here -->
-                                                </div>
-                                                <input type="hidden" name="ngayHoatDongVe" class="selected-days-ve">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-end mt-6 pt-4 border-t-2 border-gray-100 gap-2">
-                                    <button type="button"
-                                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 btn-hover flex items-center gap-2"
-                                        onclick="addLichTrinh()">
-                                        <i class="fas fa-plus"></i>Thêm lịch trình
-                                    </button>
-
-                                    <button type="button"
-                                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 btn-hover flex items-center gap-2"
-                                        onclick="removeLichTrinh(this)">
-                                        <i class="fas fa-trash"></i>Xóa lịch trình
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Action Buttons -->
-            <div
-                class="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 rounded-b-2xl flex flex-wrap gap-4 justify-center">
-                <button type="button"
-                    class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 btn-hover flex items-center gap-3 font-semibold"
-                    onclick="saveData()">
-                    <i class="fas fa-save text-lg"></i>Lưu
-                </button>
-                <button type="button"
-                    class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 btn-hover flex items-center gap-3 font-semibold"
-                    onclick="previewData()">
-                    <i class="fas fa-eye text-lg"></i>Xem trước
-                </button>
-                <button type="button"
-                    class="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 btn-hover flex items-center gap-3 font-semibold"
-                    onclick="resetForm()">
-                    <i class="fas fa-undo text-lg"></i>Làm mới
-                </button>
-            </div>
-        </div>
-
-        <!-- Preview Section -->
-        <div id="previewSection" class="hidden">
-            <!-- Thông báo -->
-            <div class="bg-white rounded-2xl shadow-2xl mb-6 card-shadow">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-white bg-opacity-20 p-3 rounded-full">
-                            <i class="fas fa-info-circle text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold">THÔNG TIN THÔNG BÁO</h2>
-                            <p class="text-blue-100 mt-1">Đơn vị đăng ký khai thác thành công</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-6 overflow-x-auto">
-                    <table class="min-w-full text-sm border-collapse">
-                        <thead class="bg-gradient-to-r from-gray-100 to-gray-200">
-                            <tr>
-                                <th class="px-4 py-3 text-left border-2 border-gray-300 font-semibold">STT</th>
-                                <th class="px-4 py-3 text-left border-2 border-gray-300 font-semibold">Số thông báo</th>
-                                <th class="px-4 py-3 text-left border-2 border-gray-300 font-semibold">Ngày bắt đầu</th>
-                                <th class="px-4 py-3 text-left border-2 border-gray-300 font-semibold">Ngày kết thúc
-                                </th>
-                                <th class="px-4 py-3 text-left border-2 border-gray-300 font-semibold">Đơn vị</th>
-                                <th class="px-4 py-3 text-left border-2 border-gray-300 font-semibold">Tuyến xe</th>
-                            </tr>
-                        </thead>
-                        <tbody id="thongBaoTableBody">
-                            <!-- Data will be populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Biểu đồ -->
-            <div class="bg-white rounded-2xl shadow-2xl card-shadow">
-                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-t-2xl">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-white bg-opacity-20 p-3 rounded-full">
-                            <i class="fas fa-chart-bar text-xl"></i>
-                        </div>
-                        <div class="flex">
-                            <h2 class="text-xl font-bold">BIỂU ĐỒ XE CHẠY</h2>
-                            <p class="text-indigo-100 mt-1"> (Chỉ cập nhật các giờ đang có đơn vị KDVT khai thác)</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-6">
-                    <!-- Controls -->
-                    <div
-                        class="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-                        <div class="flex items-center gap-2">
-                            <span class="font-semibold text-gray-700">Chọn tháng:</span>
-                            <select
-                                class="px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option>Tháng 6</option>
-                                <option>Tháng 7</option>
-                                <option>Tháng 8</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-wrap gap-4 ml-4">
-                            <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow">
-                                <div class="w-4 h-4 bg-blue-200 border border-blue-300 rounded"></div>
-                                <span class="text-sm font-medium">Đang khai thác</span>
-                            </div>
-                            <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow">
-                                <div class="w-4 h-4 bg-yellow-200 border border-yellow-300 rounded"></div>
-                                <span class="text-sm font-medium">Còn lưu lượng</span>
-                            </div>
-                            <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow">
-                                <div class="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
-                                <span class="text-sm font-medium">Hết lưu lượng</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bảng 1-15 -->
-                    <div class="mb-8">
-                        <div
-                            class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 font-bold text-center rounded-t-lg">
-                            GIỜ XUẤT BẾN THEO NGÀY TRONG THÁNG (Ngày 1-15)
-                        </div>
-                        <div class="overflow-x-auto bg-white border-2 border-blue-200 rounded-b-lg">
-                            <table class="min-w-full border-collapse text-xs" id="bieuDoTable1">
-                                <thead>
-                                    <tr class="bg-gradient-to-r from-gray-200 to-gray-300">
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-12 font-bold">STT</th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            1<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            2<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            3<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            4<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            5<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            6<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            7<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            8<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            9<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            10<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            11<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            12<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            13<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            14<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            15<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bieuDoTableBody1">
-                                    <!-- Data will be populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Bảng 16-31 -->
-                    <div class="mb-8">
-                        <div
-                            class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4 font-bold text-center rounded-t-lg">
-                            GIỜ XUẤT BẾN THEO NGÀY TRONG THÁNG (Ngày 16-31)
-                        </div>
-                        <div class="overflow-x-auto bg-white border-2 border-indigo-200 rounded-b-lg">
-                            <table class="min-w-full border-collapse text-xs" id="bieuDoTable2">
-                                <thead>
-                                    <tr class="bg-gradient-to-r from-gray-200 to-gray-300">
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-12 font-bold">STT</th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            16<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            17<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            18<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            19<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            20<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            21<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            22<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            23<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            24<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            25<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            26<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            27<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            28<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            29<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            30<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                        <th class="border-2 border-gray-400 p-2 text-center min-w-16 font-semibold">Ngày
-                                            31<br><span class="text-blue-600">Đi</span> | <span
-                                                class="text-green-600">Về</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="bieuDoTableBody2">
-                                    <!-- Data will be populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Back Button -->
-                    <div class="text-center mt-8 space-x-4">
-                        <button type="button"
-                            class="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 btn-hover flex items-center gap-3 mx-auto sm:mx-0 sm:inline-flex"
-                            onclick="backToForm()">
-                            <i class="fas fa-arrow-left"></i>Quay lại
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeDateSelectors();
-        });
-
-        // Initialize date selectors for all existing items
-        function initializeDateSelectors() {
-            document.querySelectorAll('.lich-trinh-item').forEach(item => {
-                generateDates(item.querySelector('.date-grid-di'));
-                generateDates(item.querySelector('.date-grid-ve'));
-            });
-        }
-
-        // Generate date items for a grid
-        function generateDates(grid) {
-            if (!grid) return;
-
-            grid.innerHTML = '';
-
-            for (let i = 1; i <= 31; i++) {
-                const dateDiv = document.createElement('div');
-                dateDiv.className = 'date-item bg-white border border-gray-300 rounded text-center py-1 px-1 text-sm cursor-pointer hover:bg-blue-50 transition-all duration-200 relative font-medium';
-                dateDiv.textContent = i;
-                dateDiv.setAttribute('data-date', i);
-
-                dateDiv.addEventListener('click', function () {
-                    toggleDateSelection(this);
-                });
-
-                grid.appendChild(dateDiv);
-            }
-        }
-
-        // Toggle individual date selection
-        function toggleDateSelection(element) {
-            element.classList.toggle('selected');
-            element.classList.toggle('bg-blue-600');
-            element.classList.toggle('text-white');
-            element.classList.toggle('border-blue-600');
-            element.classList.toggle('bg-white');
-
-            // Update hidden input
-            updateHiddenInput(element);
-
-            // Update button states
-            updateButtonStates(element);
-        }
-
-        // Toggle date grid visibility
-        function toggleDateGrid(selectElement, type) {
-            const container = selectElement.closest('.lich-trinh-item');
-            const grid = container.querySelector(`.date-grid-${type}`);
-            const buttons = container.querySelector(`.date-buttons-${type}`);
-
-            if (selectElement.value === 'show') {
-                grid.classList.remove('hidden');
-                buttons.classList.remove('hidden');
-                if (grid.children.length === 0) {
-                    generateDates(grid);
-                }
-            } else {
-                grid.classList.add('hidden');
-                buttons.classList.add('hidden');
-                // Clear selections
-                grid.querySelectorAll('.date-item').forEach(item => {
-                    item.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                    item.classList.add('bg-white');
-                });
-                updateHiddenInput(grid.querySelector('.date-item'));
-                clearButtonStates(buttons);
-            }
-        }
-
-        // Select all dates
-        function selectAllDates(button, type) {
-            const container = button.closest('.lich-trinh-item');
-            const grid = container.querySelector(`.date-grid-${type}`);
-            const dates = grid.querySelectorAll('.date-item');
-
-            // Deselect all first
-            dates.forEach(date => {
-                date.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                date.classList.add('bg-white');
-            });
-
-            // Then select all
-            dates.forEach(date => {
-                date.classList.add('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                date.classList.remove('bg-white');
-            });
-
-            updateHiddenInput(dates[0]);
-            setActiveButton(button, true);
-        }
-
-        // Select even dates (2, 4, 6, 8, ...)
-        function selectEvenDates(button, type) {
-            const container = button.closest('.lich-trinh-item');
-            const grid = container.querySelector(`.date-grid-${type}`);
-            const dates = grid.querySelectorAll('.date-item');
-
-            // Clear all selections first
-            dates.forEach(date => {
-                date.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                date.classList.add('bg-white');
-            });
-
-            // Select even dates
-            dates.forEach(date => {
-                const num = parseInt(date.getAttribute('data-date'));
-                if (num % 2 === 0) {
-                    date.classList.add('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                    date.classList.remove('bg-white');
-                }
-            });
-
-            updateHiddenInput(dates[0]);
-            setActiveButton(button, true);
-        }
-
-        // Select odd dates (1, 3, 5, 7, ...)
-        function selectOddDates(button, type) {
-            const container = button.closest('.lich-trinh-item');
-            const grid = container.querySelector(`.date-grid-${type}`);
-            const dates = grid.querySelectorAll('.date-item');
-
-            // Clear all selections first
-            dates.forEach(date => {
-                date.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                date.classList.add('bg-white');
-            });
-
-            // Select odd dates
-            dates.forEach(date => {
-                const num = parseInt(date.getAttribute('data-date'));
-                if (num % 2 === 1) {
-                    date.classList.add('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                    date.classList.remove('bg-white');
-                }
-            });
-
-            updateHiddenInput(dates[0]);
-            setActiveButton(button, true);
-        }
-
-        // Set active button state
-        function setActiveButton(button, isActive) {
-            const container = button.closest('.date-buttons-di, .date-buttons-ve');
-            const allButtons = container.querySelectorAll('button');
-
-            // Clear all active states
-            allButtons.forEach(btn => {
-                btn.classList.remove('btn-active');
-                if (container.classList.contains('date-buttons-di')) {
-                    btn.classList.remove('bg-blue-600', 'text-white');
-                    btn.classList.add('border-blue-600', 'text-blue-600');
-                } else {
-                    btn.classList.remove('bg-green-600', 'text-white');
-                    btn.classList.add('border-green-600', 'text-green-600');
-                }
-            });
-
-            // Set active button
-            if (isActive) {
-                button.classList.add('btn-active');
-                if (container.classList.contains('date-buttons-di')) {
-                    button.classList.add('bg-blue-600', 'text-white');
-                    button.classList.remove('border-blue-600', 'text-blue-600');
-                } else {
-                    button.classList.add('bg-green-600', 'text-white');
-                    button.classList.remove('border-green-600', 'text-green-600');
-                }
-            }
-        }
-
-        // Update button states based on current selection
-        function updateButtonStates(dateElement) {
-            const grid = dateElement.closest('.date-grid-di, .date-grid-ve');
-            const container = dateElement.closest('.lich-trinh-item');
-            const type = grid.classList.contains('date-grid-di') ? 'di' : 've';
-            const buttonsContainer = container.querySelector(`.date-buttons-${type}`);
-
-            if (!buttonsContainer) return;
-
-            const allDates = grid.querySelectorAll('.date-item');
-            const selectedDates = grid.querySelectorAll('.date-item.selected');
-
-            // Clear all button states first
-            clearButtonStates(buttonsContainer);
-
-            if (selectedDates.length === 0) {
-                return;
-            }
-
-            if (selectedDates.length === allDates.length) {
-                const allBtn = buttonsContainer.querySelector('button:first-child');
-                setActiveButton(allBtn, true);
-                return;
-            }
-
-            // Check if all selected are even or odd
-            const selectedNumbers = Array.from(selectedDates).map(date =>
-                parseInt(date.getAttribute('data-date'))
-            );
-
-            const allEven = selectedNumbers.every(num => num % 2 === 0);
-            const allOdd = selectedNumbers.every(num => num % 2 === 1);
-
-            const expectedEvenCount = Math.floor(31 / 2); // 15
-            const expectedOddCount = Math.ceil(31 / 2);  // 16
-
-            if (allEven && selectedNumbers.length === expectedEvenCount) {
-                const evenBtn = buttonsContainer.querySelector('button:nth-child(2)');
-                setActiveButton(evenBtn, true);
-            } else if (allOdd && selectedNumbers.length === expectedOddCount) {
-                const oddBtn = buttonsContainer.querySelector('button:nth-child(3)');
-                setActiveButton(oddBtn, true);
-            }
-        }
-
-        // Clear button states
-        function clearButtonStates(buttonsContainer) {
-            const buttons = buttonsContainer.querySelectorAll('button');
-            buttons.forEach(btn => {
-                btn.classList.remove('btn-active');
-                if (buttonsContainer.classList.contains('date-buttons-di')) {
-                    btn.classList.remove('bg-blue-600', 'text-white');
-                    btn.classList.add('border-blue-600', 'text-blue-600');
-                } else {
-                    btn.classList.remove('bg-green-600', 'text-white');
-                    btn.classList.add('border-green-600', 'text-green-600');
-                }
-            });
-        }
-
-        // Update hidden input with selected dates
-        function updateHiddenInput(dateElement) {
-            const grid = dateElement.closest('.date-grid-di, .date-grid-ve');
-            const container = dateElement.closest('.lich-trinh-item');
-            const type = grid.classList.contains('date-grid-di') ? 'di' : 've';
-            const hiddenInput = container.querySelector(`.selected-days-${type}`);
-
-            const selectedDates = Array.from(grid.querySelectorAll('.date-item.selected'))
-                .map(item => parseInt(item.getAttribute('data-date')))
-                .sort((a, b) => a - b);
-
-            hiddenInput.value = selectedDates.join(',');
-        }
-
-        // Add new schedule item
-        function addLichTrinh() {
-            const container = document.getElementById('lichTrinhContainer');
-            const template = container.querySelector('.lich-trinh-item').cloneNode(true);
-
-            // Reset form values
-            template.querySelectorAll('input:not([type="hidden"]), select').forEach(input => {
-                input.value = '';
-            });
-
-            // Reset date selections
-            template.querySelectorAll('.date-item').forEach(item => {
-                item.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                item.classList.add('bg-white');
-            });
-
-            // Hide date grids and buttons
-            template.querySelectorAll('.date-grid-di, .date-grid-ve').forEach(grid => {
-                grid.classList.add('hidden');
-                grid.innerHTML = '';
-            });
-            template.querySelectorAll('.date-buttons-di, .date-buttons-ve').forEach(buttons => {
-                buttons.classList.add('hidden');
-            });
-
-            // Reset hidden inputs
-            template.querySelectorAll('.selected-days-di, .selected-days-ve').forEach(input => {
-                input.value = '';
-            });
-
-            // Clear button states
-            template.querySelectorAll('.date-buttons-di button, .date-buttons-ve button').forEach(btn => {
-                btn.classList.remove('btn-active', 'bg-blue-600', 'bg-green-600', 'text-white');
-                if (btn.closest('.date-buttons-di')) {
-                    btn.classList.add('border-blue-600', 'text-blue-600');
-                } else {
-                    btn.classList.add('border-green-600', 'text-green-600');
-                }
-            });
-
-            container.appendChild(template);
-        }
-
-        // Remove schedule item
-        function removeLichTrinh(btn) {
-            const container = document.getElementById('lichTrinhContainer');
-            if (container.children.length > 1) {
-                btn.closest('.lich-trinh-item').remove();
-            } else {
-                alert('Phải có ít nhất 1 lịch trình!');
-            }
-        }
-
-        // Preview data function (ĐÃ SỬA - cập nhật để bao gồm trường Lịch)
-        function previewData() {
-            const form = document.getElementById('bieuDoForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            // Collect form data
-            const formData = {
-                soThongBao: document.getElementById('soThongBao').value,
-                ngayBatDau: document.getElementById('ngayBatDau').value,
-                ngayKetThuc: document.getElementById('ngayKetThuc').value,
-                donViKinhDoanh: document.getElementById('donViKinhDoanh').value,
-                tuyenXe: document.getElementById('tuyenXe').value,
-                lichTrinh: []
-            };
-
-            // Collect schedule data - NHÓM THEO LỊCH TRÌNH (THÊM TRƯỜNG LỊCH)
-            document.querySelectorAll('.lich-trinh-item').forEach((item, index) => {
-                const lichTrinhData = {
-                    stt: index + 1,
-                    di: null,
-                    ve: null
-                };
-
-                // Lượt đi (THÊM TRƯỜNG LỊCH)
-                const gioXuatBenDi = item.querySelector('input[name="gioXuatBenDi"]').value;
-                const diemDi = item.querySelector('input[name="diemDi"]').value;
-                const tinhThanhDi = item.querySelector('input[name="tinhThanhDi"]').value;
-                const trangThaiDi = item.querySelector('select[name="trangThaiDi"]').value;
-                const lichDi = item.querySelector('select[name="lichDi"]').value; // THÊM MỚI
-                const ngayHoatDongDi = item.querySelector('.selected-days-di').value;
-
-                if (gioXuatBenDi && ngayHoatDongDi) {
-                    lichTrinhData.di = {
-                        gioXuatBen: gioXuatBenDi,
-                        diem: diemDi,
-                        tinhThanh: tinhThanhDi,
-                        trangThai: trangThaiDi,
-                        lich: lichDi, // THÊM MỚI
-                        ngayHoatDong: ngayHoatDongDi.split(',').map(d => parseInt(d))
-                    };
-                }
-
-                // Lượt về (THÊM TRƯỜNG LỊCH)
-                const gioXuatBenVe = item.querySelector('input[name="gioXuatBenVe"]').value;
-                const diemVe = item.querySelector('input[name="diemVe"]').value;
-                const tinhThanhVe = item.querySelector('input[name="tinhThanhVe"]').value;
-                const trangThaiVe = item.querySelector('select[name="trangThaiVe"]').value;
-                const lichVe = item.querySelector('select[name="lichVe"]').value; // THÊM MỚI
-                const ngayHoatDongVe = item.querySelector('.selected-days-ve').value;
-
-                if (gioXuatBenVe && ngayHoatDongVe) {
-                    lichTrinhData.ve = {
-                        gioXuatBen: gioXuatBenVe,
-                        diem: diemVe,
-                        tinhThanh: tinhThanhVe,
-                        trangThai: trangThaiVe,
-                        lich: lichVe, // THÊM MỚI
-                        ngayHoatDong: ngayHoatDongVe.split(',').map(d => parseInt(d))
-                    };
-                }
-
-                // Chỉ thêm nếu có ít nhất lượt đi hoặc lượt về
-                if (lichTrinhData.di || lichTrinhData.ve) {
-                    formData.lichTrinh.push(lichTrinhData);
-                }
-            });
-
-            if (formData.lichTrinh.length === 0) {
-                alert('Vui lòng nhập ít nhất 1 lịch trình hợp lệ với ngày hoạt động!');
-                return;
-            }
-
-            // Generate preview
-            generatePreview(formData);
-
-            // Show preview, hide form
-            document.getElementById('inputForm').classList.add('hidden');
-            document.getElementById('previewSection').classList.remove('hidden');
-        }
-
-        // Save data function (CẬP NHẬT ĐỂ BAO GỒM TRƯỜNG LỊCH)
-        function saveData() {
-            const form = document.getElementById('bieuDoForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            // Collect all form data
-            const data = {
-                soThongBao: document.getElementById('soThongBao').value,
-                ngayBatDau: document.getElementById('ngayBatDau').value,
-                ngayKetThuc: document.getElementById('ngayKetThuc').value,
-                donViKinhDoanh: document.getElementById('donViKinhDoanh').value,
-                tuyenXe: document.getElementById('tuyenXe').value,
-                lichTrinh: []
-            };
-
-            // Collect schedule details (THÊM TRƯỜNG LỊCH)
-            document.querySelectorAll('.lich-trinh-item').forEach((item, index) => {
-                const lichTrinhItem = { stt: index + 1 };
-
-                // Lượt đi (THÊM TRƯỜNG LỊCH)
-                const gioXuatBenDi = item.querySelector('input[name="gioXuatBenDi"]').value;
-                const diemDi = item.querySelector('input[name="diemDi"]').value;
-                const tinhThanhDi = item.querySelector('input[name="tinhThanhDi"]').value;
-                const trangThaiDi = item.querySelector('select[name="trangThaiDi"]').value;
-                const lichDi = item.querySelector('select[name="lichDi"]').value; // THÊM MỚI
-                const ngayHoatDongDi = item.querySelector('.selected-days-di').value;
-
-                if (gioXuatBenDi && ngayHoatDongDi) {
-                    lichTrinhItem.di = {
-                        gioXuatBen: gioXuatBenDi,
-                        diem: diemDi,
-                        tinhThanh: tinhThanhDi,
-                        trangThai: trangThaiDi,
-                        lich: lichDi, // THÊM MỚI
-                        ngayHoatDong: ngayHoatDongDi
-                    };
-                }
-
-                // Lượt về (THÊM TRƯỜNG LỊCH)
-                const gioXuatBenVe = item.querySelector('input[name="gioXuatBenVe"]').value;
-                const diemVe = item.querySelector('input[name="diemVe"]').value;
-                const tinhThanhVe = item.querySelector('input[name="tinhThanhVe"]').value;
-                const trangThaiVe = item.querySelector('select[name="trangThaiVe"]').value;
-                const lichVe = item.querySelector('select[name="lichVe"]').value; // THÊM MỚI
-                const ngayHoatDongVe = item.querySelector('.selected-days-ve').value;
-
-                if (gioXuatBenVe && ngayHoatDongVe) {
-                    lichTrinhItem.ve = {
-                        gioXuatBen: gioXuatBenVe,
-                        diem: diemVe,
-                        tinhThanh: tinhThanhVe,
-                        trangThai: trangThaiVe,
-                        lich: lichVe, // THÊM MỚI
-                        ngayHoatDong: ngayHoatDongVe
-                    };
-                }
-
-                if (lichTrinhItem.di || lichTrinhItem.ve) {
-                    data.lichTrinh.push(lichTrinhItem);
-                }
-            });
-
-            console.log('Data to save:', data);
-
-            // Hiển thị thông báo với animation
-            showSuccessMessage('Đã lưu thành công!');
-        }
-
-        // Reset form
-        function resetForm() {
-            if (confirm('Bạn có chắc chắn muốn làm mới form? Tất cả dữ liệu đã nhập sẽ bị xóa.')) {
-                document.getElementById('bieuDoForm').reset();
-
-                // Reset date selections
-                document.querySelectorAll('.date-item').forEach(item => {
-                    item.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
-                    item.classList.add('bg-white');
-                });
-
-                // Hide date grids and buttons
-                document.querySelectorAll('.date-grid-di, .date-grid-ve').forEach(grid => {
-                    grid.classList.add('hidden');
-                });
-                document.querySelectorAll('.date-buttons-di, .date-buttons-ve').forEach(buttons => {
-                    buttons.classList.add('hidden');
-                });
-
-                // Reset hidden inputs
-                document.querySelectorAll('.selected-days-di, .selected-days-ve').forEach(input => {
-                    input.value = '';
-                });
-
-                // Reset to single schedule item
-                const container = document.getElementById('lichTrinhContainer');
-                const items = container.querySelectorAll('.lich-trinh-item');
-                for (let i = 1; i < items.length; i++) {
-                    items[i].remove();
-                }
-
-                showSuccessMessage('Form đã được làm mới!');
-            }
-        }
-
-        // Show success message with animation
-        function showSuccessMessage(message) {
-            // Create message element
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-2xl z-50 transform translate-x-full transition-transform duration-300';
-            messageDiv.innerHTML = `
-              <div class="flex items-center gap-2">
-                  <i class="fas fa-check-circle"></i>
-                  <span>${message}</span>
-              </div>
-          `;
-
-            document.body.appendChild(messageDiv);
-
-            // Animate in
-            setTimeout(() => {
-                messageDiv.classList.remove('translate-x-full');
-            }, 100);
-
-            // Animate out and remove
-            setTimeout(() => {
-                messageDiv.classList.add('translate-x-full');
-                setTimeout(() => {
-                    document.body.removeChild(messageDiv);
-                }, 300);
-            }, 3000);
-        }
-
-        // Preview generation functions - ĐÃ SỬA ĐỂ HIỂN THỊ ĐÚNG
-        function generatePreview(data) {
-            // Generate thông báo table
-            const thongBaoTableBody = document.getElementById('thongBaoTableBody');
-            thongBaoTableBody.innerHTML = `
-              <tr class="hover:bg-gray-50 transition-colors duration-200">
-                  <td class="px-4 py-3 border-2 border-gray-300 text-center font-medium">1</td>
-                  <td class="px-4 py-3 border-2 border-gray-300 font-medium">${data.soThongBao}</td>
-                  <td class="px-4 py-3 border-2 border-gray-300">${formatDate(data.ngayBatDau)}</td>
-                  <td class="px-4 py-3 border-2 border-gray-300">${formatDate(data.ngayKetThuc)}</td>
-                  <td class="px-4 py-3 border-2 border-gray-300">${data.donViKinhDoanh}</td>
-                  <td class="px-4 py-3 border-2 border-gray-300">${data.tuyenXe}</td>
-              </tr>
-          `;
-
-            // Generate biểu đồ tables
-            generateBieuDoTable('bieuDoTableBody1', data.lichTrinh, 1, 15);
-            generateBieuDoTable('bieuDoTableBody2', data.lichTrinh, 16, 31);
-        }
-
-        // SỬA HÀM GENERATE BIỂU ĐỒ TABLE ĐỂ HIỂN THỊ ĐÚNG
-        function generateBieuDoTable(tableBodyId, lichTrinhData, startDay, endDay) {
-            const tableBody = document.getElementById(tableBodyId);
-            tableBody.innerHTML = '';
-
-            // Mỗi lịch trình sẽ là 1 dòng, có cả lượt đi và lượt về
-            lichTrinhData.forEach((lichTrinh, index) => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 transition-colors duration-200';
-
-                let rowHtml = `<td class="border-2 border-gray-400 p-2 text-center bg-gradient-to-r from-gray-100 to-gray-200 font-bold">TB${lichTrinh.stt}</td>`;
-
-                for (let day = startDay; day <= endDay; day++) {
-                    const hasDi = lichTrinh.di && lichTrinh.di.ngayHoatDong.includes(day);
-                    const hasVe = lichTrinh.ve && lichTrinh.ve.ngayHoatDong.includes(day);
-
-                    let cellClass = 'border-2 border-gray-400 p-1 text-center text-xs transition-all duration-200';
-                    let cellContent = '';
-
-                    // Determine background color based on status priority
-                    if (hasDi && hasVe) {
-                        // Ưu tiên trạng thái nghiêm trọng hơn
-                        const diStatus = lichTrinh.di.trangThai;
-                        const veStatus = lichTrinh.ve.trangThai;
-                        const statusPriority = ['HetLuuLuong', 'ConLuuLuong', 'DangKhaiThac'];
-
-                        const criticalStatus = statusPriority.find(status =>
-                            diStatus === status || veStatus === status
-                        ) || diStatus;
-
-                        switch (criticalStatus) {
-                            case 'DangKhaiThac':
-                                cellClass += ' status-active';
-                                break;
-                            case 'ConLuuLuong':
-                                cellClass += ' status-pending';
-                                break;
-                            case 'HetLuuLuong':
-                                cellClass += ' status-cancelled';
-                                break;
-                        }
-
-                        // Hiển thị thông tin cả lượt đi và về với lịch
-                        const diLich = lichTrinh.di.lich ? `(${getLichDisplay(lichTrinh.di.lich)})` : '';
-                        const veLich = lichTrinh.ve.lich ? `(${getLichDisplay(lichTrinh.ve.lich)})` : '';
-
-                        cellContent = `
-                          <div class="text-blue-600 font-semibold">${lichTrinh.di.gioXuatBen}${diLich}</div>
-                          <div class="text-green-600 font-semibold">${lichTrinh.ve.gioXuatBen}${veLich}</div>
-                      `;
-                    } else if (hasDi) {
-                        switch (lichTrinh.di.trangThai) {
-                            case 'DangKhaiThac':
-                                cellClass += ' status-active';
-                                break;
-                            case 'ConLuuLuong':
-                                cellClass += ' status-pending';
-                                break;
-                            case 'HetLuuLuong':
-                                cellClass += ' status-cancelled';
-                                break;
-                        }
-
-                        const diLich = lichTrinh.di.lich ? `(${getLichDisplay(lichTrinh.di.lich)})` : '';
-
-                        cellContent = `
-                          <div class="text-blue-600 font-semibold">${lichTrinh.di.gioXuatBen}${diLich}</div>
-                          <div class="text-gray-400">---</div>
-                      `;
-                    } else if (hasVe) {
-                        switch (lichTrinh.ve.trangThai) {
-                            case 'DangKhaiThac':
-                                cellClass += ' status-active';
-                                break;
-                            case 'ConLuuLuong':
-                                cellClass += ' status-pending';
-                                break;
-                            case 'HetLuuLuong':
-                                cellClass += ' status-cancelled';
-                                break;
-                        }
-
-                        const veLich = lichTrinh.ve.lich ? `(${getLichDisplay(lichTrinh.ve.lich)})` : '';
-
-                        cellContent = `
-                          <div class="text-gray-400">---</div>
-                          <div class="text-green-600 font-semibold">${lichTrinh.ve.gioXuatBen}${veLich}</div>
-                      `;
-                    } else {
-                        cellContent = `
-                          <div class="text-gray-300">---</div>
-                          <div class="text-gray-300">---</div>
-                      `;
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#1e3c72',
+                        'primary-light': '#2a5298',
+                        'secondary': '#4a90e2',
+                        'secondary-light': '#357abd',
                     }
-
-                    rowHtml += `<td class="${cellClass}">${cellContent}</td>`;
-                }
-
-                row.innerHTML = rowHtml;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // THÊM HÀM ĐỂ HIỂN THỊ TƯƠNG Ứng LOẠI LỊCH
-        function getLichDisplay(lichType) {
-            switch (lichType) {
-                case 'LichAm':
-                    return 'AL'; // Âm lịch
-                case 'LichDuong':
-                    return 'DL'; // Dương lịch
-                default:
-                    return '';
-            }
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
-        }
-
-        function backToForm() {
-            document.getElementById('previewSection').classList.add('hidden');
-            document.getElementById('inputForm').classList.remove('hidden');
-        }
-
-        // Responsive table scroll
-        window.addEventListener('resize', function () {
-            const tables = document.querySelectorAll('.overflow-x-auto');
-            tables.forEach(table => {
-                if (table.scrollWidth > table.clientWidth) {
-                    table.classList.add('shadow-lg');
-                } else {
-                    table.classList.remove('shadow-lg');
-                }
-            });
-        });
-
-        // Form validation improvements
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('bieuDoForm');
-            const inputs = form.querySelectorAll('input[required], select[required]');
-
-            inputs.forEach(input => {
-                input.addEventListener('blur', function () {
-                    validateInput(this);
-                });
-
-                input.addEventListener('input', function () {
-                    if (this.classList.contains('border-red-500')) {
-                        validateInput(this);
-                    }
-                });
-            });
-        });
-
-        function validateInput(input) {
-            if (!input.value.trim()) {
-                input.classList.add('border-red-500', 'bg-red-50');
-                input.classList.remove('border-gray-200');
-
-                // Add error message if not exists
-                if (!input.nextElementSibling || !input.nextElementSibling.classList.contains('error-message')) {
-                    const errorMsg = document.createElement('span');
-                    errorMsg.className = 'error-message text-red-500 text-xs mt-1 block';
-                    errorMsg.textContent = 'Trường này là bắt buộc';
-                    input.parentNode.insertBefore(errorMsg, input.nextSibling);
-                }
-            } else {
-                input.classList.remove('border-red-500', 'bg-red-50');
-                input.classList.add('border-gray-200');
-
-                // Remove error message
-                const errorMsg = input.nextElementSibling;
-                if (errorMsg && errorMsg.classList.contains('error-message')) {
-                    errorMsg.remove();
                 }
             }
         }
     </script>
-
     <style>
-        /* Custom scrollbar */
-        .overflow-x-auto::-webkit-scrollbar {
-            height: 8px;
+        .gradient-primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         }
 
-        .overflow-x-auto::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
+        .gradient-secondary {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
         }
 
-        .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
+        .gradient-bg {
+            background: linear-gradient(135deg, #ffffff, #f8fbff);
         }
 
-        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+        .gradient-light {
+            background: linear-gradient(135deg, #f8fbff, #e8f4fd);
         }
 
-        /* Loading animation */
+        .gradient-table {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        }
+
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
         .loading {
-            position: relative;
-            overflow: hidden;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
+        @keyframes spin {
             0% {
-                left: -100%;
+                transform: rotate(0deg);
             }
 
             100% {
-                left: 100%;
+                transform: rotate(360deg);
             }
         }
 
-        /* Enhanced focus states */
-        .input-focus:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #f3f3f3;
+            border-radius: 2px;
+            overflow: hidden;
         }
 
-        /* Improved button hover effects */
-        .btn-hover:hover {
-            transform: translateY(-1px);
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="font-sans min-h-screen leading-relaxed px-8">
+    <div id="loadingMessage" class="text-center py-20">
+        <div class="loading mb-4"></div>
+        <p class="mb-4">Đang tải dữ liệu...</p>
+        <div class="progress-bar mx-auto max-w-md mb-2">
+            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div id="loadingText" class="text-sm text-gray-600">Khởi tạo...</div>
+    </div>
+
+    <div id="mainContent"
+        class="max-w-8xl mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100"
+        style="display: none;">
+        <!-- Header chính thức -->
+        <div class="gradient-primary text-white py-6 px-8 text-center relative">
+            <div class="flex items-center justify-center gap-5 mb-4">
+                <div
+                    class="w-15 h-15 bg-white rounded-full flex items-center justify-center text-2xl text-primary font-bold shadow-lg">
+                    🚌
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-shadow">HỆ THỐNG QUẢN LÝ THÔNG TIN TUYẾN VẬN TẢI</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation header -->
+        <div
+            class="gradient-secondary text-white py-3 px-6 flex justify-between items-center border-b-4 border-blue-700">
+            <h2 class="text-lg font-semibold flex items-center gap-3">
+                <span class="text-xl">📊</span>
+                THÔNG TIN TUYẾN
+            </h2>
+        </div>
+
+        <!-- Thông tin chi tiết tuyến -->
+        <div class="border-b-4 border-gray-100">
+            <div class="gradient-light py-3 px-6 border-b-2 border-blue-200 flex items-center gap-4">
+                <div class="text-secondary bg-white rounded-full shadow-md">📋</div>
+                <span class="font-bold text-gray-700 text-base uppercase tracking-wide">Thông tin chi tiết tuyến</span>
+            </div>
+
+            <div class="gradient-bg px-20 py-4" id="tuyenInfo">
+                <!-- Thông tin tuyến sẽ được điền vào đây -->
+            </div>
+        </div>
+
+        <!-- Thông tin thông báo đơn vị đăng ký khai thác thành công -->
+        <div class="border-b-4 border-gray-100">
+            <div class="gradient-light py-3 px-6 border-b-2 border-blue-200 flex items-center gap-4">
+                <div class="text-secondary bg-white rounded-full shadow-md">📋</div>
+                <span class="font-bold text-gray-700 text-base uppercase tracking-wide">Thông tin thông báo đơn vị đăng
+                    ký khai thác thành công</span>
+            </div>
+
+            <div class="gradient-bg p-4">
+                <table class="w-full border-collapse border-2 border-gray-200 rounded-lg overflow-hidden shadow-lg">
+                    <thead>
+                        <tr>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                STT</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Số thông báo</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Ngày văn bản thông báo</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Ngày bắt đầu khai thác</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Trạng thái</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Đơn vị kinh doanh vận tải</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Cơ quan cấp</th>
+                            <th
+                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
+                                Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="thongBaoTable">
+                        <!-- Dữ liệu thông báo sẽ được điền vào đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Biểu đồ xe chạy -->
+        <div class="border-b-4 border-gray-100">
+            <div class="gradient-light py-3 px-6 border-b-2 border-blue-200 flex items-center gap-4">
+                <div class="text-secondary bg-white rounded-full shadow-md">📋</div>
+                <span class="font-bold text-gray-700 text-base uppercase tracking-wide">
+                    Biểu đồ xe chạy
+                    <span class="text-red-600 font-semibold">( Chỉ cập nhật các giờ đang có đơn vị KDVT khai thác
+                        )</span>
+                </span>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex gap-8 p-3 gradient-light text-xs justify-end flex-wrap border-b-2 border-gray-200">
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-8 h-4 bg-gray-100 border-gray-200 shadow-sm"></div>
+                    <span>Chưa đăng ký</span>
+                </div>
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-8 h-4 bg-lime-300 border-white shadow-sm"></div>
+                    <span>Đang khai thác</span>
+                </div>
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-8 h-4 bg-amber-300 border-white shadow-sm"></div>
+                    <span>Còn lưu lượng</span>
+                </div>
+                <div class="flex items-center gap-2 py-2 px-4 bg-white rounded-full shadow-md border-2 border-gray-100">
+                    <div class="w-8 h-4 bg-amber-100 border-white shadow-sm"></div>
+                    <span>Hết lưu lượng</span>
+                </div>
+            </div>
+
+            <!-- Lịch xe chạy -->
+            <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
+                Giờ xuất bến theo ngày trong tháng
+            </div>
+
+            <div id="bieuDoXeChay">
+                <!-- Biểu đồ xe chạy sẽ được tạo động -->
+            </div>
+        </div>
+
+        <!-- Footer thông tin -->
+        <div class="gradient-primary text-white py-5 text-center">
+            <p class="mt-1 mb-0 text-xs opacity-70">
+                Cập nhật lần cuối: <span id="current-time"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Constants for AppSheet connection
+        const appId = 'd22767b5-f711-42f8-bbbd-4cf04b26ef3d';
+        const accessKey = 'V2-Qcjpo-7Ybu9-g87XI-TFLes-kJGWn-btYR5-cLMmk-FjrRj';
+        const region = 'www';
+
+        // Progress tracking
+        function updateProgress(percentage, text) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        // Get MaSoTuyen from URL
+        function getMaSoTuyenFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('MaSoTuyen');
+        }
+
+        // Function to fetch data from AppSheet - optimized
+        async function fetchDataFromAppSheet(tableName) {
+            try {
+                const body = {
+                    Action: 'Find',
+                    Properties: {},
+                    Selector: `Filter(${tableName}, true)`
+                };
+
+                const response = await fetch(`https://${region}.appsheet.com/api/v2/apps/${appId}/tables/${tableName}/Action`, {
+                    method: 'POST',
+                    headers: {
+                        'ApplicationAccessKey': accessKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return Array.isArray(data) ? data : [];
+            } catch (error) {
+                console.error(`Failed to fetch data from ${tableName}:`, error);
+                return [];
+            }
+        }
+
+        // Load all data in parallel - FASTEST METHOD
+        async function loadAllDataParallel() {
+            updateProgress(10, 'Đang tải tất cả dữ liệu...');
+
+            // Load tất cả bảng cùng lúc (parallel)
+            const [tuyenData, thongBaoData, bieuDoData, chiTietData] = await Promise.all([
+                fetchDataFromAppSheet('DANHMUCTUYENCODINH'),
+                fetchDataFromAppSheet('THONGBAO_KHAITHAC'),
+                fetchDataFromAppSheet('BieuDoChayXe_Ghep'),
+                fetchDataFromAppSheet('BieuDoChayXeChiTiet')
+            ]);
+
+            updateProgress(60, 'Đã tải xong dữ liệu, đang xử lý...');
+
+            return {
+                tuyenData,
+                thongBaoData,
+                bieuDoData,
+                chiTietData
+            };
+        }
+
+        // Format date function
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Display route information
+        function displayTuyenInfo(tuyenData) {
+            const tuyenInfoDiv = document.getElementById('tuyenInfo');
+
+            const infoHTML = `
+                <div class="space-y-0">
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Mã số tuyến:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.MaSoTuyen || ''}</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Tên tuyến:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.TenTuyen || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Tỉnh nơi đi:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.TinhDi || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Tỉnh nơi đến:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.TinhDen || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            BX đi:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.BenDi || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            BX đến:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.BenDen || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex relative">
+                            Hành trình chạy xe:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex font-medium text-justify">
+                            ${tuyenData.HanhTrinh || ''}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Phân loại tuyến:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.PhanLoaiTuyen || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Tình trạng khai thác tuyến:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.TinhTrangKhaiThac || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Cự ly Tuyến (km):
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.CuLyTuyen_km || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Tổng số chuyến xe được khai thác (chuyến/ tháng):
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.TongChuyenThang || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Tổng số chuyến xe đã có đơn vị tham gia khai thác (chuyến/ tháng):
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.ChuyenDaKhaiThac || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Thời gian giãn cách tối thiểu giữa các chuyến xe liên kế (phút/ chuyến):
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.GianCachToiThieu_phut || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Quyết định ban hành:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.SoQuyetDinh || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6 border-gray-200">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Ngày ban hành:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.NgayBanHanh || ''}</div>
+                    </div>
+
+                    <div class="grid grid-cols-6">
+                        <div class="col-span-2 text-sm font-bold flex items-center relative">
+                            Đơn vị ban hành:
+                            <div class="absolute right-0 w-1 gradient-secondary"></div>
+                        </div>
+                        <div class="col-span-4 text-sm text-gray-800 flex items-center font-medium">${tuyenData.DonViBanHanh || ''}</div>
+                    </div>
+                </div>
+            `;
+
+            tuyenInfoDiv.innerHTML = infoHTML;
+        }
+
+        // Display notification table
+        function displayThongBaoTable(thongBaoList) {
+            const tableBody = document.getElementById('thongBaoTable');
+
+            if (!thongBaoList || thongBaoList.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-gray-500 italic border border-gray-200">
+                            Chưa có dữ liệu thông báo
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            thongBaoList.forEach((thongBao, index) => {
+                html += `
+                    <tr class="even:bg-blue-50">
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${index + 1}.</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.SoThongBao || ''}</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${formatDate(thongBao.NgayBanHanh) || ''}</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.NgayBatDau || ''}</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">
+                            <span class="gradient-blue text-white py-1 px-3 rounded-full text-xs font-bold uppercase tracking-wider shadow-md">
+                                ${thongBao.TrangThai || 'TB1'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.Ref_DonVi || ''}</td>
+                        <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.CQBanHanh || ''}</td>
+                        <td class="py-4 px-3 text-center border border-gray-200">
+                            <div class="flex justify-center">
+                                <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm" title="Tải xuống">📄</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        // Generate schedule table
+        function generateScheduleTable(bieuDoList, chiTietList) {
+            const bieuDoDiv = document.getElementById('bieuDoXeChay');
+
+            if (!bieuDoList || bieuDoList.length === 0) {
+                bieuDoDiv.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 italic">
+                        Chưa có dữ liệu biểu đồ xe chạy
+                    </div>
+                `;
+                return;
+            }
+
+            // Generate table for first half of month (1-15)
+            let html = `
+                <table class="w-full border-collapse text-xs bg-white">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
+            `;
+
+            // Generate headers for days 1-15
+            for (let day = 1; day <= 15; day++) {
+                html += `
+                    <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                        Ngày ${day}
+                    </th>
+                `;
+            }
+
+            html += `</tr><tr>`;
+
+            // Generate sub-headers (Đi/Về)
+            for (let day = 1; day <= 15; day++) {
+                html += `
+                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
+                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
+                `;
+            }
+
+            html += `</tr></thead><tbody>`;
+
+            // Generate rows for each biểu đồ
+            bieuDoList.forEach((bieuDo, index) => {
+                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB${index + 1}</td>`;
+
+                for (let day = 1; day <= 15; day++) {
+                    // Find chi tiết for this day
+                    const chiTietDi = chiTietList.find(ct =>
+                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                        ct.Chieu === 'Đi' &&
+                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                    );
+
+                    const chiTietVe = chiTietList.find(ct =>
+                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                        ct.Chieu === 'Về' &&
+                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                    );
+
+                    html += `
+                        <td class="text-center border-gray-200 h-15 bg-amber-200">
+                            ${chiTietDi ?
+                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietDi.GioXuatBen || ''}</div>` :
+                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                        }
+                        </td>
+                        <td class="text-center border-gray-200 h-15 bg-amber-200">
+                            ${chiTietVe ?
+                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietVe.GioXuatBen || ''}</div>` :
+                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                        }
+                        </td>
+                    `;
+                }
+
+                html += `</tr>`;
+            });
+
+            html += `</tbody></table>`;
+
+            // Generate table for second half of month (16-31)
+            html += `
+                <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
+                    Giờ xuất bến theo ngày trong tháng (16-31)
+                </div>
+                <table class="w-full border-collapse text-xs bg-white">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
+            `;
+
+            // Generate headers for days 16-31
+            for (let day = 16; day <= 31; day++) {
+                html += `
+                    <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                        Ngày ${day}
+                    </th>
+                `;
+            }
+
+            html += `</tr><tr>`;
+
+            // Generate sub-headers (Đi/Về)
+            for (let day = 16; day <= 31; day++) {
+                html += `
+                   <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
+                   <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
+               `;
+            }
+
+            html += `</tr></thead><tbody>`;
+
+            // Generate rows for each biểu đồ (16-31)
+            bieuDoList.forEach((bieuDo, index) => {
+                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB${index + 1}</td>`;
+
+                for (let day = 16; day <= 31; day++) {
+                    const chiTietDi = chiTietList.find(ct =>
+                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                        ct.Chieu === 'Đi' &&
+                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                    );
+
+                    const chiTietVe = chiTietList.find(ct =>
+                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                        ct.Chieu === 'Về' &&
+                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                    );
+
+                    html += `
+                       <td class="text-center border-gray-200 h-15 bg-amber-200">
+                           ${chiTietDi ?
+                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietDi.GioXuatBen || ''}</div>` :
+                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                        }
+                       </td>
+                       <td class="text-center border-gray-200 h-15 bg-amber-200">
+                           ${chiTietVe ?
+                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietVe.GioXuatBen || ''}</div>` :
+                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                        }
+                       </td>
+                   `;
+                }
+
+                html += `</tr>`;
+            });
+
+            html += `</tbody></table>`;
+
+            bieuDoDiv.innerHTML = html;
+        }
+
+        // Main initialization function - OPTIMIZED FOR SPEED
+        async function initialize() {
+            try {
+                const maSoTuyen = getMaSoTuyenFromURL();
+
+                if (!maSoTuyen) {
+                    throw new Error('Không tìm thấy mã số tuyến trong URL. Vui lòng thêm ?MaSoTuyen=XXX vào URL');
+                }
+
+                console.log('MaSoTuyen from URL:', maSoTuyen);
+
+                // LOAD TẤT CẢ DỮ LIỆU CÙNG LÚC (PARALLEL) - NHANH NHẤT
+                const startTime = performance.now();
+                const { tuyenData, thongBaoData, bieuDoData, chiTietData } = await loadAllDataParallel();
+                const loadTime = performance.now() - startTime;
+                console.log(`Data loaded in ${loadTime.toFixed(2)}ms`);
+
+                updateProgress(70, 'Đang lọc dữ liệu...');
+
+                // FILTER NHANH BẰNG JAVASCRIPT
+                const filteredTuyen = tuyenData.find(t => t.MaSoTuyen === maSoTuyen);
+                if (!filteredTuyen) {
+                    throw new Error(`Không tìm thấy tuyến với mã số: ${maSoTuyen}`);
+                }
+
+                // Filter thông báo
+                const filteredThongBao = thongBaoData.filter(tb => tb.Ref_Tuyen === maSoTuyen);
+                console.log('Filtered ThongBao:', filteredThongBao.length, 'records');
+
+                // Filter biểu đồ
+                const filteredBieuDo = bieuDoData.filter(bd => bd.Ref_Tuyen === maSoTuyen);
+                console.log('Filtered BieuDo:', filteredBieuDo.length, 'records');
+
+                // Filter chi tiết
+                const ghepIds = filteredBieuDo.map(bd => bd.ID_Ghep);
+                const filteredChiTiet = chiTietData.filter(ct => ghepIds.includes(ct.Ref_NutChayGhep));
+                console.log('Filtered ChiTiet:', filteredChiTiet.length, 'records');
+
+                updateProgress(80, 'Đang hiển thị dữ liệu...');
+
+                // HIỂN THỊ DỮ LIỆU
+                displayTuyenInfo(filteredTuyen);
+                displayThongBaoTable(filteredThongBao);
+                generateScheduleTable(filteredBieuDo, filteredChiTiet);
+
+                updateProgress(90, 'Hoàn thành...');
+
+                // Update current time
+                document.getElementById('current-time').textContent = new Date().toLocaleString('vi-VN');
+
+                updateProgress(100, 'Tải thành công!');
+
+                // Hide loading message and show main content
+                setTimeout(() => {
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                }, 500);
+
+                const totalTime = performance.now() - startTime;
+                console.log(`Total processing time: ${totalTime.toFixed(2)}ms`);
+
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                document.getElementById('loadingMessage').innerHTML = `
+                   <div class="text-center py-20">
+                       <div class="text-red-600 text-lg font-bold mb-4">Lỗi tải dữ liệu</div>
+                       <p class="text-gray-600">${error.message}</p>
+                       <button onclick="location.reload()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                           Thử lại
+                       </button>
+                   </div>
+               `;
+            }
+        }
+
+        // Utility functions
+        function printDocument() {
+            window.print();
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printDocument();
+            }
+        });
+
+        // Search function for different routes
+        function searchRoute() {
+            const maSoTuyen = prompt('Nhập mã số tuyến cần tìm:');
+            if (maSoTuyen) {
+                window.location.href = `${window.location.pathname}?MaSoTuyen=${encodeURIComponent(maSoTuyen)}`;
+            }
+        }
+
+        // Add search button to header
+        document.addEventListener('DOMContentLoaded', function () {
+            const header = document.querySelector('.gradient-secondary');
+            if (header) {
+                const searchButton = document.createElement('button');
+                searchButton.innerHTML = '🔍 Tìm tuyến khác';
+                searchButton.className = 'bg-white text-secondary px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors';
+                searchButton.onclick = searchRoute;
+                header.appendChild(searchButton);
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+
+    <!-- Print styles -->
+    <style>
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            #mainContent {
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            .gradient-primary,
+            .gradient-secondary,
+            .gradient-table {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            #mainContent {
+                margin: 15px;
+            }
+
+            .grid-cols-6 {
+                grid-template-columns: 1fr 2fr;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-6 {
+                grid-template-columns: 1fr;
+            }
+
+            .flex-wrap {
+                gap: 15px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            .px-8 {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* Additional styling for better UX */
+        .hover-effect:hover {
+            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
         }
 
-        .btn-hover:active {
-            transform: translateY(0);
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
 
-        /* Improved table styling */
-        table th {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        table tr:nth-child(even) {
-            background-color: rgba(249, 250, 251, 0.5);
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a90e2;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #357abd;
         }
     </style>
 </body>
