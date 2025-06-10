@@ -154,9 +154,6 @@
                                 Ngày bắt đầu khai thác</th>
                             <th
                                 class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
-                                Trạng thái</th>
-                            <th
-                                class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
                                 Đơn vị kinh doanh vận tải</th>
                             <th
                                 class="gradient-primary text-white py-4 px-3 text-center text-xs font-bold uppercase tracking-wider">
@@ -206,7 +203,7 @@
 
             <!-- Lịch xe chạy -->
             <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
-                Giờ xuất bến theo ngày trong tháng
+                Giờ xuất bến
             </div>
 
             <div id="bieuDoXeChay">
@@ -440,76 +437,90 @@
             tuyenInfoDiv.innerHTML = infoHTML;
         }
 
-        // Display notification table
+        // Display notification table - chỉ hiển thị thông báo còn hiệu lực
         function displayThongBaoTable(thongBaoList) {
             const tableBody = document.getElementById('thongBaoTable');
 
-            if (!thongBaoList || thongBaoList.length === 0) {
+            // Lọc chỉ các thông báo KHÔNG có trạng thái "Hết hiệu lực"
+            const activeThongBao = thongBaoList.filter(thongBao =>
+                !thongBao.TrangThai || thongBao.TrangThai !== 'Hết hiệu lực'
+            );
+
+            if (!activeThongBao || activeThongBao.length === 0) {
                 tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-8 text-gray-500 italic border border-gray-200">
-                            Chưa có dữ liệu thông báo
-                        </td>
-                    </tr>
-                `;
+            <tr>
+                <td colspan="8" class="text-center py-8 text-gray-500 italic border border-gray-200">
+                    Chưa có thông báo đang có hiệu lực
+                </td>
+            </tr>
+        `;
                 return;
             }
 
             let html = '';
-            thongBaoList.forEach((thongBao, index) => {
+            activeThongBao.forEach((thongBao, index) => {
                 html += `
-                    <tr class="even:bg-blue-50">
-                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${index + 1}.</td>
-                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.SoThongBao || ''}</td>
-                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${formatDate(thongBao.NgayBanHanh) || ''}</td>
-                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.NgayBatDau || ''}</td>
-                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">
-                            <span class="gradient-blue text-white py-1 px-3 rounded-full text-xs font-bold uppercase tracking-wider shadow-md">
-                                ${thongBao.TrangThai || 'TB1'}
-                            </span>
-                        </td>
-                        <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao['Đơn vị kinh doanh vận tải'] || ''}</td>
-                        <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.CQBanHanh || ''}</td>
-                        <td class="py-4 px-3 text-center border border-gray-200">
-                            <div class="flex justify-center">
-                                <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm" title="Tải xuống">📄</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+            <tr class="even:bg-blue-50">
+                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${index + 1}.</td>
+                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.SoThongBao || ''}</td>
+                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${formatDate(thongBao.NgayBanHanh) || ''}</td>
+                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.NgayBatDau || ''}</td>
+                <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao['Đơn vị kinh doanh vận tải'] || ''}</td>
+                <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.CQBanHanh || ''}</td>
+                <td class="py-4 px-3 text-center border border-gray-200">
+                    <div class="flex justify-center">
+                        <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm" title="Tải xuống">📄</div>
+                    </div>
+                </td>
+            </tr>
+        `;
             });
 
             tableBody.innerHTML = html;
         }
 
-        // Generate schedule table
+        // Generate schedule table - chỉ hiển thị những TB thực sự có dữ liệu
         function generateScheduleTable(bieuDoList, chiTietList) {
             const bieuDoDiv = document.getElementById('bieuDoXeChay');
 
             if (!bieuDoList || bieuDoList.length === 0) {
                 bieuDoDiv.innerHTML = `
-                    <div class="text-center py-8 text-gray-500 italic">
-                        Chưa có dữ liệu biểu đồ xe chạy
-                    </div>
-                `;
+            <div class="text-center py-8 text-gray-500 italic">
+                Chưa có dữ liệu biểu đồ xe chạy
+            </div>
+        `;
+                return;
+            }
+
+            // Lọc chỉ những biểu đồ thực sự có chi tiết dữ liệu
+            const validBieuDo = bieuDoList.filter(bieuDo => {
+                return chiTietList.some(ct => ct.Ref_NutChayGhep === bieuDo.ID_Ghep);
+            });
+
+            if (validBieuDo.length === 0) {
+                bieuDoDiv.innerHTML = `
+            <div class="text-center py-8 text-gray-500 italic">
+                Chưa có dữ liệu chi tiết xe chạy
+            </div>
+        `;
                 return;
             }
 
             // Generate table for first half of month (1-15)
             let html = `
-                <table class="w-full border-collapse text-xs bg-white">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
-            `;
+        <table class="w-full border-collapse text-xs bg-white">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
+    `;
 
             // Generate headers for days 1-15
             for (let day = 1; day <= 15; day++) {
                 html += `
-                    <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
-                        Ngày ${day}
-                    </th>
-                `;
+            <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                Ngày ${day}
+            </th>
+        `;
             }
 
             html += `</tr><tr>`;
@@ -517,45 +528,53 @@
             // Generate sub-headers (Đi/Về)
             for (let day = 1; day <= 15; day++) {
                 html += `
-                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
-                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
-                `;
+            <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
+            <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
+        `;
             }
 
             html += `</tr></thead><tbody>`;
 
-            // Generate rows for each biểu đồ
-            bieuDoList.forEach((bieuDo, index) => {
+            // Generate rows for each valid biểu đồ
+            validBieuDo.forEach((bieuDo, index) => {
                 html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB${index + 1}</td>`;
 
                 for (let day = 1; day <= 15; day++) {
-                    // Find chi tiết for this day
+                    // Tìm chi tiết cho ngày này - sửa cách kiểm tra NgayHoatDong
                     const chiTietDi = chiTietList.find(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Đi' &&
-                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                        ct.NgayHoatDong && (
+                            ct.NgayHoatDong.toString() === day.toString() ||
+                            ct.NgayHoatDong.toString().split(',').map(d => d.trim()).includes(day.toString()) ||
+                            ct.NgayHoatDong.toString().split(' ').includes(day.toString())
+                        )
                     );
 
                     const chiTietVe = chiTietList.find(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Về' &&
-                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                        ct.NgayHoatDong && (
+                            ct.NgayHoatDong.toString() === day.toString() ||
+                            ct.NgayHoatDong.toString().split(',').map(d => d.trim()).includes(day.toString()) ||
+                            ct.NgayHoatDong.toString().split(' ').includes(day.toString())
+                        )
                     );
 
                     html += `
-                        <td class="text-center border-gray-200 h-15 bg-amber-200">
-                            ${chiTietDi ?
+                <td class="text-center bg-amber-200  h-15">
+                    ${chiTietDi ?
                             `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietDi.GioXuatBen || ''}</div>` :
-                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
                         }
-                        </td>
-                        <td class="text-center border-gray-200 h-15 bg-amber-200">
-                            ${chiTietVe ?
+                </td>
+                <td class="text-center bg-amber-200  h-15">
+                    ${chiTietVe ?
                             `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietVe.GioXuatBen || ''}</div>` :
-                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
                         }
-                        </td>
-                    `;
+                </td>
+            `;
                 }
 
                 html += `</tr>`;
@@ -565,22 +584,22 @@
 
             // Generate table for second half of month (16-31)
             html += `
-                <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
-                    Giờ xuất bến theo ngày trong tháng (16-31)
-                </div>
-                <table class="w-full border-collapse text-xs bg-white">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
-            `;
+        <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
+            Giờ xuất bến
+        </div>
+        <table class="w-full border-collapse text-xs bg-white">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
+    `;
 
             // Generate headers for days 16-31
             for (let day = 16; day <= 31; day++) {
                 html += `
-                    <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
-                        Ngày ${day}
-                    </th>
-                `;
+            <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                Ngày ${day}
+            </th>
+        `;
             }
 
             html += `</tr><tr>`;
@@ -588,44 +607,52 @@
             // Generate sub-headers (Đi/Về)
             for (let day = 16; day <= 31; day++) {
                 html += `
-                   <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
-                   <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
-               `;
+           <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
+           <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
+       `;
             }
 
             html += `</tr></thead><tbody>`;
 
-            // Generate rows for each biểu đồ (16-31)
-            bieuDoList.forEach((bieuDo, index) => {
+            // Generate rows for each valid biểu đồ (16-31)
+            validBieuDo.forEach((bieuDo, index) => {
                 html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB${index + 1}</td>`;
 
                 for (let day = 16; day <= 31; day++) {
                     const chiTietDi = chiTietList.find(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Đi' &&
-                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                        ct.NgayHoatDong && (
+                            ct.NgayHoatDong.toString() === day.toString() ||
+                            ct.NgayHoatDong.toString().split(',').map(d => d.trim()).includes(day.toString()) ||
+                            ct.NgayHoatDong.toString().split(' ').includes(day.toString())
+                        )
                     );
 
                     const chiTietVe = chiTietList.find(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Về' &&
-                        ct.NgayHoatDong && ct.NgayHoatDong.includes(day.toString())
+                        ct.NgayHoatDong && (
+                            ct.NgayHoatDong.toString() === day.toString() ||
+                            ct.NgayHoatDong.toString().split(',').map(d => d.trim()).includes(day.toString()) ||
+                            ct.NgayHoatDong.toString().split(' ').includes(day.toString())
+                        )
                     );
 
                     html += `
-                       <td class="text-center border-gray-200 h-15 bg-amber-200">
-                           ${chiTietDi ?
+               <td class="text-center bg-amber-200  h-15">
+                   ${chiTietDi ?
                             `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietDi.GioXuatBen || ''}</div>` :
-                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
                         }
-                       </td>
-                       <td class="text-center border-gray-200 h-15 bg-amber-200">
-                           ${chiTietVe ?
+               </td>
+               <td class="text-center bg-amber-200  h-15">
+                   ${chiTietVe ?
                             `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietVe.GioXuatBen || ''}</div>` :
-                            `<div class="bg-amber-300 h-6 shadow-sm"></div>`
+                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
                         }
-                       </td>
-                   `;
+               </td>
+           `;
                 }
 
                 html += `</tr>`;
@@ -746,25 +773,6 @@
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initialize);
-
-        document.addEventListener('contextmenu', function (e) {
-            e.preventDefault();
-        }, false);
-
-        document.onkeydown = function (e) {
-            if (e.keyCode == 123) {
-                return false;
-            }
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
-                return false;
-            }
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
-                return false;
-            }
-            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
-                return false;
-            }
-        };
     </script>
 
     <!-- Print styles -->
