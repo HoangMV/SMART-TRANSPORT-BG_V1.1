@@ -437,7 +437,7 @@
             tuyenInfoDiv.innerHTML = infoHTML;
         }
 
-        // Display notification table - chỉ hiển thị thông báo còn hiệu lực
+        // Display notification table - sử dụng URL file trực tiếp từ AppSheet
         function displayThongBaoTable(thongBaoList) {
             const tableBody = document.getElementById('thongBaoTable');
 
@@ -449,7 +449,7 @@
             if (!activeThongBao || activeThongBao.length === 0) {
                 tableBody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center py-8 text-gray-500 italic border border-gray-200">
+                <td colspan="7" class="text-center py-8 text-gray-500 italic border border-gray-200">
                     Chưa có thông báo đang có hiệu lực
                 </td>
             </tr>
@@ -459,6 +459,17 @@
 
             let html = '';
             activeThongBao.forEach((thongBao, index) => {
+                // Kiểm tra trường File - AppSheet trả về URL đầy đủ hoặc tên file
+                const fileData = thongBao.File && thongBao.File.trim() !== '' ? thongBao.File.trim() : null;
+                const hasFile = fileData && fileData !== '';
+
+                // Log để debug
+                console.log(`Row ${index + 1}:`, {
+                    SoThongBao: thongBao.SoThongBao,
+                    File: fileData,
+                    HasFile: hasFile
+                });
+
                 html += `
             <tr class="even:bg-blue-50">
                 <td class="py-3 px-3 text-center border border-gray-200 text-xs">${index + 1}.</td>
@@ -468,8 +479,19 @@
                 <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao['Đơn vị kinh doanh vận tải'] || ''}</td>
                 <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.CQBanHanh || ''}</td>
                 <td class="py-4 px-3 text-center border border-gray-200">
-                    <div class="flex justify-center">
-                        <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm" title="Tải xuống">📄</div>
+                    <div class="flex justify-center gap-2">
+                        ${hasFile ? `
+                            <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm hover:opacity-80 transition-opacity" 
+                                 title="Mở file đính kèm" 
+                                 onclick="openAppSheetFile('${fileData.replace(/'/g, "\\'")}')">
+                                📄
+                            </div>
+                        ` : `
+                            <div class="w-8 h-8 bg-gray-300 text-gray-500 flex items-center justify-center rounded-lg text-sm" 
+                                 title="Không có file đính kèm">
+                                📄
+                            </div>
+                        `}
                     </div>
                 </td>
             </tr>
@@ -477,6 +499,41 @@
             });
 
             tableBody.innerHTML = html;
+        }
+
+        // Hàm mở file AppSheet - sử dụng URL trực tiếp nếu có, hoặc tạo URL
+        function openAppSheetFile(fileData) {
+            if (!fileData || fileData.trim() === '') {
+                alert('Không có file đính kèm');
+                return;
+            }
+
+            try {
+                console.log('File data received:', fileData);
+
+                // Kiểm tra nếu fileData đã là URL đầy đủ
+                if (fileData.startsWith('https://www.appsheet.com/template/gettablefileurl') ||
+                    fileData.startsWith('https://') && fileData.includes('appsheet.com')) {
+                    // Đã là URL đầy đủ, mở trực tiếp
+                    console.log('Opening direct URL:', fileData);
+                    window.open(fileData, '_blank');
+                } else {
+                    // Là tên file, cần tạo URL
+                    console.log('Creating URL for file:', fileData);
+                    const baseUrl = 'https://www.appsheet.com/template/gettablefileurl';
+                    const appName = 'QLVT-691992930';
+                    const tableName = 'THONGBAO_KHAITHAC';
+
+                    // Tạo URL mà không có signature (AppSheet sẽ tự động xử lý)
+                    const fileUrl = `${baseUrl}?appName=${appName}&tableName=${tableName}&fileName=${encodeURIComponent(fileData)}`;
+
+                    console.log('Generated URL:', fileUrl);
+                    window.open(fileUrl, '_blank');
+                }
+            } catch (error) {
+                console.error('Lỗi khi mở file:', error);
+                alert('Không thể mở file. Vui lòng thử lại sau.');
+            }
         }
 
         // Generate schedule table - chỉ hiển thị những TB thực sự có dữ liệu
@@ -537,7 +594,7 @@
 
             // Generate rows for each valid biểu đồ
             validBieuDo.forEach((bieuDo, index) => {
-                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB${index + 1}</td>`;
+                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${bieuDo['Số thông báo']}</td>`;
 
                 for (let day = 1; day <= 15; day++) {
                     // Tìm chi tiết cho ngày này - sửa cách kiểm tra NgayHoatDong
@@ -616,7 +673,7 @@
 
             // Generate rows for each valid biểu đồ (16-31)
             validBieuDo.forEach((bieuDo, index) => {
-                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">TB${index + 1}</td>`;
+                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${bieuDo['Số thông báo']}</td>`;
 
                 for (let day = 16; day <= 31; day++) {
                     const chiTietDi = chiTietList.find(ct =>
