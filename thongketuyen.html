@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống Kê Nghiệp Vụ Tuyến - AppSheet Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="text-lg">Đang tải dữ liệu...</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    Thống Kê Nghiệp Vụ Tuyến
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <span id="last-updated" class="text-sm opacity-75"></span>
+                    <button onclick="refreshData()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md">
+                        <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Tab Navigation -->
+        <div class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button onclick="showTab('overview')" class="tab-btn active border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Tổng Quan
+                    </button>
+                    <button onclick="showTab('unit-stats')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Thống Kê Đơn Vị
+                    </button>
+                    <button onclick="showTab('route-stats')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Thống Kê Tuyến
+                    </button>
+                    <button onclick="showTab('station-stats')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Thống Kê Bến
+                    </button>
+                    <button onclick="showTab('search')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        Tra Cứu
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <i class="fas fa-route text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Tổng Số Tuyến</p>
+                            <p id="total-routes" class="text-2xl font-semibold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <i class="fas fa-building text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Đơn Vị Khai Thác</p>
+                            <p id="total-units" class="text-2xl font-semibold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-100 rounded-lg">
+                            <i class="fas fa-calendar text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Tổng Chuyến/Tháng</p>
+                            <p id="total-trips" class="text-2xl font-semibold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <i class="fas fa-map-marker-alt text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Số Bến Xe</p>
+                            <p id="total-stations" class="text-2xl font-semibold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4">Phân Bố Tuyến Theo Tỉnh Đến</h3>
+                    <canvas id="routeDestinationChart"></canvas>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold mb-4">Tình Trạng Khai Thác</h3>
+                    <canvas id="exploitationStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unit Statistics Tab -->
+        <div id="unit-stats" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold">Thống Kê Đơn Vị Khai Thác</h3>
+                </div>
+                
+                <!-- Filter -->
+                <div class="px-6 py-4 bg-gray-50 border-b">
+                    <div class="flex flex-wrap gap-4">
+                        <select id="unit-type-filter" class="border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Tất cả đơn vị</option>
+                            <option value="trong-tinh">Đơn vị trong tỉnh</option>
+                            <option value="ngoai-tinh">Đơn vị ngoài tỉnh</option>
+                        </select>
+                        <input id="unit-search" type="text" placeholder="Tìm kiếm đơn vị..." class="border border-gray-300 rounded-md px-3 py-2 flex-1 min-w-64">
+                        <button onclick="filterUnits()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn Vị</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số Tuyến</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng Chuyến/Tháng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chi Tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="units-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Statistics Tab -->
+        <div id="route-stats" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Tuyến Nội Tỉnh</h4>
+                    <p id="noi-tinh-routes" class="text-3xl font-bold text-blue-600">-</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Tuyến Liên Tỉnh</h4>
+                    <p id="lien-tinh-routes" class="text-3xl font-bold text-green-600">-</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Đang Khai Thác</h4>
+                    <p id="active-routes" class="text-3xl font-bold text-purple-600">-</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Tạm Dừng</h4>
+                    <p id="suspended-routes" class="text-3xl font-bold text-red-600">-</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold">Danh Sách Tuyến</h3>
+                </div>
+                
+                <div class="px-6 py-4 bg-gray-50 border-b">
+                    <div class="flex flex-wrap gap-4">
+                        <select id="route-status-filter" class="border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Đang khai thác">Đang khai thác</option>
+                            <option value="Tạm dừng">Tạm dừng</option>
+                        </select>
+                        <select id="route-type-filter" class="border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Tất cả loại tuyến</option>
+                            <option value="Nội tỉnh">Nội tỉnh</option>
+                            <option value="Liên tỉnh">Liên tỉnh</option>
+                        </select>
+                        <input id="route-search" type="text" placeholder="Tìm kiếm tuyến..." class="border border-gray-300 rounded-md px-3 py-2 flex-1 min-w-64">
+                        <button onclick="filterRoutes()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã Tuyến</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Tuyến</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tỉnh Đi</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tỉnh Đến</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cự Ly (km)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chuyến/Tháng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng Thái</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chi Tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routes-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Station Statistics Tab -->
+        <div id="station-stats" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold">Thống Kê Theo Bến Xe</h3>
+                </div>
+                
+                <div id="stations-container" class="p-6">
+                    <!-- Station statistics will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Tab -->
+        <div id="search" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold">Tra Cứu Thông Tin</h3>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Search by Unit -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-semibold mb-4">Tra cứu theo đơn vị</h4>
+                            <div class="space-y-3">
+                                <select id="search-unit-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <option value="">Chọn đơn vị...</option>
+                                </select>
+                                <button onclick="searchByUnit()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
+                                    <i class="fas fa-search mr-2"></i>Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search by Route -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-semibold mb-4">Tra cứu theo tuyến</h4>
+                            <div class="space-y-3">
+                                <select id="search-origin-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <option value="">Chọn tỉnh đi...</option>
+                                </select>
+                                <select id="search-destination-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <option value="">Chọn tỉnh đến...</option>
+                                </select>
+                                <button onclick="searchByRoute()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">
+                                    <i class="fas fa-search mr-2"></i>Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search by Station -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-semibold mb-4">Tra cứu theo bến xe</h4>
+                            <div class="space-y-3">
+                                <select id="search-station-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <option value="">Chọn bến xe...</option>
+                                </select>
+                                <button onclick="searchByStation()" class="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700">
+                                    <i class="fas fa-search mr-2"></i>Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div id="search-results" class="mt-8 hidden">
+                        <h4 class="text-lg font-semibold mb-4">Kết quả tìm kiếm</h4>
+                        <div id="search-results-content" class="bg-gray-50 rounded-lg p-4">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Route Details -->
+    <div id="route-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4 z-40">
+        <div class="bg-white rounded-lg max-w-6xl w-full max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Chi Tiết Tuyến</h3>
+                <button onclick="closeRouteModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="route-modal-content" class="p-6">
+                <!-- Route details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Constants for AppSheet connection
+        const appId = 'd22767b5-f711-42f8-bbbd-4cf04b26ef3d';
+        const accessKey = 'V2-Qcjpo-7Ybu9-g87XI-TFLes-kJGWn-btYR5-cLMmk-FjrRj';
+        const region = 'www';
+
+        // Global data storage
+        let routeData = [];
+        let scheduleData = [];
+        let scheduleDetailData = [];
+        let announcementData = [];
+
+        // Function to fetch data from AppSheet
+        async function fetchAppSheetData(tableName, selector = "Filter(Data, true)") {
+            try {
+                const response = await fetch(`https://${region}.appsheet.com/api/v2/apps/${appId}/tables/${tableName}/Action`, {
+                    method: 'POST',
+                    headers: {
+                        'ApplicationAccessKey': accessKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Action: 'Find',
+                        Properties: {},
+                        Selector: selector.replace('Data', tableName)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(`${tableName} data:`, data);
+                return Array.isArray(data) ? data : [];
+            } catch (error) {
+                console.error(`Failed to fetch ${tableName}:`, error);
+                return [];
+            }
+        }
+
+        // Initialize data
+        async function initialize() {
+            try {
+                showLoading(true);
+                
+                // Fetch all required data
+                const [routes, schedules, scheduleDetails, announcements] = await Promise.all([
+                    fetchAppSheetData('DANHMUCTUYENCODINH'),
+                    fetchAppSheetData('BieuDoChayXe_Ghep'),
+                    fetchAppSheetData('BieuDoChayXeChiTiet'),
+                    fetchAppSheetData('THONGBAO_KHAITHAC')
+                ]);
+
+                // Store data globally
+                routeData = routes;
+                scheduleData = schedules;
+                scheduleDetailData = scheduleDetails; 
+                announcementData = announcements;
+
+                // Update UI
+                updateOverviewStats();
+                updateCharts();
+                populateUnitsTable();
+                populateRoutesTable();
+                populateStationsStats();
+                populateSearchSelects();
+                updateLastUpdated();
+
+                showLoading(false);
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                showLoading(false);
+                alert('Lỗi khi tải dữ liệu. Vui lòng thử lại.');
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('last-updated').textContent = 
+                `Cập nhật: ${now.toLocaleString('vi-VN')}`;
+        }
+
+        // Update overview statistics
+        function updateOverviewStats() {
+            document.getElementById('total-routes').textContent = routeData.length;
+            
+            // Count unique units from announcements
+            const uniqueUnits = new Set(announcementData.map(item => item['Đơn vị kinh doanh vận tải']));
+            document.getElementById('total-units').textContent = uniqueUnits.size;
+            
+            // Sum total trips per month
+            const totalTrips = routeData.reduce((sum, route) => {
+                return sum + (parseInt(route.TongChuyenThang) || 0);
+            }, 0);
+            document.getElementById('total-trips').textContent = totalTrips.toLocaleString('vi-VN');
+            
+            // Count unique stations
+            const uniqueStations = new Set([
+                ...routeData.map(route => route.BenDi),
+                ...routeData.map(route => route.BenDen)
+            ].filter(station => station));
+            document.getElementById('total-stations').textContent = uniqueStations.size;
+
+            // Update route type statistics
+            const noiTinhRoutes = routeData.filter(route => route.PhanLoaiTuyen === 'Nội tỉnh').length;
+            const lienTinhRoutes = routeData.filter(route => route.PhanLoaiTuyen === 'Liên tỉnh').length;
+            const activeRoutes = routeData.filter(route => route.TinhTrangKhaiThac === 'Đang khai thác').length;
+            const suspendedRoutes = routeData.filter(route => route.TinhTrangKhaiThac === 'Tạm dừng').length;
+
+            document.getElementById('noi-tinh-routes').textContent = noiTinhRoutes;
+            document.getElementById('lien-tinh-routes').textContent = lienTinhRoutes;
+            document.getElementById('active-routes').textContent = activeRoutes;
+            document.getElementById('suspended-routes').textContent = suspendedRoutes;
+        }
+
+        // Update charts
+        function updateCharts() {
+            updateDestinationChart();
+            updateExploitationStatusChart();
+        }
+
+        function updateDestinationChart() {
+            const destinationCounts = {};
+            routeData.forEach(route => {
+                if (route.TinhDen) {
+                    destinationCounts[route.TinhDen] = (destinationCounts[route.TinhDen] || 0) + 1;
+                }
+            });
+
+            const sortedDestinations = Object.entries(destinationCounts)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 10);
+
+            const ctx = document.getElementById('routeDestinationChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedDestinations.map(([name]) => name),
+                    datasets: [{
+                        data: sortedDestinations.map(([,count]) => count),
+                        backgroundColor: [
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                            '#6B7280', '#EC4899', '#14B8A6', '#F97316', '#84CC16'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateExploitationStatusChart() {
+            const statusCounts = {};
+            routeData.forEach(route => {
+                if (route.TinhTrangKhaiThac) {
+                    statusCounts[route.TinhTrangKhaiThac] = (statusCounts[route.TinhTrangKhaiThac] || 0) + 1;
+                }
+            });
+
+            const ctx = document.getElementById('exploitationStatusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#10B981', '#EF4444', '#F59E0B', '#6B7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate units table
+        function populateUnitsTable() {
+            const unitsTableBody = document.getElementById('units-table-body');
+            const unitStats = {};
+
+            // Process announcements to get unit statistics
+            announcementData.forEach(announcement => {
+                const unitName = announcement['Đơn vị kinh doanh vận tải'];
+                if (!unitName) return;
+
+                if (!unitStats[unitName]) {
+                    unitStats[unitName] = {
+                        name: unitName,
+                        routes: new Set(),
+                        totalTrips: 0,
+                        type: 'Chưa xác định' // This would need to be determined based on address data
+                    };
+                }
+
+                // Find related routes through Ref_Tuyen
+                const relatedRoutes = routeData.filter(route => 
+                    route.MaSoTuyen === announcement.Ref_Tuyen
+                );
+
+                relatedRoutes.forEach(route => {
+                    unitStats[unitName].routes.add(route.MaSoTuyen);
+                    unitStats[unitName].totalTrips += parseInt(route.TongChuyenThang) || 0;
+                });
+            });
+
+            let html = '';
+            Object.values(unitStats).forEach(unit => {
+                html += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${unit.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+                                unit.type === 'Trong tỉnh' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                            }">${unit.type}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${unit.routes.size}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${unit.totalTrips.toLocaleString('vi-VN')}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                           <button onclick="showUnitDetail('${unit.name}')" class="text-blue-600 hover:text-blue-900">Xem chi tiết</button>
+                       </td>
+                   </tr>
+               `;
+           });
+
+           unitsTableBody.innerHTML = html;
+       }
+
+       // Populate routes table
+       function populateRoutesTable() {
+           const routesTableBody = document.getElementById('routes-table-body');
+           
+           let html = '';
+           routeData.forEach(route => {
+               const statusClass = route.TinhTrangKhaiThac === 'Đang khai thác' ? 
+                   'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+               
+               html += `
+                   <tr>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${route.MaSoTuyen || '-'}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${route.TenTuyen || '-'}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${route.TinhDi || '-'}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${route.TinhDen || '-'}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${route.CuLyTuyen_km || '-'}</td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${(route.TongChuyenThang || 0).toLocaleString('vi-VN')}</td>
+                       <td class="px-6 py-4 whitespace-nowrap">
+                           <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${route.TinhTrangKhaiThac || 'Chưa xác định'}</span>
+                       </td>
+                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                           <button onclick="showRouteDetail('${route.MaSoTuyen}')" class="text-blue-600 hover:text-blue-900">Xem chi tiết</button>
+                       </td>
+                   </tr>
+               `;
+           });
+
+           routesTableBody.innerHTML = html;
+       }
+
+       // Populate stations statistics
+       function populateStationsStats() {
+           const stationsContainer = document.getElementById('stations-container');
+           const stationStats = {};
+
+           // Calculate statistics for each station
+           routeData.forEach(route => {
+               const departureStation = route.BenDi;
+               if (!departureStation) return;
+
+               if (!stationStats[departureStation]) {
+                   stationStats[departureStation] = {
+                       name: departureStation,
+                       routes: [],
+                       destinations: {},
+                       units: new Set()
+                   };
+               }
+
+               stationStats[departureStation].routes.push(route);
+               
+               if (route.TinhDen) {
+                   stationStats[departureStation].destinations[route.TinhDen] = 
+                       (stationStats[departureStation].destinations[route.TinhDen] || 0) + 1;
+               }
+
+               // Find units operating this route
+               const relatedAnnouncements = announcementData.filter(ann => ann.Ref_Tuyen === route.MaSoTuyen);
+               relatedAnnouncements.forEach(ann => {
+                   if (ann['Đơn vị kinh doanh vận tải']) {
+                       stationStats[departureStation].units.add(ann['Đơn vị kinh doanh vận tải']);
+                   }
+               });
+           });
+
+           let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+           
+           Object.values(stationStats).forEach(station => {
+               const topDestinations = Object.entries(station.destinations)
+                   .sort(([,a], [,b]) => b - a)
+                   .slice(0, 5);
+
+               html += `
+                   <div class="border border-gray-200 rounded-lg p-4">
+                       <h4 class="font-semibold text-gray-900 mb-3">${station.name}</h4>
+                       <div class="space-y-2 text-sm">
+                           <div class="flex justify-between">
+                               <span class="text-gray-600">Số tuyến xuất phát:</span>
+                               <span class="font-medium">${station.routes.length}</span>
+                           </div>
+                           <div class="flex justify-between">
+                               <span class="text-gray-600">Đến các tỉnh:</span>
+                               <span class="font-medium">${Object.keys(station.destinations).length}</span>
+                           </div>
+                           <div class="flex justify-between">
+                               <span class="text-gray-600">Đơn vị khai thác:</span>
+                               <span class="font-medium">${station.units.size}</span>
+                           </div>
+                       </div>
+                       <div class="mt-4">
+                           <h5 class="text-sm font-medium text-gray-700 mb-2">Tuyến đến các tỉnh:</h5>
+                           <div class="space-y-1 text-xs">
+                               ${topDestinations.map(([dest, count]) => `
+                                   <div class="flex justify-between">
+                                       <span>${dest}:</span>
+                                       <span>${count} tuyến</span>
+                                   </div>
+                               `).join('')}
+                           </div>
+                       </div>
+                   </div>
+               `;
+           });
+
+           html += '</div>';
+           stationsContainer.innerHTML = html;
+       }
+
+       // Populate search selects
+       function populateSearchSelects() {
+           // Populate units select
+           const unitSelect = document.getElementById('search-unit-select');
+           const uniqueUnits = [...new Set(announcementData.map(item => item['Đơn vị kinh doanh vận tải']).filter(Boolean))];
+           uniqueUnits.sort().forEach(unit => {
+               const option = document.createElement('option');
+               option.value = unit;
+               option.textContent = unit;
+               unitSelect.appendChild(option);
+           });
+
+           // Populate origin provinces select
+           const originSelect = document.getElementById('search-origin-select');
+           const uniqueOrigins = [...new Set(routeData.map(route => route.TinhDi).filter(Boolean))];
+           uniqueOrigins.sort().forEach(origin => {
+               const option = document.createElement('option');
+               option.value = origin;
+               option.textContent = origin;
+               originSelect.appendChild(option);
+           });
+
+           // Populate destination provinces select
+           const destinationSelect = document.getElementById('search-destination-select');
+           const uniqueDestinations = [...new Set(routeData.map(route => route.TinhDen).filter(Boolean))];
+           uniqueDestinations.sort().forEach(destination => {
+               const option = document.createElement('option');
+               option.value = destination;
+               option.textContent = destination;
+               destinationSelect.appendChild(option);
+           });
+
+           // Populate stations select
+           const stationSelect = document.getElementById('search-station-select');
+           const uniqueStations = [...new Set([
+               ...routeData.map(route => route.BenDi),
+               ...routeData.map(route => route.BenDen)
+           ].filter(Boolean))];
+           uniqueStations.sort().forEach(station => {
+               const option = document.createElement('option');
+               option.value = station;
+               option.textContent = station;
+               stationSelect.appendChild(option);
+           });
+       }
+
+       // Tab functionality
+       function showTab(tabName) {
+           document.querySelectorAll('.tab-content').forEach(tab => {
+               tab.classList.add('hidden');
+           });
+           
+           document.querySelectorAll('.tab-btn').forEach(btn => {
+               btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+               btn.classList.add('border-transparent', 'text-gray-500');
+           });
+           
+           document.getElementById(tabName).classList.remove('hidden');
+           
+           event.target.classList.add('active', 'border-blue-500', 'text-blue-600');
+           event.target.classList.remove('border-transparent', 'text-gray-500');
+       }
+
+       // Search functionality
+       function searchByUnit() {
+           const selectedUnit = document.getElementById('search-unit-select').value;
+           if (!selectedUnit) {
+               alert('Vui lòng chọn đơn vị cần tra cứu');
+               return;
+           }
+
+           const unitAnnouncements = announcementData.filter(ann => 
+               ann['Đơn vị kinh doanh vận tải'] === selectedUnit
+           );
+
+           const unitRoutes = routeData.filter(route => 
+               unitAnnouncements.some(ann => ann.Ref_Tuyen === route.MaSoTuyen)
+           );
+
+           const totalTrips = unitRoutes.reduce((sum, route) => sum + (parseInt(route.TongChuyenThang) || 0), 0);
+
+           // Get schedule details for this unit
+           const unitSchedules = scheduleData.filter(schedule => 
+               unitRoutes.some(route => route.MaSoTuyen === schedule.Ref_Tuyen)
+           );
+
+           const scheduleDetails = scheduleDetailData.filter(detail => 
+               unitSchedules.some(schedule => schedule.ID_Ghep === detail.Ref_NutChayGhep)
+           );
+
+           showSearchResults(`
+               <div class="bg-white border rounded-lg p-4">
+                   <h5 class="font-semibold mb-2 text-lg">${selectedUnit}</h5>
+                   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                       <div>
+                           <span class="text-gray-600">Số tuyến:</span>
+                           <span class="font-medium ml-1">${unitRoutes.length}</span>
+                       </div>
+                       <div>
+                           <span class="text-gray-600">Tổng chuyến/tháng:</span>
+                           <span class="font-medium ml-1">${totalTrips.toLocaleString('vi-VN')}</span>
+                       </div>
+                       <div>
+                           <span class="text-gray-600">Số lịch trình:</span>
+                           <span class="font-medium ml-1">${unitSchedules.length}</span>
+                       </div>
+                       <div>
+                           <span class="text-gray-600">Số chuyến cụ thể:</span>
+                           <span class="font-medium ml-1">${scheduleDetails.length}</span>
+                       </div>
+                   </div>
+                   
+                   <div class="mb-4">
+                       <h6 class="font-semibold mb-2">Danh sách tuyến:</h6>
+                       <div class="overflow-x-auto">
+                           <table class="min-w-full divide-y divide-gray-200 border">
+                               <thead class="bg-gray-50">
+                                   <tr>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mã Tuyến</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tên Tuyến</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tỉnh Đi</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tỉnh Đến</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Chuyến/Tháng</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trạng Thái</th>
+                                   </tr>
+                               </thead>
+                               <tbody class="divide-y divide-gray-200">
+                                   ${unitRoutes.map(route => `
+                                       <tr>
+                                           <td class="px-4 py-2 text-sm">${route.MaSoTuyen || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${route.TenTuyen || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${route.TinhDi || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${route.TinhDen || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${(route.TongChuyenThang || 0).toLocaleString('vi-VN')}</td>
+                                           <td class="px-4 py-2 text-sm">
+                                               <span class="px-2 py-1 text-xs rounded-full ${
+                                                   route.TinhTrangKhaiThac === 'Đang khai thác' ? 
+                                                   'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                               }">${route.TinhTrangKhaiThac || 'Chưa xác định'}</span>
+                                           </td>
+                                       </tr>
+                                   `).join('')}
+                               </tbody>
+                           </table>
+                       </div>
+                   </div>
+
+                   ${scheduleDetails.length > 0 ? `
+                       <div>
+                           <h6 class="font-semibold mb-2">Chi tiết lịch trình (${scheduleDetails.length} chuyến):</h6>
+                           <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 text-xs">
+                               ${scheduleDetails.slice(0, 20).map(detail => `
+                                   <div class="bg-gray-100 p-2 rounded">
+                                       <div class="font-medium">${detail.GioXuatBen || 'Chưa có giờ'}</div>
+                                       <div class="text-gray-600">${detail.Chieu || 'Chưa xác định'}</div>
+                                       <div class="text-gray-500">${(detail.NgayHoatDong || []).join(', ')}</div>
+                                   </div>
+                               `).join('')}
+                               ${scheduleDetails.length > 20 ? `
+                                   <div class="bg-gray-200 p-2 rounded text-center text-gray-600">
+                                       +${scheduleDetails.length - 20} chuyến khác
+                                   </div>
+                               ` : ''}
+                           </div>
+                       </div>
+                   ` : ''}
+               </div>
+           `);
+       }
+
+       function searchByRoute() {
+           const origin = document.getElementById('search-origin-select').value;
+           const destination = document.getElementById('search-destination-select').value;
+           
+           if (!origin && !destination) {
+               alert('Vui lòng chọn ít nhất một tỉnh đi hoặc tỉnh đến');
+               return;
+           }
+
+           let filteredRoutes = routeData;
+           if (origin) {
+               filteredRoutes = filteredRoutes.filter(route => route.TinhDi === origin);
+           }
+           if (destination) {
+               filteredRoutes = filteredRoutes.filter(route => route.TinhDen === destination);
+           }
+
+           const totalTrips = filteredRoutes.reduce((sum, route) => sum + (parseInt(route.TongChuyenThang) || 0), 0);
+           
+           // Get operating units for these routes
+           const operatingUnits = new Set();
+           filteredRoutes.forEach(route => {
+               const relatedAnnouncements = announcementData.filter(ann => ann.Ref_Tuyen === route.MaSoTuyen);
+               relatedAnnouncements.forEach(ann => {
+                   if (ann['Đơn vị kinh doanh vận tải']) {
+                       operatingUnits.add(ann['Đơn vị kinh doanh vận tải']);
+                   }
+               });
+           });
+
+           showSearchResults(`
+               <div class="space-y-4">
+                   <div class="bg-white border rounded-lg p-4">
+                       <h5 class="font-semibold mb-2">Kết quả tìm kiếm tuyến</h5>
+                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                           <div>
+                               <span class="text-gray-600">Số tuyến tìm thấy:</span>
+                               <div class="font-medium">${filteredRoutes.length} tuyến</div>
+                           </div>
+                           <div>
+                               <span class="text-gray-600">Tổng chuyến/tháng:</span>
+                               <div class="font-medium">${totalTrips.toLocaleString('vi-VN')}</div>
+                           </div>
+                           <div>
+                               <span class="text-gray-600">Đơn vị khai thác:</span>
+                               <div class="font-medium">${operatingUnits.size} đơn vị</div>
+                           </div>
+                           <div>
+                               <span class="text-gray-600">Tiêu chí:</span>
+                               <div class="font-medium">${origin || 'Tất cả'} → ${destination || 'Tất cả'}</div>
+                           </div>
+                       </div>
+                       
+                       <div class="overflow-x-auto">
+                           <table class="min-w-full divide-y divide-gray-200 border">
+                               <thead class="bg-gray-50">
+                                   <tr>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mã Tuyến</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tên Tuyến</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hành Trình</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cự Ly</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Chuyến/Tháng</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trạng Thái</th>
+                                   </tr>
+                               </thead>
+                               <tbody class="divide-y divide-gray-200">
+                                   ${filteredRoutes.map(route => `
+                                       <tr>
+                                           <td class="px-4 py-2 text-sm">${route.MaSoTuyen || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${route.TenTuyen || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${route.BenDi || '-'} - ${route.BenDen || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${route.CuLyTuyen_km || '-'} km</td>
+                                           <td class="px-4 py-2 text-sm">${(route.TongChuyenThang || 0).toLocaleString('vi-VN')}</td>
+                                           <td class="px-4 py-2 text-sm">
+                                               <span class="px-2 py-1 text-xs rounded-full ${
+                                                   route.TinhTrangKhaiThac === 'Đang khai thác' ? 
+                                                   'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                               }">${route.TinhTrangKhaiThac || 'Chưa xác định'}</span>
+                                           </td>
+                                       </tr>
+                                   `).join('')}
+                               </tbody>
+                           </table>
+                       </div>
+
+                       ${operatingUnits.size > 0 ? `
+                           <div class="mt-4">
+                               <h6 class="font-semibold mb-2">Các đơn vị khai thác:</h6>
+                               <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                   ${Array.from(operatingUnits).map(unit => `
+                                       <div class="bg-gray-50 p-2 rounded">• ${unit}</div>
+                                   `).join('')}
+                               </div>
+                           </div>
+                       ` : ''}
+                   </div>
+               </div>
+           `);
+       }
+
+       function searchByStation() {
+           const selectedStation = document.getElementById('search-station-select').value;
+           if (!selectedStation) {
+               alert('Vui lòng chọn bến xe cần tra cứu');
+               return;
+           }
+
+           const departureRoutes = routeData.filter(route => route.BenDi === selectedStation);
+           const arrivalRoutes = routeData.filter(route => route.BenDen === selectedStation);
+           
+           const destinations = {};
+           departureRoutes.forEach(route => {
+               if (route.TinhDen) {
+                   destinations[route.TinhDen] = (destinations[route.TinhDen] || 0) + 1;
+               }
+           });
+
+           const operatingUnits = new Set();
+           [...departureRoutes, ...arrivalRoutes].forEach(route => {
+               const relatedAnnouncements = announcementData.filter(ann => ann.Ref_Tuyen === route.MaSoTuyen);
+               relatedAnnouncements.forEach(ann => {
+                   if (ann['Đơn vị kinh doanh vận tải']) {
+                       operatingUnits.add(ann['Đơn vị kinh doanh vận tải']);
+                   }
+               });
+           });
+
+           const totalDepartureTrips = departureRoutes.reduce((sum, route) => sum + (parseInt(route.TongChuyenThang) || 0), 0);
+
+           showSearchResults(`
+               <div class="bg-white border rounded-lg p-4">
+                   <h5 class="font-semibold mb-2 text-lg">${selectedStation}</h5>
+                   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                       <div>
+                           <span class="text-gray-600">Tuyến xuất phát:</span>
+                           <div class="font-medium">${departureRoutes.length} tuyến</div>
+                       </div>
+                       <div>
+                           <span class="text-gray-600">Tuyến đến:</span>
+                           <div class="font-medium">${arrivalRoutes.length} tuyến</div>
+                       </div>
+                       <div>
+                           <span class="text-gray-600">Đến các tỉnh:</span>
+                           <div class="font-medium">${Object.keys(destinations).length} tỉnh</div>
+                       </div>
+                       <div>
+                           <span class="text-gray-600">Đơn vị khai thác:</span>
+                           <div class="font-medium">${operatingUnits.size} đơn vị</div>
+                       </div>
+                   </div>
+                   
+                   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                       <div>
+                           <h6 class="font-semibold mb-2">Phân bố tuyến đến các tỉnh:</h6>
+                           <div class="space-y-1 text-sm">
+                               ${Object.entries(destinations)
+                                   .sort(([,a], [,b]) => b - a)
+                                   .map(([dest, count]) => `
+                                       <div class="flex justify-between bg-gray-50 p-2 rounded">
+                                           <span>${dest}:</span>
+                                           <span class="font-medium">${count} tuyến</span>
+                                       </div>
+                                   `).join('')}
+                           </div>
+                       </div>
+                       
+                       <div>
+                           <h6 class="font-semibold mb-2">Thống kê chuyến:</h6>
+                           <div class="space-y-2 text-sm">
+                               <div class="flex justify-between">
+                                   <span class="text-gray-600">Tổng chuyến xuất phát/tháng:</span>
+                                   <span class="font-medium">${totalDepartureTrips.toLocaleString('vi-VN')}</span>
+                               </div>
+                               <div class="flex justify-between">
+                                   <span class="text-gray-600">Trung bình/tuyến:</span>
+                                   <span class="font-medium">${departureRoutes.length > 0 ? Math.round(totalDepartureTrips / departureRoutes.length).toLocaleString('vi-VN') : 0}</span>
+                               </div>
+                           </div>
+                           
+                           <h6 class="font-semibold mb-2 mt-4">Đơn vị khai thác tại bến:</h6>
+                           <div class="space-y-1 text-xs">
+                               ${Array.from(operatingUnits).slice(0, 5).map(unit => `
+                                   <div class="bg-gray-50 p-2 rounded">• ${unit}</div>
+                               `).join('')}
+                               ${operatingUnits.size > 5 ? `
+                                   <div class="text-gray-500 p-2">... và ${operatingUnits.size - 5} đơn vị khác</div>
+                               ` : ''}
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           `);
+       }
+
+       function showSearchResults(content) {
+           document.getElementById('search-results').classList.remove('hidden');
+           document.getElementById('search-results-content').innerHTML = content;
+       }
+
+       // Modal functions
+       function showRouteDetail(routeCode) {
+           const route = routeData.find(r => r.MaSoTuyen === routeCode);
+           if (!route) return;
+
+           const relatedAnnouncements = announcementData.filter(ann => ann.Ref_Tuyen === routeCode);
+           const relatedSchedules = scheduleData.filter(schedule => schedule.Ref_Tuyen === routeCode);
+           
+           const scheduleDetails = scheduleDetailData.filter(detail => 
+               relatedSchedules.some(schedule => schedule.ID_Ghep === detail.Ref_NutChayGhep)
+           );
+
+           const modalContent = `
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div>
+                       <h4 class="font-semibold mb-3">Thông tin tuyến</h4>
+                       <div class="space-y-2 text-sm">
+                           <div><strong>Mã tuyến:</strong> ${route.MaSoTuyen || '-'}</div>
+                           <div><strong>Tên tuyến:</strong> ${route.TenTuyen || '-'}</div>
+                           <div><strong>Tỉnh đi:</strong> ${route.TinhDi || '-'}</div>
+                           <div><strong>Tỉnh đến:</strong> ${route.TinhDen || '-'}</div>
+                           <div><strong>Bến đi:</strong> ${route.BenDi || '-'}</div>
+                           <div><strong>Bến đến:</strong> ${route.BenDen || '-'}</div>
+                           <div><strong>Cự ly:</strong> ${route.CuLyTuyen_km || '-'} km</div>
+                           <div><strong>Phân loại:</strong> ${route.PhanLoaiTuyen || '-'}</div>
+                           <div><strong>Tình trạng:</strong> 
+                               <span class="px-2 py-1 text-xs rounded-full ${
+                                   route.TinhTrangKhaiThac === 'Đang khai thác' ? 
+                                   'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                               }">${route.TinhTrangKhaiThac || 'Chưa xác định'}</span>
+                           </div>
+                       </div>
+                   </div>
+                   <div>
+                       <h4 class="font-semibold mb-3">Thống kê vận hành</h4>
+                       <div class="space-y-2 text-sm">
+                           <div><strong>Tổng chuyến/tháng:</strong> ${(route.TongChuyenThang || 0).toLocaleString('vi-VN')}</div>
+                           <div><strong>Chuyến đã khai thác:</strong> ${(route.ChuyenDaKhaiThac || 0).toLocaleString('vi-VN')}</div>
+                           <div><strong>Lưu lượng còn lại:</strong> ${(route.LuuLuongConLai || 0).toLocaleString('vi-VN')}</div>
+                           <div><strong>Giãn cách tối thiểu:</strong> ${route.GianCachToiThieu_phut || '-'} phút</div>
+                           <div><strong>Số quyết định:</strong> ${route.SoQuyetDinh || '-'}</div>
+                           <div><strong>Ngày ban hành:</strong> ${route.NgayBanHanh || '-'}</div>
+                           <div><strong>Đơn vị ban hành:</strong> ${route.DonViBanHanh || '-'}</div>
+                       </div>
+                   </div>
+               </div>
+               
+               ${route.HanhTrinh ? `
+                   <div class="mt-6">
+                       <h4 class="font-semibold mb-3">Hành trình</h4>
+                       <div class="bg-gray-50 p-3 rounded text-sm">
+                           ${route.HanhTrinh}
+                       </div>
+                   </div>
+               ` : ''}
+
+               ${relatedAnnouncements.length > 0 ? `
+                   <div class="mt-6">
+                       <h4 class="font-semibold mb-3">Đơn vị khai thác (${relatedAnnouncements.length})</h4>
+                       <div class="overflow-x-auto">
+                           <table class="min-w-full divide-y divide-gray-200 border">
+                               <thead class="bg-gray-50">
+                                   <tr>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Đơn vị</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Số thông báo</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ngày ban hành</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                   </tr>
+                               </thead>
+                               <tbody class="divide-y divide-gray-200">
+                                   ${relatedAnnouncements.map(ann => `
+                                       <tr>
+                                           <td class="px-4 py-2 text-sm">${ann['Đơn vị kinh doanh vận tải'] || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${ann.SoThongBao || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">${ann.NgayBanHanh || '-'}</td>
+                                           <td class="px-4 py-2 text-sm">
+                                               <span class="px-2 py-1 text-xs rounded-full ${
+                                                   ann.TrangThai === 'Đã duyệt' ? 'bg-green-100 text-green-800' : 
+                                                   ann.TrangThai === 'Chờ duyệt' ? 'bg-yellow-100 text-yellow-800' :
+                                                   'bg-gray-100 text-gray-800'
+                                               }">${ann.TrangThai || 'Chưa xác định'}</span>
+                                           </td>
+                                       </tr>
+                                   `).join('')}
+                               </tbody>
+                           </table>
+                       </div>
+                   </div>
+               ` : ''}
+
+               ${scheduleDetails.length > 0 ? `
+                   <div class="mt-6">
+                       <h4 class="font-semibold mb-3">Lịch trình chi tiết (${scheduleDetails.length} chuyến)</h4>
+                       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                           ${scheduleDetails.map(detail => `
+                               <div class="border border-gray-200 rounded p-3 text-sm">
+                                   <div class="font-medium text-blue-600">${detail.GioXuatBen || 'Chưa có giờ'}</div>
+                                   <div class="text-gray-600">${detail.Chieu || 'Chưa xác định'}</div>
+                                   <div class="text-xs text-gray-500 mt-1">
+                                       ${Array.isArray(detail.NgayHoatDong) ? 
+                                           detail.NgayHoatDong.join(', ') : 
+                                           (detail.NgayHoatDong || 'Chưa có ngày')
+                                       }
+                                   </div>
+                               </div>
+                           `).join('')}
+                       </div>
+                   </div>
+               ` : ''}
+           `;
+
+           document.getElementById('route-modal-content').innerHTML = modalContent;
+           document.getElementById('route-modal').classList.remove('hidden');
+           document.getElementById('route-modal').classList.add('flex');
+       }
+
+       function showUnitDetail(unitName) {
+           const unitAnnouncements = announcementData.filter(ann => 
+               ann['Đơn vị kinh doanh vận tải'] === unitName
+           );
+
+           const unitRoutes = routeData.filter(route => 
+               unitAnnouncements.some(ann => ann.Ref_Tuyen === route.MaSoTuyen)
+           );
+
+           const unitSchedules = scheduleData.filter(schedule => 
+               unitRoutes.some(route => route.MaSoTuyen === schedule.Ref_Tuyen)
+           );
+
+           const scheduleDetails = scheduleDetailData.filter(detail => 
+               unitSchedules.some(schedule => schedule.ID_Ghep === detail.Ref_NutChayGhep)
+           );
+
+           const totalTrips = unitRoutes.reduce((sum, route) => sum + (parseInt(route.TongChuyenThang) || 0), 0);
+           const activeRoutes = unitRoutes.filter(route => route.TinhTrangKhaiThac === 'Đang khai thác').length;
+
+           // Group schedules by route
+           const routeSchedules = {};
+           unitRoutes.forEach(route => {
+               const routeScheds = unitSchedules.filter(s => s.Ref_Tuyen === route.MaSoTuyen);
+               const routeDetails = scheduleDetails.filter(d => 
+                   routeScheds.some(s => s.ID_Ghep === d.Ref_NutChayGhep)
+               );
+               routeSchedules[route.MaSoTuyen] = {
+                   route: route,
+                   schedules: routeScheds,
+                   details: routeDetails
+               };
+           });
+
+           const modalContent = `
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                   <div>
+                       <h4 class="font-semibold mb-3">Thông tin đơn vị</h4>
+                       <div class="space-y-2 text-sm">
+                           <div><strong>Tên đơn vị:</strong> ${unitName}</div>
+                           <div><strong>Số tuyến:</strong> ${unitRoutes.length}</div>
+                           <div><strong>Tuyến đang hoạt động:</strong> ${activeRoutes}</div>
+                           <div><strong>Tổng chuyến/tháng:</strong> ${totalTrips.toLocaleString('vi-VN')}</div>
+                           <div><strong>Số lịch trình:</strong> ${unitSchedules.length}</div>
+                           <div><strong>Tổng chuyến cụ thể:</strong> ${scheduleDetails.length}</div>
+                       </div>
+                   </div>
+                   <div>
+                       <h4 class="font-semibold mb-3">Thống kê thông báo</h4>
+                       <div class="space-y-2 text-sm">
+                           <div><strong>Số thông báo:</strong> ${unitAnnouncements.length}</div>
+                           <div><strong>Đã duyệt:</strong> ${unitAnnouncements.filter(a => a.TrangThai === 'Đã duyệt').length}</div>
+                           <div><strong>Chờ duyệt:</strong> ${unitAnnouncements.filter(a => a.TrangThai === 'Chờ duyệt').length}</div>
+                           <div><strong>Thông báo mới nhất:</strong> ${
+                               unitAnnouncements.length > 0 ? 
+                               (unitAnnouncements.sort((a, b) => new Date(b.NgayBanHanh) - new Date(a.NgayBanHanh))[0].NgayBanHanh || 'Chưa có') :
+                               'Chưa có'
+                           }</div>
+                       </div>
+                   </div>
+               </div>
+               
+               <div class="mb-6">
+                   <h4 class="font-semibold mb-3">Danh sách tuyến và lịch trình</h4>
+                   <div class="space-y-4">
+                       ${Object.values(routeSchedules).map(({route, schedules, details}) => `
+                           <div class="border border-gray-200 rounded-lg p-4">
+                               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                   <div>
+                                       <h5 class="font-medium text-blue-600">${route.TenTuyen || route.MaSoTuyen}</h5>
+                                       <div class="text-sm text-gray-600">
+                                           ${route.TinhDi} → ${route.TinhDen} (${route.CuLyTuyen_km || 0} km)
+                                       </div>
+                                   </div>
+                                   <div class="text-sm">
+                                       <div><strong>Chuyến/tháng:</strong> ${(route.TongChuyenThang || 0).toLocaleString('vi-VN')}</div>
+                                       <div><strong>Lịch trình:</strong> ${schedules.length}</div>
+                                       <div><strong>Chuyến cụ thể:</strong> ${details.length}</div>
+                                   </div>
+                               </div>
+                               
+                               ${details.length > 0 ? `
+                                   <div>
+                                       <h6 class="text-sm font-medium mb-2">Lịch trình chi tiết:</h6>
+                                       <div class="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                           ${details.slice(0, 16).map(detail => `
+                                               <div class="bg-gray-50 p-2 rounded text-xs text-center">
+                                                   <div class="font-medium">${detail.GioXuatBen || 'N/A'}</div>
+                                                   <div class="text-gray-600">${detail.Chieu || 'N/A'}</div>
+                                               </div>
+                                           `).join('')}
+                                           ${details.length > 16 ? `
+                                               <div class="bg-gray-200 p-2 rounded text-xs text-center text-gray-600">
+                                                   +${details.length - 16}
+                                               </div>
+                                           ` : ''}
+                                       </div>
+                                   </div>
+                               ` : '<div class="text-sm text-gray-500">Chưa có lịch trình chi tiết</div>'}
+                           </div>
+                       `).join('')}
+                   </div>
+               </div>
+
+               ${unitAnnouncements.length > 0 ? `
+                   <div>
+                       <h4 class="font-semibold mb-3">Lịch sử thông báo</h4>
+                       <div class="overflow-x-auto">
+                           <table class="min-w-full divide-y divide-gray-200 border">
+                               <thead class="bg-gray-50">
+                                   <tr>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Số TB</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tuyến</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ngày BH</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">CQ Ban Hành</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trạng Thái</th>
+                                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ghi Chú</th>
+                                   </tr>
+                               </thead>
+                               <tbody class="divide-y divide-gray-200">
+                                   ${unitAnnouncements.map(ann => {
+                                       const relatedRoute = routeData.find(r => r.MaSoTuyen === ann.Ref_Tuyen);
+                                       return `
+                                           <tr>
+                                               <td class="px-4 py-2 text-sm">${ann.SoThongBao || '-'}</td>
+                                               <td class="px-4 py-2 text-sm">${relatedRoute ? relatedRoute.TenTuyen || relatedRoute.MaSoTuyen : ann.Ref_Tuyen}</td>
+                                               <td class="px-4 py-2 text-sm">${ann.NgayBanHanh || '-'}</td>
+                                               <td class="px-4 py-2 text-sm">${ann.CQBanHanh || '-'}</td>
+                                               <td class="px-4 py-2 text-sm">
+                                                   <span class="px-2 py-1 text-xs rounded-full ${
+                                                       ann.TrangThai === 'Đã duyệt' ? 'bg-green-100 text-green-800' : 
+                                                       ann.TrangThai === 'Chờ duyệt' ? 'bg-yellow-100 text-yellow-800' :
+                                                       'bg-gray-100 text-gray-800'
+                                                   }">${ann.TrangThai || 'N/A'}</span>
+                                               </td>
+                                               <td class="px-4 py-2 text-sm">${ann.GhiChu || '-'}</td>
+                                           </tr>
+                                       `;
+                                   }).join('')}
+                               </tbody>
+                           </table>
+                       </div>
+                   </div>
+               ` : ''}
+           `;
+
+           // Reuse the route modal for unit details
+           document.getElementById('route-modal-content').innerHTML = modalContent;
+           document.querySelector('#route-modal h3').textContent = 'Chi Tiết Đơn Vị';
+           document.getElementById('route-modal').classList.remove('hidden');
+           document.getElementById('route-modal').classList.add('flex');
+       }
+
+       function closeRouteModal() {
+           document.getElementById('route-modal').classList.add('hidden');
+           document.getElementById('route-modal').classList.remove('flex');
+           // Reset title
+           document.querySelector('#route-modal h3').textContent = 'Chi Tiết Tuyến';
+       }
+
+       // Filter functions
+       function filterUnits() {
+           const typeFilter = document.getElementById('unit-type-filter').value;
+           const searchTerm = document.getElementById('unit-search').value.toLowerCase();
+           
+           const rows = document.querySelectorAll('#units-table-body tr');
+           rows.forEach(row => {
+               const unitName = row.cells[0].textContent.toLowerCase();
+               const unitType = row.cells[1].textContent.toLowerCase();
+               
+               const matchesSearch = !searchTerm || unitName.includes(searchTerm);
+               const matchesType = !typeFilter || 
+                   (typeFilter === 'trong-tinh' && unitType.includes('trong tỉnh')) ||
+                   (typeFilter === 'ngoai-tinh' && unitType.includes('ngoài tỉnh'));
+               
+               row.style.display = matchesSearch && matchesType ? '' : 'none';
+           });
+       }
+
+       function filterRoutes() {
+           const statusFilter = document.getElementById('route-status-filter').value;
+           const typeFilter = document.getElementById('route-type-filter').value;
+           const searchTerm = document.getElementById('route-search').value.toLowerCase();
+           
+           const rows = document.querySelectorAll('#routes-table-body tr');
+           rows.forEach(row => {
+               const routeName = row.cells[1].textContent.toLowerCase();
+               const routeStatus = row.cells[6].textContent.toLowerCase();
+               
+               const matchesSearch = !searchTerm || 
+                   routeName.includes(searchTerm) || 
+                   row.cells[0].textContent.toLowerCase().includes(searchTerm) ||
+                   row.cells[2].textContent.toLowerCase().includes(searchTerm) ||
+                   row.cells[3].textContent.toLowerCase().includes(searchTerm);
+               
+               const matchesStatus = !statusFilter || routeStatus.includes(statusFilter.toLowerCase());
+               const matchesType = !typeFilter; // Type filter would need to be added to route data
+               
+               row.style.display = matchesSearch && matchesStatus && matchesType ? '' : 'none';
+           });
+       }
+
+       // Refresh data
+       async function refreshData() {
+           await initialize();
+       }
+
+       function convertToCSV(data) {
+           const headers = ['Mã Tuyến', 'Tên Tuyến', 'Tỉnh Đi', 'Tỉnh Đến', 'Bến Đi', 'Bến Đến', 'Cự Ly (km)', 'Tổng Chuyến/Tháng', 'Tình Trạng'];
+           const rows = data.map(route => [
+               route.MaSoTuyen || '',
+               route.TenTuyen || '',
+               route.TinhDi || '',
+               route.TinhDen || '',
+               route.BenDi || '',
+               route.BenDen || '',
+               route.CuLyTuyen_km || '',
+               route.TongChuyenThang || '',
+               route.TinhTrangKhaiThac || ''
+           ]);
+           
+           return [headers, ...rows].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+       }
+
+       function downloadFile(blob, filename) {
+           const url = URL.createObjectURL(blob);
+           const a = document.createElement('a');
+           a.href = url;
+           a.download = filename;
+           a.click();
+           URL.revokeObjectURL(url);
+       }
+
+       // Initialize on page load
+       document.addEventListener('DOMContentLoaded', function() {
+           initialize();
+       });
+
+       // Auto-refresh every 10 minutes
+       setInterval(refreshData, 600000);
+   </script>
+
+   <!-- Add print styles -->
+   <style>
+       @media print {
+           .no-print {
+               display: none !important;
+           }
+           
+           .tab-content {
+               display: block !important;
+           }
+           
+           body {
+               font-size: 12px;
+           }
+           
+           .container {
+               max-width: none;
+               padding: 0;
+           }
+       }
+       
+       .tab-btn.active {
+           border-color: #3B82F6 !important;
+           color: #3B82F6 !important;
+       }
+
+       .animate-spin {
+           animation: spin 1s linear infinite;
+       }
+
+       @keyframes spin {
+           from { transform: rotate(0deg); }
+           to { transform: rotate(360deg); }
+       }
+   </style>
+</body>
+</html>
