@@ -536,7 +536,6 @@
             }
         }
 
-        // Generate schedule table - chỉ hiển thị những TB thực sự có dữ liệu
         function generateScheduleTable(bieuDoList, chiTietList) {
             const bieuDoDiv = document.getElementById('bieuDoXeChay');
 
@@ -568,7 +567,7 @@
         <table class="w-full border-collapse text-xs bg-white">
             <thead>
                 <tr>
-                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
+                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STB</th>
     `;
 
             // Generate headers for days 1-15
@@ -597,8 +596,8 @@
                 html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${bieuDo['Số thông báo']}</td>`;
 
                 for (let day = 1; day <= 15; day++) {
-                    // Tìm chi tiết cho ngày này - sửa cách kiểm tra NgayHoatDong
-                    const chiTietDi = chiTietList.find(ct =>
+                    // SỬA: Sử dụng filter() thay vì find() để lấy TẤT CẢ chi tiết
+                    const chiTietDi = chiTietList.filter(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Đi' &&
                         ct.NgayHoatDong && (
@@ -608,7 +607,7 @@
                         )
                     );
 
-                    const chiTietVe = chiTietList.find(ct =>
+                    const chiTietVe = chiTietList.filter(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Về' &&
                         ct.NgayHoatDong && (
@@ -619,16 +618,20 @@
                     );
 
                     html += `
-                <td class="text-center bg-amber-200  h-15">
-                    ${chiTietDi ?
-                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietDi.GioXuatBen || ''}</div>` :
-                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
+                <td class="text-center bg-amber-200 h-15 align-top py-1">
+                    ${chiTietDi.length > 0 ?
+                            chiTietDi.map(ct =>
+                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                            ).join('') :
+                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
                         }
                 </td>
-                <td class="text-center bg-amber-200  h-15">
-                    ${chiTietVe ?
-                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietVe.GioXuatBen || ''}</div>` :
-                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
+                <td class="text-center bg-amber-200 h-15 align-top py-1">
+                    ${chiTietVe.length > 0 ?
+                            chiTietVe.map(ct =>
+                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                            ).join('') :
+                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
                         }
                 </td>
             `;
@@ -639,7 +642,7 @@
 
             html += `</tbody></table>`;
 
-            // Generate table for second half of month (16-31)
+            // Generate table for second half of month (16-31) - tương tự
             html += `
         <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
             Giờ xuất bến
@@ -647,7 +650,7 @@
         <table class="w-full border-collapse text-xs bg-white">
             <thead>
                 <tr>
-                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STT</th>
+                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STB</th>
     `;
 
             // Generate headers for days 16-31
@@ -676,7 +679,8 @@
                 html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${bieuDo['Số thông báo']}</td>`;
 
                 for (let day = 16; day <= 31; day++) {
-                    const chiTietDi = chiTietList.find(ct =>
+                    // SỬA: Sử dụng filter() cho phần thứ 2
+                    const chiTietDi = chiTietList.filter(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Đi' &&
                         ct.NgayHoatDong && (
@@ -686,7 +690,7 @@
                         )
                     );
 
-                    const chiTietVe = chiTietList.find(ct =>
+                    const chiTietVe = chiTietList.filter(ct =>
                         ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
                         ct.Chieu === 'Về' &&
                         ct.NgayHoatDong && (
@@ -697,16 +701,20 @@
                     );
 
                     html += `
-               <td class="text-center bg-amber-200  h-15">
-                   ${chiTietDi ?
-                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietDi.GioXuatBen || ''}</div>` :
-                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
+               <td class="text-center bg-amber-200 h-15 align-top py-1">
+                   ${chiTietDi.length > 0 ?
+                            chiTietDi.map(ct =>
+                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                            ).join('') :
+                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
                         }
                </td>
-               <td class="text-center bg-amber-200  h-15">
-                   ${chiTietVe ?
-                            `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm">${chiTietVe.GioXuatBen || ''}</div>` :
-                            `<div class="bg-gray-100 h-6 shadow-sm"></div>`
+               <td class="text-center bg-amber-200 h-15 align-top py-1">
+                   ${chiTietVe.length > 0 ?
+                            chiTietVe.map(ct =>
+                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                            ).join('') :
+                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
                         }
                </td>
            `;
@@ -830,6 +838,25 @@
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initialize);
+
+         document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        }, false);
+
+        document.onkeydown = function (e) {
+            if (e.keyCode == 123) {
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+                return false;
+            }
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+                return false;
+            }
+        };
     </script>
 
     <!-- Print styles -->
