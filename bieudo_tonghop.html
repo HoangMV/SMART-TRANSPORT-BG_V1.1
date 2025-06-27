@@ -78,10 +78,30 @@
             background: linear-gradient(90deg, #3b82f6, #1d4ed8);
             transition: width 0.3s ease;
         }
+
+        .route-row {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .route-row:hover {
+            background-color: #f0f9ff;
+            transform: translateY(-1px);
+        }
+
+        .filter-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .filter-panel.open {
+            max-height: 500px;
+        }
     </style>
 </head>
 
-<body class="font-sans min-h-screen leading-relaxed px-8">
+<body class="font-sans min-h-screen leading-relaxed px-8 bg-gray-50">
     <div id="loadingMessage" class="text-center py-20">
         <div class="loading mb-4"></div>
         <p class="mb-4">Đang tải dữ liệu...</p>
@@ -91,29 +111,213 @@
         <div id="loadingText" class="text-sm text-gray-600">Khởi tạo...</div>
     </div>
 
-    <div id="mainContent"
+    <!-- Danh sách tuyến -->
+    <div id="routeListContent"
         class="max-w-8xl mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100"
         style="display: none;">
         <!-- Header chính thức -->
-        <div class="gradient-primary text-white py-6 px-8 text-center relative">
-            <div class="flex items-center justify-center gap-5 mb-4">
-                <div
-                    class="w-15 h-15 bg-white rounded-full flex items-center justify-center text-2xl text-primary font-bold shadow-lg">
-                    🚌
+        <div class="text-white pt-6 pb-3 px-8 text-center relative flex items-center justify-center"
+            style="background: url(https://hoangmv.github.io/SMART-TRANSPORT-BG_V1.1/bg_header-qlvt.png) center center / cover no-repeat;">
+            <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-center gap-5 mb-4">
+                    <div
+                        class="w-15 h-15 bg-white rounded-full flex items-center justify-center text-3xl text-primary font-bold shadow-lg">
+                        🚌
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-shadow-lg">HỆ THỐNG QUẢN LÝ THÔNG TIN TUYẾN VẬN TẢI</h1>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-shadow">HỆ THỐNG QUẢN LÝ THÔNG TIN TUYẾN VẬN TẢI</h1>
+            </div>
+        </div>
+
+        <!-- Navigation header với tabs -->
+        <div class="bg-blue-600 text-white">
+            <div class="flex">
+                <div class="bg-blue-500 px-6 py-3 font-semibold border-r border-blue-400 flex items-center gap-2">
+                    📋 TUYẾN CÔNG BỐ
+                </div>
+            </div>
+        </div>
+
+        <!-- Search bar -->
+        <div class="bg-gray-100 p-4 border-b">
+            <div class="flex items-center gap-4">
+                <div class="flex-1">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên/mã tuyến..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button onclick="performSearch()" 
+                        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                    🔍 Tìm kiếm
+                </button>
+                <button onclick="toggleAdvancedSearch()" 
+                        class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                    🔧 Tìm kiếm nâng cao
+                </button>
+            </div>
+        </div>
+
+        <!-- Advanced search panel -->
+        <div id="advancedSearchPanel" class="filter-panel bg-blue-50 border-b">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">🔍 Bộ lọc tìm kiếm nâng cao</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nơi đi</label>
+                        <select id="filterNoiDi" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nơi đến</label>
+                        <select id="filterNoiDen" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phân loại tuyến</label>
+                        <select id="filterPhanLoai" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cự ly tuyến (km)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="filterCuLyMin" placeholder="Từ" 
+                                   class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="number" id="filterCuLyMax" placeholder="Đến" 
+                                   class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex gap-3">
+                    <button onclick="applyAdvancedFilter()" 
+                            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        Áp dụng lọc
+                    </button>
+                    <button onclick="clearAdvancedFilter()" 
+                            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        Xóa bộ lọc
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="bg-white p-4 border-b flex flex-wrap gap-2 text-sm">
+            <span class="text-gray-600">Lọc theo:</span>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterByColumn('NoiDi')" class="filter-tab bg-gray-100 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors">
+                    Nơi đi
+                </button>
+                <button onclick="filterByColumn('NoiDen')" class="filter-tab bg-gray-100 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors">
+                    Nơi đến
+                </button>
+                <button onclick="filterByColumn('HanhTrinh')" class="filter-tab bg-gray-100 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors">
+                    Hành trình chạy xe
+                </button>
+                <button onclick="filterByColumn('CuLy')" class="filter-tab bg-gray-100 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors">
+                    Cự ly tuyến
+                </button>
+                <button onclick="filterByColumn('LuuLuong')" class="filter-tab bg-gray-100 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors">
+                    Lưu lượng cho phép
+                </button>
+            </div>
+        </div>
+
+        <!-- Results count -->
+        <div class="bg-gray-50 px-6 py-3 border-b">
+            <span class="text-sm text-gray-600">
+                Hiển thị <span id="routeCount" class="font-semibold text-blue-600">0</span> tuyến
+            </span>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700">
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[50px]">STT</th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[120px]">Mã tuyến</th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[150px]">
+                            Tỉnh nơi đi/<br>đến (và<br>ngược lại)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[150px]">
+                            Tỉnh nơi đi/<br>đến (và<br>ngược lại)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[150px]">
+                            BX nơi đi/<br>đến (và<br>ngược lại)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[150px]">
+                            BX nơi đi/<br>đến (và<br>ngược lại)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[300px]">Hành trình chạy xe</th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[80px]">
+                            Cự<br>ly<br>tuyến<br>(km)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[80px]">
+                            Lưu<br>lượng<br>cho<br>phép<br>(chuyến/<br>tháng)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[80px]">
+                            Tổng<br>số<br>chuyến<br>đang<br>khai<br>thác
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[80px]">
+                            Lưu<br>lượng<br>còn<br>lại
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold border-r border-gray-300 min-w-[80px]">
+                            Thời<br>gian<br>giãn<br>cách<br>tối<br>thiều<br>(phút/<br>chuyến)
+                        </th>
+                        <th class="px-4 py-3 text-center font-semibold min-w-[60px]">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody id="routeTableBody">
+                    <!-- Dữ liệu tuyến sẽ được điền vào đây -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer thông tin -->
+        <div class="gradient-primary text-white py-5 text-center">
+            <p class="mt-1 mb-0 text-xs opacity-70">
+                Cập nhật lần cuối: <span id="current-time-list"></span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Chi tiết tuyến -->
+    <div id="routeDetailContent"
+        class="max-w-8xl mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100"
+        style="display: none;">
+        <!-- Header chính thức -->
+        <div class="text-white pt-6 pb-3 px-8 text-center relative flex items-center justify-center"
+            style="background: url(https://hoangmv.github.io/SMART-TRANSPORT-BG_V1.1/bg_header-qlvt.png) center center / cover no-repeat;">
+            <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-center gap-5 mb-4">
+                    <div
+                        class="w-15 h-15 bg-white rounded-full flex items-center justify-center text-3xl text-primary font-bold shadow-lg">
+                        🚌
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-shadow-lg">HỆ THỐNG QUẢN LÝ THÔNG TIN TUYẾN VẬN TẢI</h1>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Navigation header -->
         <div
-            class="gradient-secondary text-white py-3 px-6 flex justify-between items-center border-b-4 border-blue-700">
+            class="gradient-secondary text-white py-2 px-6 flex justify-between items-center border-b-4 border-blue-700">
             <h2 class="text-lg font-semibold flex items-center gap-3">
                 <span class="text-xl">📊</span>
                 THÔNG TIN TUYẾN
             </h2>
+            <button onclick="backToList()" 
+                    class="bg-white text-secondary px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
+                ← Quay lại danh sách
+            </button>
         </div>
 
         <!-- Thông tin chi tiết tuyến -->
@@ -225,19 +429,19 @@
         const accessKey = 'V2-Qcjpo-7Ybu9-g87XI-TFLes-kJGWn-btYR5-cLMmk-FjrRj';
         const region = 'www';
 
+        // Global data storage
+        let allTuyenData = [];
+        let allThongBaoData = [];
+        let allChiTietData = [];
+        let filteredTuyenData = [];
+
         // Progress tracking
         function updateProgress(percentage, text) {
             document.getElementById('progressFill').style.width = percentage + '%';
             document.getElementById('loadingText').textContent = text;
         }
 
-        // Get MaSoTuyen from URL
-        function getMaSoTuyenFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('MaSoTuyen');
-        }
-
-        // Function to fetch data from AppSheet - optimized
+        // Function to fetch data from AppSheet
         async function fetchDataFromAppSheet(tableName) {
             try {
                 const body = {
@@ -267,15 +471,13 @@
             }
         }
 
-        // Load all data in parallel - FASTEST METHOD
+        // Load all data in parallel
         async function loadAllDataParallel() {
             updateProgress(10, 'Đang tải tất cả dữ liệu...');
 
-            // Load tất cả bảng cùng lúc (parallel)
-            const [tuyenData, thongBaoData, bieuDoData, chiTietData] = await Promise.all([
+            const [tuyenData, thongBaoData, chiTietData] = await Promise.all([
                 fetchDataFromAppSheet('DANHMUCTUYENCODINH'),
                 fetchDataFromAppSheet('THONGBAO_KHAITHAC'),
-                fetchDataFromAppSheet('BieuDoChayXe_Ghep'),
                 fetchDataFromAppSheet('BieuDoChayXeChiTiet')
             ]);
 
@@ -284,7 +486,6 @@
             return {
                 tuyenData,
                 thongBaoData,
-                bieuDoData,
                 chiTietData
             };
         }
@@ -296,7 +497,263 @@
             return date.toLocaleDateString('vi-VN');
         }
 
-        // Display route information
+        // Calculate active notifications for a route
+        function getActiveNotificationsCount(maSoTuyen) {
+            return allThongBaoData.filter(tb => 
+                tb.Ref_Tuyen === maSoTuyen && 
+                (!tb.TrangThai || tb.TrangThai !== 'Hết hiệu lực')
+            ).length;
+        }
+
+        // Calculate remaining capacity
+        function getRemainingCapacity(tuyen) {
+            const tongChuyen = parseInt(tuyen.TongChuyenThang) || 0;
+            const chuyenDaKhaiThac = parseInt(tuyen.ChuyenDaKhaiThac) || 0;
+            return Math.max(0, tongChuyen - chuyenDaKhaiThac);
+        }
+
+        // Display route list as table
+        function displayRouteList(tuyenList) {
+            const tableBody = document.getElementById('routeTableBody');
+            const routeCount = document.getElementById('routeCount');
+            
+            routeCount.textContent = tuyenList.length;
+
+            if (!tuyenList || tuyenList.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="13" class="text-center py-8 text-gray-500 italic">
+                            Không tìm thấy tuyến nào phù hợp với tiêu chí tìm kiếm
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            tuyenList.forEach((tuyen, index) => {
+                const activeNotifications = getActiveNotificationsCount(tuyen.MaSoTuyen);
+                const remainingCapacity = getRemainingCapacity(tuyen);
+
+                html += `
+                    <tr class="route-row border-b border-gray-200 hover:bg-blue-50" onclick="showRouteDetail('${tuyen.MaSoTuyen}')">
+                        <td class="px-4 py-3 text-center border-r border-gray-200">${index + 1}</td>
+                        <td class="px-4 py-3 text-center border-r border-gray-200 font-medium text-blue-600">${tuyen.MaSoTuyen || ''}</td>
+                        <td class="px-4 py-3 border-r border-gray-200">${tuyen.TinhDi || ''}</td>
+                        <td class="px-4 py-3 border-r border-gray-200">${tuyen.TinhDen || ''}</td>
+                        <td class="px-4 py-3 border-r border-gray-200">${tuyen.BenDi || ''}</td>
+                        <td class="px-4 py-3 border-r border-gray-200">${tuyen.BenDen || ''}</td>
+                        <td class="px-4 py-3 border-r border-gray-200 text-justify text-xs">${tuyen.HanhTrinh || ''}</td>
+                        <td class="px-4 py-3 text-center border-r border-gray-200">${tuyen.CuLyTuyen_km || ''}</td>
+                        <td class="px-4 py-3 text-center border-r border-gray-200">${tuyen.TongChuyenThang || ''}</td>
+                        <td class="px-4 py-3 text-center border-r border-gray-200">${tuyen.ChuyenDaKhaiThac || '0'}</td>
+                        <td class="px-4 py-3 text-center border-r border-gray-200 ${remainingCapacity > 0 ? 'text-green-600' : 'text-red-600'}">${remainingCapacity}</td>
+                        <td class="px-4 py-3 text-center border-r border-gray-200">${tuyen.GianCachToiThieu_phut || ''}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="event.stopPropagation(); showRouteDetail('${tuyen.MaSoTuyen}')" 
+                                    class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
+                                🚌 Chi tiết
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        // Setup filter options
+        function setupFilterOptions() {
+            const noiDiSet = new Set();
+            const noiDenSet = new Set();
+            const phanLoaiSet = new Set();
+
+            allTuyenData.forEach(tuyen => {
+                if (tuyen.TinhDi) noiDiSet.add(tuyen.TinhDi);
+                if (tuyen.TinhDen) noiDenSet.add(tuyen.TinhDen);
+                if (tuyen.PhanLoaiTuyen) phanLoaiSet.add(tuyen.PhanLoaiTuyen);
+            });
+
+            // Populate filter dropdowns
+            const filterNoiDi = document.getElementById('filterNoiDi');
+            const filterNoiDen = document.getElementById('filterNoiDen');
+            const filterPhanLoai = document.getElementById('filterPhanLoai');
+
+            // Clear existing options (except "Tất cả")
+            filterNoiDi.innerHTML = '<option value="">Tất cả</option>';
+            filterNoiDen.innerHTML = '<option value="">Tất cả</option>';
+            filterPhanLoai.innerHTML = '<option value="">Tất cả</option>';
+
+            // Add options
+            Array.from(noiDiSet).sort().forEach(item => {
+                filterNoiDi.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+
+            Array.from(noiDenSet).sort().forEach(item => {
+                filterNoiDen.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+
+            Array.from(phanLoaiSet).sort().forEach(item => {
+                filterPhanLoai.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+        }
+
+        // Toggle advanced search panel
+        function toggleAdvancedSearch() {
+            const panel = document.getElementById('advancedSearchPanel');
+            panel.classList.toggle('open');
+        }
+
+        // Perform basic search
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                filteredTuyenData = allTuyenData;
+            } else {
+                filteredTuyenData = allTuyenData.filter(tuyen => 
+                    (tuyen.MaSoTuyen && tuyen.MaSoTuyen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.TenTuyen && tuyen.TenTuyen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.TinhDi && tuyen.TinhDi.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.TinhDen && tuyen.TinhDen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.BenDi && tuyen.BenDi.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.BenDen && tuyen.BenDen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.HanhTrinh && tuyen.HanhTrinh.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            displayRouteList(filteredTuyenData);
+        }
+
+        // Apply advanced filter
+        function applyAdvancedFilter() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const noiDi = document.getElementById('filterNoiDi').value;
+            const noiDen = document.getElementById('filterNoiDen').value;
+            const phanLoai = document.getElementById('filterPhanLoai').value;
+            const cuLyMin = document.getElementById('filterCuLyMin').value;
+            const cuLyMax = document.getElementById('filterCuLyMax').value;
+
+            filteredTuyenData = allTuyenData.filter(tuyen => {
+                // Basic search filter
+                const matchesSearch = !searchTerm || 
+                    (tuyen.MaSoTuyen && tuyen.MaSoTuyen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.TenTuyen && tuyen.TenTuyen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.TinhDi && tuyen.TinhDi.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.TinhDen && tuyen.TinhDen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.BenDi && tuyen.BenDi.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.BenDen && tuyen.BenDen.toLowerCase().includes(searchTerm)) ||
+                    (tuyen.HanhTrinh && tuyen.HanhTrinh.toLowerCase().includes(searchTerm));
+
+                // Advanced filters
+                const matchesNoiDi = !noiDi || tuyen.TinhDi === noiDi;
+                const matchesNoiDen = !noiDen || tuyen.TinhDen === noiDen;
+                const matchesPhanLoai = !phanLoai || tuyen.PhanLoaiTuyen === phanLoai;
+
+                // Distance filter
+                const cuLy = parseFloat(tuyen.CuLyTuyen_km) || 0;
+                const matchesCuLyMin = !cuLyMin || cuLy >= parseFloat(cuLyMin);
+                const matchesCuLyMax = !cuLyMax || cuLy <= parseFloat(cuLyMax);
+
+                return matchesSearch && matchesNoiDi && matchesNoiDen && matchesPhanLoai && matchesCuLyMin && matchesCuLyMax;
+            });
+
+            displayRouteList(filteredTuyenData);
+            
+            // Show applied filters
+            showAppliedFilters();
+        }
+
+        // Clear advanced filter
+        function clearAdvancedFilter() {
+            document.getElementById('filterNoiDi').value = '';
+            document.getElementById('filterNoiDen').value = '';
+            document.getElementById('filterPhanLoai').value = '';
+            document.getElementById('filterCuLyMin').value = '';
+            document.getElementById('filterCuLyMax').value = '';
+            
+            // Apply search with cleared filters
+            performSearch();
+        }
+
+        // Show applied filters (optional visual feedback)
+        function showAppliedFilters() {
+            const filters = [];
+            const noiDi = document.getElementById('filterNoiDi').value;
+            const noiDen = document.getElementById('filterNoiDen').value;
+            const phanLoai = document.getElementById('filterPhanLoai').value;
+            const cuLyMin = document.getElementById('filterCuLyMin').value;
+            const cuLyMax = document.getElementById('filterCuLyMax').value;
+
+            if (noiDi) filters.push(`Nơi đi: ${noiDi}`);
+            if (noiDen) filters.push(`Nơi đến: ${noiDen}`);
+            if (phanLoai) filters.push(`Phân loại: ${phanLoai}`);
+            if (cuLyMin || cuLyMax) {
+                const range = `${cuLyMin || '0'}-${cuLyMax || '∞'} km`;
+                filters.push(`Cự ly: ${range}`);
+            }
+
+            if (filters.length > 0) {
+                console.log('Đã áp dụng bộ lọc:', filters.join(', '));
+            }
+        }
+
+        // Filter by column (for quick filter tabs)
+        function filterByColumn(column) {
+            // This function can be expanded to show quick filter options
+            console.log('Filter by column:', column);
+        }
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            
+            // Search on Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Real-time search (optional)
+            // searchInput.addEventListener('input', performSearch);
+        }
+
+        // Show route detail
+        function showRouteDetail(maSoTuyen) {
+            const selectedTuyen = allTuyenData.find(t => t.MaSoTuyen === maSoTuyen);
+            if (!selectedTuyen) {
+                alert('Không tìm thấy thông tin tuyến');
+                return;
+            }
+
+            // Filter data for selected route
+            const filteredThongBao = allThongBaoData.filter(tb => tb.Ref_Tuyen === maSoTuyen);
+            const thongBaoIds = filteredThongBao.map(tb => tb.SoThongBao);
+            const filteredChiTiet = allChiTietData.filter(ct =>
+                ct.SoThongBao && thongBaoIds.includes(ct.SoThongBao)
+            );
+
+            // Display data
+            displayTuyenInfo(selectedTuyen);
+            displayThongBaoTable(filteredThongBao);
+            generateScheduleTable(filteredThongBao, filteredChiTiet);
+
+            // Update current time
+            document.getElementById('current-time').textContent = new Date().toLocaleString('vi-VN');
+
+            // Switch to detail view
+            document.getElementById('routeListContent').style.display = 'none';
+            document.getElementById('routeDetailContent').style.display = 'block';
+        }
+
+        // Back to list
+        function backToList() {
+            document.getElementById('routeDetailContent').style.display = 'none';
+            document.getElementById('routeListContent').style.display = 'block';
+        }
+
+        // Display route information (unchanged from previous version)
         function displayTuyenInfo(tuyenData) {
             const tuyenInfoDiv = document.getElementById('tuyenInfo');
 
@@ -437,71 +894,62 @@
             tuyenInfoDiv.innerHTML = infoHTML;
         }
 
-        // Display notification table - sử dụng URL file trực tiếp từ AppSheet
+        // Display notification table (unchanged)
         function displayThongBaoTable(thongBaoList) {
             const tableBody = document.getElementById('thongBaoTable');
 
-            // Lọc chỉ các thông báo KHÔNG có trạng thái "Hết hiệu lực"
             const activeThongBao = thongBaoList.filter(thongBao =>
                 !thongBao.TrangThai || thongBao.TrangThai !== 'Hết hiệu lực'
             );
 
             if (!activeThongBao || activeThongBao.length === 0) {
                 tableBody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-8 text-gray-500 italic border border-gray-200">
-                    Chưa có thông báo đang có hiệu lực
-                </td>
-            </tr>
-        `;
+                    <tr>
+                        <td colspan="7" class="text-center py-8 text-gray-500 italic border border-gray-200">
+                            Chưa có thông báo đang có hiệu lực
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
             let html = '';
             activeThongBao.forEach((thongBao, index) => {
-                // Kiểm tra trường File - AppSheet trả về URL đầy đủ hoặc tên file
                 const fileData = thongBao.File && thongBao.File.trim() !== '' ? thongBao.File.trim() : null;
                 const hasFile = fileData && fileData !== '';
 
-                // Log để debug
-                console.log(`Row ${index + 1}:`, {
-                    SoThongBao: thongBao.SoThongBao,
-                    File: fileData,
-                    HasFile: hasFile
-                });
-
                 html += `
-            <tr class="even:bg-blue-50">
-                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${index + 1}.</td>
-                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.SoThongBao || ''}</td>
-                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${formatDate(thongBao.NgayBanHanh) || ''}</td>
-                <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.NgayBatDau || ''}</td>
-                <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao['Đơn vị kinh doanh vận tải'] || ''}</td>
-                <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.CQBanHanh || ''}</td>
-                <td class="py-4 px-3 text-center border border-gray-200">
-                    <div class="flex justify-center gap-2">
-                        ${hasFile ? `
-                            <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm hover:opacity-80 transition-opacity" 
-                                 title="Mở file đính kèm" 
-                                 onclick="openAppSheetFile('${fileData.replace(/'/g, "\\'")}')">
-                                📄
+                    <tr class="even:bg-blue-50">
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${index + 1}.</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.SoThongBao || ''}</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${formatDate(thongBao.NgayBanHanh) || ''}</td>
+                        <td class="py-3 px-3 text-center border border-gray-200 text-xs">${thongBao.NgayBatDau || ''}</td>
+                        <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao['Đơn vị kinh doanh vận tải'] || ''}</td>
+                        <td class="py-3 px-3 border border-gray-200 text-xs">${thongBao.CQBanHanh || ''}</td>
+                        <td class="py-4 px-3 text-center border border-gray-200">
+                            <div class="flex justify-center gap-2">
+                                ${hasFile ? `
+                                    <div class="w-8 h-8 gradient-blue text-white flex items-center justify-center rounded-lg cursor-pointer text-sm hover:opacity-80 transition-opacity" 
+                                         title="Mở file đính kèm" 
+                                         onclick="openAppSheetFile('${fileData.replace(/'/g, "\\'")}')">
+                                        📄
+                                    </div>
+                                ` : `
+                                    <div class="w-8 h-8 bg-gray-300 text-gray-500 flex items-center justify-center rounded-lg text-sm" 
+                                         title="Không có file đính kèm">
+                                        📄
+                                    </div>
+                                `}
                             </div>
-                        ` : `
-                            <div class="w-8 h-8 bg-gray-300 text-gray-500 flex items-center justify-center rounded-lg text-sm" 
-                                 title="Không có file đính kèm">
-                                📄
-                            </div>
-                        `}
-                    </div>
-                </td>
-            </tr>
-        `;
+                        </td>
+                    </tr>
+                `;
             });
 
             tableBody.innerHTML = html;
         }
 
-        // Hàm mở file AppSheet - sử dụng URL trực tiếp nếu có, hoặc tạo URL
+        // Open AppSheet file (unchanged)
         function openAppSheetFile(fileData) {
             if (!fileData || fileData.trim() === '') {
                 alert('Không có file đính kèm');
@@ -511,20 +959,16 @@
             try {
                 console.log('File data received:', fileData);
 
-                // Kiểm tra nếu fileData đã là URL đầy đủ
                 if (fileData.startsWith('https://www.appsheet.com/template/gettablefileurl') ||
                     fileData.startsWith('https://') && fileData.includes('appsheet.com')) {
-                    // Đã là URL đầy đủ, mở trực tiếp
                     console.log('Opening direct URL:', fileData);
                     window.open(fileData, '_blank');
                 } else {
-                    // Là tên file, cần tạo URL
                     console.log('Creating URL for file:', fileData);
                     const baseUrl = 'https://www.appsheet.com/template/gettablefileurl';
                     const appName = 'QLVT-691992930';
                     const tableName = 'THONGBAO_KHAITHAC';
 
-                    // Tạo URL mà không có signature (AppSheet sẽ tự động xử lý)
                     const fileUrl = `${baseUrl}?appName=${appName}&tableName=${tableName}&fileName=${encodeURIComponent(fileData)}`;
 
                     console.log('Generated URL:', fileUrl);
@@ -536,47 +980,62 @@
             }
         }
 
-        function generateScheduleTable(bieuDoList, chiTietList) {
+        // Generate schedule table (unchanged from previous version)
+        function generateScheduleTable(thongBaoList, chiTietList) {
             const bieuDoDiv = document.getElementById('bieuDoXeChay');
 
-            if (!bieuDoList || bieuDoList.length === 0) {
+            if (!chiTietList || chiTietList.length === 0) {
                 bieuDoDiv.innerHTML = `
-            <div class="text-center py-8 text-gray-500 italic">
-                Chưa có dữ liệu biểu đồ xe chạy
-            </div>
-        `;
+                    <div class="text-center py-8 text-gray-500 italic">
+                        Chưa có dữ liệu chi tiết xe chạy
+                    </div>
+                `;
                 return;
             }
 
-            // Lọc chỉ những biểu đồ thực sự có chi tiết dữ liệu
-            const validBieuDo = bieuDoList.filter(bieuDo => {
-                return chiTietList.some(ct => ct.Ref_NutChayGhep === bieuDo.ID_Ghep);
+            const activeThongBaoIds = thongBaoList
+                .filter(tb => !tb.TrangThai || tb.TrangThai !== 'Hết hiệu lực')
+                .map(tb => tb.SoThongBao);
+
+            const validChiTiet = chiTietList.filter(ct =>
+                ct.SoThongBao && activeThongBaoIds.includes(ct.SoThongBao)
+            );
+
+            if (validChiTiet.length === 0) {
+                bieuDoDiv.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 italic">
+                        Chưa có dữ liệu chi tiết xe chạy cho các thông báo có hiệu lực
+                    </div>
+                `;
+                return;
+            }
+
+            const groupedByThongBao = {};
+            validChiTiet.forEach(ct => {
+                const thongBaoId = ct.SoThongBao;
+                if (!groupedByThongBao[thongBaoId]) {
+                    groupedByThongBao[thongBaoId] = [];
+                }
+                groupedByThongBao[thongBaoId].push(ct);
             });
 
-            if (validBieuDo.length === 0) {
-                bieuDoDiv.innerHTML = `
-            <div class="text-center py-8 text-gray-500 italic">
-                Chưa có dữ liệu chi tiết xe chạy
-            </div>
-        `;
-                return;
-            }
+            const thongBaoKeys = Object.keys(groupedByThongBao);
 
             // Generate table for first half of month (1-15)
             let html = `
-        <table class="w-full border-collapse text-xs bg-white">
-            <thead>
-                <tr>
-                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STB</th>
-    `;
+                <table class="w-full border-collapse text-xs bg-white">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STB</th>
+            `;
 
             // Generate headers for days 1-15
             for (let day = 1; day <= 15; day++) {
                 html += `
-            <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
-                Ngày ${day}
-            </th>
-        `;
+                    <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                        Ngày ${day}
+                    </th>
+                `;
             }
 
             html += `</tr><tr>`;
@@ -584,21 +1043,20 @@
             // Generate sub-headers (Đi/Về)
             for (let day = 1; day <= 15; day++) {
                 html += `
-            <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
-            <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
-        `;
+                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
+                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
+                `;
             }
 
             html += `</tr></thead><tbody>`;
 
-            // Generate rows for each valid biểu đồ
-            validBieuDo.forEach((bieuDo, index) => {
-                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${bieuDo['Số thông báo']}</td>`;
+            // Generate rows for each thông báo
+            thongBaoKeys.forEach((thongBaoId, index) => {
+                const stbShort = thongBaoId.split('/')[0];
+                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${stbShort}</td>`;
 
                 for (let day = 1; day <= 15; day++) {
-                    // SỬA: Sử dụng filter() thay vì find() để lấy TẤT CẢ chi tiết
-                    const chiTietDi = chiTietList.filter(ct =>
-                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                    const chiTietDi = groupedByThongBao[thongBaoId].filter(ct =>
                         ct.Chieu === 'Đi' &&
                         ct.NgayHoatDong && (
                             ct.NgayHoatDong.toString() === day.toString() ||
@@ -607,8 +1065,7 @@
                         )
                     );
 
-                    const chiTietVe = chiTietList.filter(ct =>
-                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                    const chiTietVe = groupedByThongBao[thongBaoId].filter(ct =>
                         ct.Chieu === 'Về' &&
                         ct.NgayHoatDong && (
                             ct.NgayHoatDong.toString() === day.toString() ||
@@ -618,23 +1075,23 @@
                     );
 
                     html += `
-                <td class="text-center bg-amber-200 h-15 align-top py-1">
-                    ${chiTietDi.length > 0 ?
-                            chiTietDi.map(ct =>
-                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
-                            ).join('') :
-                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
-                        }
-                </td>
-                <td class="text-center bg-amber-200 h-15 align-top py-1">
-                    ${chiTietVe.length > 0 ?
-                            chiTietVe.map(ct =>
-                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
-                            ).join('') :
-                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
-                        }
-                </td>
-            `;
+                        <td class="text-center bg-amber-200 h-15 align-top pt-1">
+                            ${chiTietDi.length > 0 ?
+                                chiTietDi.map(ct =>
+                                    `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                                ).join('') :
+                                `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
+                            }
+                        </td>
+                        <td class="text-center bg-amber-200 h-15 align-top pt-1">
+                            ${chiTietVe.length > 0 ?
+                                chiTietVe.map(ct =>
+                                    `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                                ).join('') :
+                                `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
+                            }
+                        </td>
+                    `;
                 }
 
                 html += `</tr>`;
@@ -642,24 +1099,24 @@
 
             html += `</tbody></table>`;
 
-            // Generate table for second half of month (16-31) - tương tự
+            // Generate table for second half of month (16-31)
             html += `
-        <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
-            Giờ xuất bến
-        </div>
-        <table class="w-full border-collapse text-xs bg-white">
-            <thead>
-                <tr>
-                    <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STB</th>
-    `;
+                <div class="gradient-primary text-white text-center py-5 font-bold text-base uppercase tracking-wider">
+                    Giờ xuất bến
+                </div>
+                <table class="w-full border-collapse text-xs bg-white">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="gradient-secondary text-white py-3 px-2 text-center border-2 border-gray-300 font-bold text-xs uppercase min-w-[60px]">STB</th>
+            `;
 
             // Generate headers for days 16-31
             for (let day = 16; day <= 31; day++) {
                 html += `
-            <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
-                Ngày ${day}
-            </th>
-        `;
+                    <th colspan="2" class="gradient-table py-3 px-2 text-center border-2 border-gray-300 font-bold text-gray-700 text-xs uppercase min-w-[80px]">
+                        Ngày ${day}
+                    </th>
+                `;
             }
 
             html += `</tr><tr>`;
@@ -667,21 +1124,20 @@
             // Generate sub-headers (Đi/Về)
             for (let day = 16; day <= 31; day++) {
                 html += `
-           <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
-           <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
-       `;
+                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Đi</th>
+                    <th class="gradient-table py-2 px-1 text-center border border-gray-300 text-xs">Về</th>
+                `;
             }
 
             html += `</tr></thead><tbody>`;
 
-            // Generate rows for each valid biểu đồ (16-31)
-            validBieuDo.forEach((bieuDo, index) => {
-                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${bieuDo['Số thông báo']}</td>`;
+            // Generate rows for each thông báo (16-31)
+            thongBaoKeys.forEach((thongBaoId, index) => {
+                const stbShort = thongBaoId.split('/')[0];
+                html += `<tr><td class="gradient-secondary text-white py-2 px-1 text-center font-bold text-xs">${stbShort}</td>`;
 
                 for (let day = 16; day <= 31; day++) {
-                    // SỬA: Sử dụng filter() cho phần thứ 2
-                    const chiTietDi = chiTietList.filter(ct =>
-                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                    const chiTietDi = groupedByThongBao[thongBaoId].filter(ct =>
                         ct.Chieu === 'Đi' &&
                         ct.NgayHoatDong && (
                             ct.NgayHoatDong.toString() === day.toString() ||
@@ -690,8 +1146,7 @@
                         )
                     );
 
-                    const chiTietVe = chiTietList.filter(ct =>
-                        ct.Ref_NutChayGhep === bieuDo.ID_Ghep &&
+                    const chiTietVe = groupedByThongBao[thongBaoId].filter(ct =>
                         ct.Chieu === 'Về' &&
                         ct.NgayHoatDong && (
                             ct.NgayHoatDong.toString() === day.toString() ||
@@ -701,23 +1156,23 @@
                     );
 
                     html += `
-               <td class="text-center bg-amber-200 h-15 align-top py-1">
-                   ${chiTietDi.length > 0 ?
-                            chiTietDi.map(ct =>
-                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
-                            ).join('') :
-                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
-                        }
-               </td>
-               <td class="text-center bg-amber-200 h-15 align-top py-1">
-                   ${chiTietVe.length > 0 ?
-                            chiTietVe.map(ct =>
-                                `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
-                            ).join('') :
-                            `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
-                        }
-               </td>
-           `;
+                        <td class="text-center bg-amber-200 h-15 align-top pt-1">
+                            ${chiTietDi.length > 0 ?
+                                chiTietDi.map(ct =>
+                                    `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                                ).join('') :
+                                `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
+                            }
+                        </td>
+                        <td class="text-center bg-amber-200 h-15 align-top pt-1">
+                            ${chiTietVe.length > 0 ?
+                                chiTietVe.map(ct =>
+                                    `<div class="bg-lime-300 text-xs py-1 px-1 font-bold shadow-sm mb-1 rounded">${ct.GioXuatBen || ''}</div>`
+                                ).join('') :
+                                `<div class="bg-gray-100 h-6 shadow-sm rounded"></div>`
+                            }
+                        </td>
+                    `;
                 }
 
                 html += `</tr>`;
@@ -728,62 +1183,50 @@
             bieuDoDiv.innerHTML = html;
         }
 
-        // Main initialization function - OPTIMIZED FOR SPEED
+        // Main initialization function
         async function initialize() {
             try {
-                const maSoTuyen = getMaSoTuyenFromURL();
+                console.log('Starting initialization...');
 
-                if (!maSoTuyen) {
-                    throw new Error('Không tìm thấy mã số tuyến trong URL. Vui lòng thêm ?MaSoTuyen=XXX vào URL');
-                }
-
-                console.log('MaSoTuyen from URL:', maSoTuyen);
-
-                // LOAD TẤT CẢ DỮ LIỆU CÙNG LÚC (PARALLEL) - NHANH NHẤT
                 const startTime = performance.now();
-                const { tuyenData, thongBaoData, bieuDoData, chiTietData } = await loadAllDataParallel();
+                const { tuyenData, thongBaoData, chiTietData } = await loadAllDataParallel();
                 const loadTime = performance.now() - startTime;
                 console.log(`Data loaded in ${loadTime.toFixed(2)}ms`);
 
-                updateProgress(70, 'Đang lọc dữ liệu...');
+                updateProgress(70, 'Đang xử lý dữ liệu...');
 
-                // FILTER NHANH BẰNG JAVASCRIPT
-                const filteredTuyen = tuyenData.find(t => t.MaSoTuyen === maSoTuyen);
-                if (!filteredTuyen) {
-                    throw new Error(`Không tìm thấy tuyến với mã số: ${maSoTuyen}`);
-                }
+                // Store data globally
+                allTuyenData = tuyenData;
+                allThongBaoData = thongBaoData;
+                allChiTietData = chiTietData;
+                filteredTuyenData = tuyenData;
 
-                // Filter thông báo
-                const filteredThongBao = thongBaoData.filter(tb => tb.Ref_Tuyen === maSoTuyen);
-                console.log('Filtered ThongBao:', filteredThongBao.length, 'records');
+                console.log('Total routes:', allTuyenData.length);
+                console.log('Total notifications:', allThongBaoData.length);
+                console.log('Total details:', allChiTietData.length);
 
-                // Filter biểu đồ
-                const filteredBieuDo = bieuDoData.filter(bd => bd.Ref_Tuyen === maSoTuyen);
-                console.log('Filtered BieuDo:', filteredBieuDo.length, 'records');
+                updateProgress(80, 'Đang hiển thị danh sách tuyến...');
 
-                // Filter chi tiết
-                const ghepIds = filteredBieuDo.map(bd => bd.ID_Ghep);
-                const filteredChiTiet = chiTietData.filter(ct => ghepIds.includes(ct.Ref_NutChayGhep));
-                console.log('Filtered ChiTiet:', filteredChiTiet.length, 'records');
+                // Setup filter options
+                setupFilterOptions();
 
-                updateProgress(80, 'Đang hiển thị dữ liệu...');
+                // Display route list
+                displayRouteList(filteredTuyenData);
 
-                // HIỂN THỊ DỮ LIỆU
-                displayTuyenInfo(filteredTuyen);
-                displayThongBaoTable(filteredThongBao);
-                generateScheduleTable(filteredBieuDo, filteredChiTiet);
+                updateProgress(90, 'Thiết lập tìm kiếm...');
 
-                updateProgress(90, 'Hoàn thành...');
+                // Setup search functionality
+                setupSearch();
 
                 // Update current time
-                document.getElementById('current-time').textContent = new Date().toLocaleString('vi-VN');
+                document.getElementById('current-time-list').textContent = new Date().toLocaleString('vi-VN');
 
                 updateProgress(100, 'Tải thành công!');
 
-                // Hide loading message and show main content
+                // Hide loading message and show route list
                 setTimeout(() => {
                     document.getElementById('loadingMessage').style.display = 'none';
-                    document.getElementById('mainContent').style.display = 'block';
+                    document.getElementById('routeListContent').style.display = 'block';
                 }, 500);
 
                 const totalTime = performance.now() - startTime;
@@ -792,14 +1235,14 @@
             } catch (error) {
                 console.error('Initialization failed:', error);
                 document.getElementById('loadingMessage').innerHTML = `
-                   <div class="text-center py-20">
-                       <div class="text-red-600 text-lg font-bold mb-4">Lỗi tải dữ liệu</div>
-                       <p class="text-gray-600">${error.message}</p>
-                       <button onclick="location.reload()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                           Thử lại
-                       </button>
-                   </div>
-               `;
+                    <div class="text-center py-20">
+                        <div class="text-red-600 text-lg font-bold mb-4">Lỗi tải dữ liệu</div>
+                        <p class="text-gray-600">${error.message}</p>
+                        <button onclick="location.reload()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            Thử lại
+                        </button>
+                    </div>
+                `;
             }
         }
 
@@ -814,49 +1257,34 @@
                 e.preventDefault();
                 printDocument();
             }
-        });
-
-        // Search function for different routes
-        function searchRoute() {
-            const maSoTuyen = prompt('Nhập mã số tuyến cần tìm:');
-            if (maSoTuyen) {
-                window.location.href = `${window.location.pathname}?MaSoTuyen=${encodeURIComponent(maSoTuyen)}`;
-            }
-        }
-
-        // Add search button to header
-        document.addEventListener('DOMContentLoaded', function () {
-            const header = document.querySelector('.gradient-secondary');
-            if (header) {
-                const searchButton = document.createElement('button');
-                searchButton.innerHTML = '🔍 Tìm tuyến khác';
-                searchButton.className = 'bg-white text-secondary px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors';
-                searchButton.onclick = searchRoute;
-                header.appendChild(searchButton);
+            if (e.key === 'Escape') {
+                // Press Escape to go back to list or close advanced search
+                if (document.getElementById('routeDetailContent').style.display === 'block') {
+                    backToList();
+                } else if (document.getElementById('advancedSearchPanel').classList.contains('open')) {
+                    toggleAdvancedSearch();
+                }
             }
         });
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initialize);
 
-         document.addEventListener('contextmenu', function (e) {
-            e.preventDefault();
-        }, false);
-
-        document.onkeydown = function (e) {
-            if (e.keyCode == 123) {
-                return false;
+        // Add some responsive behavior for search input
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('focus', function() {
+                    this.style.borderColor = '#3b82f6';
+                    this.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                });
+                
+                searchInput.addEventListener('blur', function() {
+                    this.style.borderColor = '#d1d5db';
+                    this.style.boxShadow = 'none';
+                });
             }
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
-                return false;
-            }
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
-                return false;
-            }
-            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
-                return false;
-            }
-        };
+        });
     </script>
 
     <!-- Print styles -->
@@ -867,22 +1295,38 @@
                 padding: 0 !important;
             }
 
-            #mainContent {
+            #routeListContent,
+            #routeDetailContent {
                 box-shadow: none !important;
                 border: none !important;
             }
 
-            /* .gradient-primary,
-            .gradient-secondary,
-            .gradient-table {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-            } */
+            .no-print {
+                display: none !important;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tfoot {
+                display: table-footer-group;
+            }
         }
 
         /* Responsive design */
         @media (max-width: 1200px) {
-            #mainContent {
+            #routeListContent,
+            #routeDetailContent {
                 margin: 15px;
             }
 
@@ -893,6 +1337,10 @@
             h1 {
                 font-size: 1.5rem;
             }
+
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -900,8 +1348,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .flex-wrap {
-                gap: 15px;
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: 1fr;
             }
 
             table {
@@ -911,6 +1359,27 @@
             .px-8 {
                 padding-left: 1rem;
                 padding-right: 1rem;
+            }
+
+            /* Stack search elements vertically on mobile */
+            .flex.items-center.gap-4 {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .flex-1 {
+                width: 100%;
+            }
+
+            /* Hide some table columns on mobile */
+            .mobile-hidden {
+                display: none;
+            }
+
+            /* Make advanced search panel more mobile friendly */
+            .filter-panel.open {
+                max-height: 800px;
             }
         }
 
@@ -940,6 +1409,7 @@
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
@@ -953,6 +1423,103 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: #357abd;
+        }
+
+        /* Table styling improvements */
+        table {
+            border-spacing: 0;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+        }
+
+        .route-row:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .route-row:hover {
+            background-color: #eff6ff !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Button hover effects */
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Loading animation improvements */
+        .loading {
+            margin: 0 auto;
+        }
+
+        /* Advanced search panel styling */
+        #advancedSearchPanel {
+            border-left: 4px solid #3b82f6;
+        }
+
+        #advancedSearchPanel.open {
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Filter tab active state */
+        .filter-tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        /* Responsive table wrapper */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Status indicators */
+        .status-active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        /* Tooltip styling */
+        [title] {
+            cursor: help;
+        }
+    </style>
+
+    <!-- Mobile responsive meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Additional mobile styles for table -->
+    <style>
+        @media (max-width: 640px) {
+            .overflow-x-auto {
+                max-width: calc(100vw - 2rem);
+            }
+            
+            table {
+                min-width: 1200px; /* Ensure table doesn't get too cramped */
+            }
+            
+            th, td {
+                white-space: nowrap;
+                min-width: 60px;
+            }
+            
+            .px-4 {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .py-3 {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
         }
     </style>
 </body>
