@@ -32,7 +32,7 @@
             width: 210mm;
             height: 297mm;
             margin: 0 auto;
-            padding: 20mm;
+            padding: 25mm 20mm 20mm 20mm;
             min-height: 297mm;
             position: relative;
             display: flex;
@@ -41,65 +41,88 @@
 
         .container {
             width: 100%;
-            height: calc(100% - 40mm);
+            height: calc(100% - 45mm);
             position: relative;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            font-weight: bold;
         }
 
         .header-left {
             text-align: left;
-            font-weight: bold;
-            font-size: 14px;
+            text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .header-right {
             text-align: center;
-            font-weight: bold;
-            font-size: 14px;
+            text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .document-number {
             text-align: left;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .document-number .left-part {
+            font-weight: normal;
+        }
+
+        .document-number .right-part {
+            font-style: italic;
+            text-align: right;
         }
 
         .title-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .main-title {
             font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
         .sub-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .authority-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             text-transform: uppercase;
             margin-bottom: 20px;
         }
 
         .legal-basis {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-style: italic;
             text-align: justify;
-            line-height: 1.6;
+            line-height: 1.4;
+            text-indent: 1cm;
+        }
+
+        .legal-basis p {
+            margin-bottom: 8px;
+            text-indent: 1cm;
+        }
+
+        .legal-basis p:first-child {
+            text-indent: 1cm;
         }
 
         .decision-section {
@@ -107,7 +130,7 @@
         }
 
         .decision-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 20px;
@@ -115,9 +138,10 @@
         }
 
         .decision-article {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-align: justify;
-            line-height: 1.6;
+            line-height: 1.4;
+            text-indent: 1cm;
         }
 
         .article-title {
@@ -130,24 +154,33 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            font-size: 13px;
         }
 
         .recipients {
             flex: 1;
             font-style: italic;
+            line-height: 1.3;
+        }
+
+        .recipients strong {
+            font-style: normal;
         }
 
         .signature {
             text-align: center;
             font-weight: bold;
+            margin-left: 50px;
         }
 
         .signature-title {
-            margin-bottom: 40px;
+            margin-bottom: 50px;
+            text-transform: uppercase;
         }
 
         .signature-name {
             text-transform: uppercase;
+            font-weight: bold;
         }
 
         /* Button styles */
@@ -212,7 +245,7 @@
                 width: 210mm;
                 height: 297mm;
                 margin: 0;
-                padding: 20mm;
+                padding: 25mm 20mm 20mm 20mm;
             }
 
             .button-container {
@@ -256,8 +289,12 @@
         </div>
 
         <div class="document-number">
-            Số: <span id="so-quyet-dinh"></span>/QĐ-SXD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <em>Bắc Ninh, ngày tháng 7 năm 2025 <span id="ngay-ky"></span></em>
+            <div class="left-part">
+                Số: &nbsp;&nbsp;&nbsp;&nbsp;/QĐ-SXD
+            </div>
+            <div class="right-part">
+                <em>Bắc Ninh, ngày <span> tháng 7 năm 2025</span></em>
+            </div>
         </div>
 
         <div class="title-section">
@@ -267,37 +304,27 @@
         </div>
 
         <div class="legal-basis">
-            <em>Căn cứ Nghị định số 138/2020/NĐ-CP ngày 27/11/2020 của Chính phủ quy định về tuyển dụng, sử dụng và quản
-                lý công chức; Nghị định số 116/2024/NĐ-CP ngày 17/9/2024 của Chính phủ sửa đổi, bổ sung một số điều của
-                Nghị định số 138/2020/NĐ-CP;</em><br>
-            <em>Căn cứ Nghị quyết số /NQ-HĐND ngày /7/2025 của HĐND tỉnh về việc thành lập, tổ chức lại các cơ quan
-                chuyên môn thuộc UBND tỉnh Bắc Ninh;</em><br>
-            <em>Căn cứ Quyết định số /2025/QĐ-UBND ngày 28/02/2025 của UBND tỉnh ban hành Quy định chức năng, nhiệm vụ,
-                quyền hạn của Sở Xây dựng tỉnh Bắc Ninh;</em><br>
-            <em>Căn cứ Quyết định số /QĐ-UBND ngày 19/02/2025 của UBND tỉnh về việc cơ cấu tổ chức bộ máy của Sở Xây
-                dựng;</em><br>
-            <em id="can-cu-ban-hanh"></em><br>
-            <em>Theo đề nghị của Chánh Văn phòng Sở.</em>
+            <p>Căn cứ Nghị định số 138/2020/NĐ-CP ngày 27/11/2020 của Chính phủ quy định về tuyển dụng, sử dụng và quản lý công chức; Nghị định số 116/2024/NĐ-CP ngày 17/9/2024 của Chính phủ sửa đổi, bổ sung một số điều của Nghị định số 138/2020/NĐ-CP;</p>
+            <p>Căn cứ Nghị quyết số /NQ-HĐND ngày /7/2025 của HĐND tỉnh về việc thành lập, tổ chức lại các cơ quan chuyên môn thuộc UBND tỉnh Bắc Ninh;</p>
+            <p>Căn cứ Quyết định số /2025/QĐ-UBND ngày 28/02/2025 của UBND tỉnh ban hành Quy định chức năng, nhiệm vụ, quyền hạn của Sở Xây dựng tỉnh Bắc Ninh;</p>
+            <p>Căn cứ Quyết định số /QĐ-UBND ngày 19/02/2025 của UBND tỉnh về việc cơ cấu tổ chức bộ máy của Sở Xây dựng;</p>
+            <p id="can-cu-ban-hanh">{can_cu_ban_hanh};</p>
+            <p>Theo đề nghị của Chánh Văn phòng Sở.</p>
         </div>
 
         <div class="decision-section">
             <div class="decision-title">QUYẾT ĐỊNH:</div>
 
             <div class="decision-article">
-                <span class="article-title">Điều 1.</span> Tiếp nhận và bổ nhiệm <span id="ten-nhan-su"></span>, <span
-                    id="chuc-vu-cu"></span> <span id="don-vi-cu"></span> giữ chức vụ <span id="chuc-vu-moi"></span>
-                <span id="don-vi-moi"></span>, trong thời gian <span id="thoi-han-bo-nhiem"></span>, từ ngày <span
-                    id="ngay-bo-nhiem"></span>.
+                <span class="article-title">Điều 1.</span> Tiếp nhận và bổ nhiệm <span id="ten-nhan-su">{ten_nhan_su}</span>, <span id="chuc-vu-cu">{chuc_vu_cu}</span> <span id="don-vi-cu">{don_vi_cu}</span> giữ chức vụ <span id="chuc-vu-moi">{chuc_vu_moi}</span> <span id="don-vi-moi">{don_vi_moi}</span>, trong thời gian <span id="thoi-han-bo-nhiem">{thoi_han_bo_nhiem}</span>, từ ngày <span id="ngay-bo-nhiem">{ngay_bo_nhiem}</span>.
             </div>
 
             <div class="decision-article">
-                <span class="article-title">Điều 2.</span> <span id="ten-nhan-su-2"></span> được hưởng phụ cấp chức vụ
-                lãnh đạo hệ số <span id="he-so-phu-cap"></span>, từ ngày <span id="ngay-bat-dau-huong-phu-cap"></span>.
+                <span class="article-title">Điều 2.</span> <span id="ten-nhan-su-2">{ten_nhan_su}</span> được hưởng phụ cấp chức vụ lãnh đạo hệ số <span id="he-so-phu-cap">{he_so_phu_cap}</span>, từ ngày <span id="ngay-bat-dau-huong-phu-cap">{ngay_bat_dau_huong_phu_cap}</span>.
             </div>
 
             <div class="decision-article">
-                <span class="article-title">Điều 3.</span> Chánh Văn phòng Sở, Trưởng các phòng, đơn vị trực thuộc Sở,
-                các tổ chức, cá nhân có liên quan và <span id="ten-nhan-su-3"></span> căn cứ Quyết định thi hành./.
+                <span class="article-title">Điều 3.</span> Chánh Văn phòng Sở, Trưởng các phòng, đơn vị trực thuộc Sở, các tổ chức, cá nhân có liên quan và <span id="ten-nhan-su-3">{ten_nhan_su}</span> căn cứ Quyết định thi hành./.
             </div>
         </div>
 
@@ -414,7 +441,6 @@
                 // Tạo object dữ liệu từ URL parameters
                 const data = {
                     soQuyetDinh: decodeParameter(params.so_quyet_dinh || params.SoQuyetDinh),
-                    ngayKy: params.ngay_ky || params.NgayKy,
                     canCuBanHanh: decodeParameter(params.can_cu_ban_hanh || params.CanCuBanHanh),
                     tenNhanSu: decodeParameter(params.ten_nhan_su || params.TenNhanSu || params.ho_ten || params.HoTen),
                     chucVuCu: decodeParameter(params.chuc_vu_cu || params.ChucVuCu),
@@ -446,19 +472,10 @@
 
         // Populate data from URL parameters into HTML elements
         function populateDataFromURL(data) {
-            // Số quyết định
-            if (data.soQuyetDinh) {
-                document.getElementById('so-quyet-dinh').textContent = data.soQuyetDinh;
-            }
-
-            // Ngày ký
-            if (data.ngayKy) {
-                document.getElementById('ngay-ky').textContent = formatDateVietnamese(data.ngayKy);
-            }
 
             // Căn cứ ban hành
             if (data.canCuBanHanh) {
-                document.getElementById('can-cu-ban-hanh').innerHTML = `<em>${data.canCuBanHanh}</em>`;
+                document.getElementById('can-cu-ban-hanh').innerHTML = data.canCuBanHanh;
             }
 
             // Thông tin nhân sự
@@ -518,7 +535,7 @@
 
                 // Lấy template từ server
                 // const response = await fetch('templates_qd/quyet_dinh_bo_nhiem_template.docx');
-                const response = await fetch('https://hoangmv.github.io/templates_qd/quyet_dinh_bo_nhiem_template.docx');
+                const response = await fetch('https://hoangmv.github.io/templates_qd/quyet_dinh_bo_nhiem_template_v2.docx');
 
                 if (!response.ok) {
                     throw new Error('Không thể tải template Word');
@@ -536,7 +553,6 @@
                 const templateData = {
                     can_cu_ban_hanh: globalQuyetDinhData.canCuBanHanh || '',
                     so_quyet_dinh: globalQuyetDinhData.soQuyetDinh || '',
-                    ngay_ky: formatDateVietnamese(globalQuyetDinhData.ngayKy) || '',
                     ten_nhan_su: globalQuyetDinhData.tenNhanSu || '',
                     chuc_vu_cu: globalQuyetDinhData.chucVuCu || '',
                     don_vi_cu: globalQuyetDinhData.donViCu || '',
@@ -558,7 +574,7 @@
                     mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 });
 
-                const fileName = `Quyet_dinh_bo_nhiem_${globalQuyetDinhData.tenNhanSu || 'unknown'}.docx`;
+                const fileName = `Tiếp nhận và bổ nhiệm ${globalQuyetDinhData.tenNhanSu || ''} - ${globalQuyetDinhData.chucVuMoi || ''} ${globalQuyetDinhData.donViMoi || ''}.docx`;
                 saveAs(blob, fileName);
 
                 document.getElementById('loading-message').textContent = 'Đang tải dữ liệu...';
