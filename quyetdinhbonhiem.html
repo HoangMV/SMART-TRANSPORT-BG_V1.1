@@ -558,7 +558,7 @@
                     mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 });
 
-                const fileName = `Quyet_dinh_bo_nhiem_${globalQuyetDinhData.soQuyetDinh || 'unknown'}.docx`;
+                const fileName = `Quyet_dinh_bo_nhiem_${globalQuyetDinhData.tenNhanSu || 'unknown'}.docx`;
                 saveAs(blob, fileName);
 
                 document.getElementById('loading-message').textContent = 'Đang tải dữ liệu...';
