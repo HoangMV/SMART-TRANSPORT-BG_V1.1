@@ -610,7 +610,7 @@
                     <td class="text-left">${hoTen || ''}</td>
                     <td>${item.NgaySinhNhanSu || ''}</td>
                     <td class="text-left">${item.TenChucVuDang || ''}</td>
-                    <td class="text-left">${item.TenChucVuChinhQuyen || ''}</td>
+                    <td class="text-left">${item.TenChucVuChinhQuyen || ''} ${item.TenDonViCongTac || ''}</td>
                     <td>${item.GhiChu || ''}</td>
                 `;
                 tableBody.appendChild(row);
@@ -675,6 +675,7 @@
                         nam: item.NgaySinhNhanSu || '',
                         chuc_vu_dang: item.TenChucVuDang || '',
                         chuc_vu_chinh_quyen: item.TenChucVuChinhQuyen || '',
+                        don_vi_cong_tac: item.TenDonViCongTac || '', // Thêm dòng này
                         gc: item.GhiChu || ''
                     };
                 });
