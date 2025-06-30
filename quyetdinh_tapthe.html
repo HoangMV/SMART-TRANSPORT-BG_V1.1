@@ -480,8 +480,8 @@
                 document.getElementById('can-cu-khac').innerHTML = data.CanCuBanHanhQuyetDinhKhac + ';';
             }
 
-            if (data.NguoiKy && data.NguoiKy.HoTen) {
-                document.getElementById('nguoi-ky').textContent = data.NguoiKy.HoTen;
+            if (data.TenNguoiKy) {
+                document.getElementById('nguoi-ky').textContent = data.TenNguoiKy;
             }
         }
 
@@ -647,6 +647,7 @@
                 const data = {
                     trich_yeu: quyetDinh.TrichYeu || '',
                     can_cu_khac: quyetDinh.CanCuBanHanhQuyetDinhKhac || '',
+                    nguoi_ky: quyetDinh.TenNguoiKy || '',
                     departments: departments
                 };
 
