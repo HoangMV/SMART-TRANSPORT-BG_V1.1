@@ -260,7 +260,7 @@
                         🗑️ Xóa tất cả
                     </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-9 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Tỉnh đi</label>
                         <select id="filterTinhDi"
@@ -317,6 +317,16 @@
                             <option value="Chưa khai thác">Chưa khai thác</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Đơn vị khai thác</label>
+                        <select id="filterLoaiDonVi"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả</option>
+                            <option value="Trong tỉnh">Trong tỉnh</option>
+                            <option value="Ngoài tỉnh">Ngoài tỉnh</option>
+                        </select>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -602,7 +612,6 @@
 
         // Calculate actual trips from schedule data
         function calculateActualTrips(maSoTuyen) {
-            // Lấy danh sách thông báo có hiệu lực cho tuyến
             const activeThongBao = allThongBaoData.filter(tb =>
                 tb.Ref_Tuyen === maSoTuyen &&
                 (!tb.TrangThai || tb.TrangThai !== 'Hết hiệu lực')
@@ -612,36 +621,49 @@
                 return 0;
             }
 
-            // Lấy danh sách ID thông báo
             const thongBaoIds = activeThongBao.map(tb => tb.SoThongBao);
-
-            // Lấy chi tiết xe chạy cho các thông báo này
             const chiTietXeChay = allChiTietData.filter(ct =>
-                ct.SoThongBao && thongBaoIds.includes(ct.SoThongBao)
+                ct.SoThongBao && thongBaoIds.includes(ct.SoThongBao) &&
+                ct.GioXuatBen && ct.GioXuatBen.trim() !== ''
             );
 
             if (chiTietXeChay.length === 0) {
                 return 0;
             }
 
-            // Đếm số giờ đi và về
-            let soGioDi = 0;
-            let soGioVe = 0;
+            // Đếm trực tiếp số record có GioXuatBen
+            let tongSoChuyen = 0;
 
             chiTietXeChay.forEach(ct => {
-                if (ct.Chieu === 'Đi' && ct.GioXuatBen) {
-                    soGioDi++;
-                } else if (ct.Chieu === 'Về' && ct.GioXuatBen) {
-                    soGioVe++;
+                // Parse NgayHoatDong để xem có bao nhiêu ngày
+                const ngayHoatDong = ct.NgayHoatDong ? ct.NgayHoatDong.toString() : '';
+
+                if (ngayHoatDong.includes('-')) {
+                    // Format "1-31"
+                    const parts = ngayHoatDong.split('-');
+                    if (parts.length === 2) {
+                        const start = parseInt(parts[0]);
+                        const end = parseInt(parts[1]);
+                        if (!isNaN(start) && !isNaN(end)) {
+                            tongSoChuyen += (end - start + 1); // Số ngày hoạt động
+                        }
+                    }
+                } else if (ngayHoatDong.includes(',')) {
+                    // Format "1,2,3,4,5..."
+                    const days = ngayHoatDong.split(',').filter(d => d.trim() !== '');
+                    tongSoChuyen += days.length;
+                } else if (ngayHoatDong !== '') {
+                    // Một ngày duy nhất
+                    tongSoChuyen += 1;
                 }
             });
 
-            // Tính tổng số chuyến = (giờ đi + giờ về) / 2
-            const tongSoChuyen = Math.round((soGioDi + soGioVe) / 2);
+            // **CHIA 2 VÌ MỖI CHUYẾN CÓ 2 SLOT (ĐI + VỀ)**
+            const soChuyenThucTe = Math.round(tongSoChuyen / 2);
 
-            console.log(`Tuyến ${maSoTuyen}: Giờ đi=${soGioDi}, Giờ về=${soGioVe}, Tổng chuyến=${tongSoChuyen}`);
+            console.log(`Tuyến ${maSoTuyen}: Chi tiết=${chiTietXeChay.length} records, Tổng slot=${tongSoChuyen}, Số chuyến=${soChuyenThucTe}`);
 
-            return tongSoChuyen;
+            return soChuyenThucTe;
         }
 
         // Calculate remaining capacity with new logic
@@ -655,6 +677,40 @@
         function getRouteStatus(tuyen) {
             const chuyenThucTe = calculateActualTrips(tuyen.MaSoTuyen);
             return chuyenThucTe > 0 ? 'Đang khai thác' : 'Chưa khai thác';
+        }
+
+        // Function to determine if a company is in-province or out-of-province
+        function getCompanyLocation(thongBaoList) {
+            // Tìm thông báo có hiệu lực gần nhất
+            const activeThongBao = thongBaoList.filter(tb =>
+                !tb.TrangThai || tb.TrangThai !== 'Hết hiệu lực'
+            );
+
+            if (activeThongBao.length === 0) {
+                return 'Không xác định';
+            }
+
+            // Lấy địa chỉ từ thông báo đầu tiên (hoặc gần nhất)
+            const diaChi = activeThongBao[0]['Địa chỉ sau xác nhập DVKDVT'] || '';
+
+            // Kiểm tra xem địa chỉ có chứa "Bắc Ninh" không
+            if (diaChi.toLowerCase().includes('bắc ninh')) {
+                return 'Trong tỉnh';
+            } else if (diaChi.trim() !== '') {
+                return 'Ngoài tỉnh';
+            } else {
+                return 'Không xác định';
+            }
+        }
+
+        // Function to get company location for a specific route
+        function getRouteCompanyLocation(maSoTuyen) {
+            const routeThongBao = allThongBaoData.filter(tb =>
+                tb.Ref_Tuyen === maSoTuyen &&
+                (!tb.TrangThai || tb.TrangThai !== 'Hết hiệu lực')
+            );
+
+            return getCompanyLocation(routeThongBao);
         }
 
         // Toggle export menu
@@ -1125,10 +1181,11 @@
             const phanLoai = document.getElementById('filterPhanLoai').value;
             const cuLyFilter = document.getElementById('filterCuLy').value;
             const donViKhaiThac = document.getElementById('filterDonViKhaiThac').value;
+            const loaiDonVi = document.getElementById('filterLoaiDonVi').value;
             const tinhTrangTuyen = document.getElementById('filterTinhTrangTuyen').value;
 
             // Check if any advanced filter is applied
-            const hasAdvancedFilter = tinhDi || tinhDen || benDi || benDen || phanLoai || cuLyFilter || donViKhaiThac || tinhTrangTuyen;
+            const hasAdvancedFilter = tinhDi || tinhDen || benDi || benDen || phanLoai || cuLyFilter || donViKhaiThac || tinhTrangTuyen || loaiDonVi;
 
             const distanceFilter = parseDistanceFilter(cuLyFilter);
 
@@ -1172,9 +1229,29 @@
                     matchesTinhTrang = currentStatus === tinhTrangTuyen;
                 }
 
+                // Loai don vi filter
+                let matchesLoaiDonVi = true;
+                if (loaiDonVi) {
+                    const tuyenThongBao = allThongBaoData.filter(tb => tb.Ref_Tuyen === tuyen.MaSoTuyen);
+                    if (tuyenThongBao.length > 0) {
+                        matchesLoaiDonVi = tuyenThongBao.some(tb => {
+                            const diaChi = tb['Địa chỉ sau xác nhập DVKDVT'] || '';
+                            if (loaiDonVi === 'Trong tỉnh') {
+                                return diaChi.toLowerCase().includes('bắc ninh') ||
+                                    diaChi.toLowerCase().includes('Bắc ninh');
+                            } else if (loaiDonVi === 'Ngoài tỉnh') {
+                                return !diaChi.toLowerCase().includes('bắc ninh') && diaChi.trim() !== '';
+                            }
+                            return false;
+                        });
+                    } else {
+                        matchesLoaiDonVi = false;
+                    }
+                }
+
                 return matchesSearch && matchesTinhDi && matchesTinhDen && matchesBenDi &&
                     matchesBenDen && matchesPhanLoai && matchesDistance &&
-                    matchesDonVi && matchesTinhTrang;
+                    matchesDonVi && matchesTinhTrang && matchesLoaiDonVi;
             });
 
             displayRouteList(filteredTuyenData);
@@ -1196,6 +1273,7 @@
             document.getElementById('filterCuLy').value = '';
             document.getElementById('filterDonViKhaiThac').value = '';
             document.getElementById('filterTinhTrangTuyen').value = '';
+            document.getElementById('filterLoaiDonVi').value = '';
 
             // Reset to all data
             filteredTuyenData = allTuyenData;
@@ -1213,6 +1291,7 @@
             const cuLy = document.getElementById('filterCuLy').value;
             const donViKhaiThac = document.getElementById('filterDonViKhaiThac').value;
             const tinhTrangTuyen = document.getElementById('filterTinhTrangTuyen').value;
+            const loaiDonVi = document.getElementById('filterLoaiDonVi').value;
 
             if (tinhDi) filters.push(`Tỉnh đi: ${tinhDi}`);
             if (tinhDen) filters.push(`Tỉnh đến: ${tinhDen}`);
@@ -1222,6 +1301,7 @@
             if (cuLy) filters.push(`Cự ly: ${cuLy} km`);
             if (donViKhaiThac) filters.push(`Đơn vị: ${donViKhaiThac}`);
             if (tinhTrangTuyen) filters.push(`Tình trạng: ${tinhTrangTuyen}`);
+            if (loaiDonVi) filters.push(`Loại đơn vị: ${loaiDonVi}`);
 
             if (filters.length > 0) {
                 console.log('Đã áp dụng bộ lọc:', filters.join(', '));
@@ -1245,7 +1325,7 @@
             // Auto search when filter values change
             const filterElements = [
                 'filterTinhDi', 'filterTinhDen', 'filterBenDi', 'filterBenDen',
-                'filterPhanLoai', 'filterDonViKhaiThac', 'filterTinhTrangTuyen'
+                'filterPhanLoai', 'filterDonViKhaiThac', 'filterTinhTrangTuyen', 'filterLoaiDonVi'
             ];
 
             filterElements.forEach(id => {
@@ -1864,7 +1944,7 @@
             }
         });
 
-         // Disable context menu and dev tools
+        // Disable context menu and dev tools
         document.addEventListener('contextmenu', function (e) {
             e.preventDefault();
         }, false);
