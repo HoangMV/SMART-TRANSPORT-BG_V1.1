@@ -924,6 +924,9 @@
                 <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="bus-stations">
                     <i class="fas fa-map-marker-alt mr-2"></i>Bến xe
                 </button>
+                <button class="nav-btn py-3 px-4 hover:bg-blue-600 whitespace-nowrap" data-tab="registration-centers">
+                    <i class="fas fa-tools mr-2"></i>Trung tâm ĐK
+                </button>
             </div>
         </div>
     </nav>
@@ -2069,6 +2072,76 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Thêm sau phần bus-stations tab -->
+            <!-- Registration Centers Tab -->
+            <div id="registration-centers" class="tab-content hidden">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-indigo-100">Tổng số TTĐK</p>
+                                <p class="text-3xl font-bold" id="totalRegistrationCenters">0</p>
+                            </div>
+                            <i class="fas fa-tools text-4xl text-indigo-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100">Tổng Loại I</p>
+                                <p class="text-3xl font-bold" id="totalType1">0</p>
+                            </div>
+                            <i class="fas fa-car text-4xl text-green-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100">Tổng Loại II</p>
+                                <p class="text-3xl font-bold" id="totalType2">0</p>
+                            </div>
+                            <i class="fas fa-truck text-4xl text-blue-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100">Tổng cộng</p>
+                                <p class="text-3xl font-bold" id="totalVehicles">0</p>
+                            </div>
+                            <i class="fas fa-chart-bar text-4xl text-purple-200"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Centers Table -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Danh sách Trung tâm Đăng kiểm</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">ID</th>
+                                    <th class="px-4 py-2 text-left">Tên trung tâm</th>
+                                    <th class="px-4 py-2 text-left">Địa chỉ</th>
+                                    <th class="px-4 py-2 text-center">Điện thoại TT</th>
+                                    <th class="px-4 py-2 text-center">Email</th>
+                                    <th class="px-4 py-2 text-center">Phụ trách</th>
+                                    <th class="px-4 py-2 text-center">ĐT Giám đốc</th>
+                                    <th class="px-4 py-2 text-center">Loại I</th>
+                                    <th class="px-4 py-2 text-center">Loại II</th>
+                                    <th class="px-4 py-2 text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registrationCentersTableBody">
+                                <!-- Dữ liệu sẽ được load từ API -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
     </main>
 
     <!-- Footer -->
@@ -2094,6 +2167,7 @@
         let originalBusStationsData = [];
         let originalFixedRoutesData = [];
         let originalBusRoutesData = [];
+        let originalRegistrationCentersData = [];
 
         // Filtered data variables (dữ liệu sau khi lọc)
         let filteredLicensesData = [];
@@ -2104,6 +2178,7 @@
         let filteredBusStationsData = [];
         let filteredFixedRoutesData = [];
         let filteredBusRoutesData = [];
+        let filteredRegistrationCentersData = [];
 
         // CHỨC NĂNG XUẤT EXCEL MỚI - SỬ DỤNG SHEETJS
         function exportCurrentTabData() {
@@ -2119,7 +2194,8 @@
                 'international': 'GP_Lien_van_QT',
                 'international-emblems': 'Phu_hieu_LV',
                 'international-books': 'So_lien_van',
-                'bus-stations': 'Ben_xe',           // THÊM
+                'bus-stations': 'Ben_xe',
+                'registration-centers': 'Trung_tam_DK',           // THÊM
                 'statistics': 'Thong_ke',
                 'reports': 'Bao_cao'
             };
@@ -2856,6 +2932,81 @@
             return workbook;
         }
 
+        // Thêm hàm xuất Excel cho Registration Centers
+        function exportRegistrationCentersData() {
+            const workbook = XLSX.utils.book_new();
+            const sheet = createRegistrationCenterSheet();
+            XLSX.utils.book_append_sheet(workbook, sheet, 'Trung tâm ĐK');
+            return workbook;
+        }
+
+        function createRegistrationCenterSheet() {
+            const headers = [
+                'STT',
+                'ID Trung tâm',
+                'Tên trung tâm',
+                'Địa chỉ',
+                'Điện thoại TT',
+                'Email',
+                'Phụ trách',
+                'ĐT Giám đốc',
+                'Loại I',
+                'Loại II',
+                'Tổng cộng',
+                'Link Map'
+            ];
+
+            const data = [
+                ['DANH SÁCH TRUNG TÂM ĐĂNG KIỂM'],
+                [`Ngày xuất: ${new Date().toLocaleString('vi-VN')}`],
+                [`Tổng số: ${filteredRegistrationCentersData.length} trung tâm`],
+                [],
+                headers
+            ];
+
+            filteredRegistrationCentersData.forEach((center, index) => {
+                const type1 = parseInt(center['Loại I']) || 0;
+                const type2 = parseInt(center['Loại II']) || 0;
+                const total = type1 + type2;
+
+                data.push([
+                    index + 1,
+                    center.IDTrungTam || '',
+                    center.TenTrungTam || '',
+                    center.DiaChi || '',
+                    center.SoDTTT || '',
+                    center.Email || '',
+                    center['Phụ trách'] || '',
+                    center.SoDTGiamDoc || '',
+                    type1,
+                    type2,
+                    total,
+                    center.LinkMap || ''
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+            // Thiết lập độ rộng cột
+            const colWidths = [
+                { wch: 5 },   // STT
+                { wch: 12 },  // ID
+                { wch: 30 },  // Tên trung tâm
+                { wch: 40 },  // Địa chỉ
+                { wch: 15 },  // ĐT TT
+                { wch: 25 },  // Email
+                { wch: 20 },  // Phụ trách
+                { wch: 15 },  // ĐT Giám đốc
+                { wch: 10 },  // Loại I
+                { wch: 10 },  // Loại II
+                { wch: 12 },  // Tổng cộng
+                { wch: 30 }   // Link Map
+            ];
+            worksheet['!cols'] = colWidths;
+
+            return worksheet;
+        }
+
         // Helper function để lấy thông tin công ty theo IDDoanhNghiep
         function getCompanyInfo(referenceValue, tableName) {
             if (!referenceValue || !originalCompanyData.length) {
@@ -3285,6 +3436,26 @@
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu tuyến buýt:', error);
                 showNotification('Không thể tải dữ liệu tuyến buýt', 'error');
+            }
+        }
+
+        // Thêm vào hàm fetchRegistrationCentersData
+        async function fetchRegistrationCentersData() {
+            try {
+                const response = await apiRequest('TRUNGTAMDK', 'Find', {
+                    Selector: "Filter(TRUNGTAMDK, true)"
+                });
+
+                if (Array.isArray(response)) {
+                    originalRegistrationCentersData = response;
+                    filteredRegistrationCentersData = [...originalRegistrationCentersData];
+                    console.log('Dữ liệu trung tâm đăng kiểm:', originalRegistrationCentersData);
+                } else {
+                    throw new Error('Dữ liệu không hợp lệ');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu trung tâm đăng kiểm:', error);
+                showNotification('Không thể tải dữ liệu trung tâm đăng kiểm', 'error');
             }
         }
 
@@ -3824,6 +3995,7 @@
             updateIntEmblemsUI();
             updateIntBooksUI();
             updateBusStationsUI();  // THÊM
+            updateRegistrationCentersUI();
             updateStatisticsData();
         }
 
@@ -4039,6 +4211,27 @@
 
             // Update table
             updateBusStationsTable();
+        }
+
+        // Update Registration Centers UI
+        function updateRegistrationCentersUI() {
+            const totalCenters = filteredRegistrationCentersData.length;
+
+            // Calculate totals
+            const totalType1 = filteredRegistrationCentersData.reduce((sum, center) =>
+                sum + (parseInt(center['Loại I']) || 0), 0);
+            const totalType2 = filteredRegistrationCentersData.reduce((sum, center) =>
+                sum + (parseInt(center['Loại II']) || 0), 0);
+            const totalVehicles = totalType1 + totalType2;
+
+            // Update dashboard stats
+            document.getElementById('totalRegistrationCenters').textContent = totalCenters;
+            document.getElementById('totalType1').textContent = totalType1.toLocaleString();
+            document.getElementById('totalType2').textContent = totalType2.toLocaleString();
+            document.getElementById('totalVehicles').textContent = totalVehicles.toLocaleString();
+
+            // Update table
+            updateRegistrationCentersTable();
         }
 
         // Update Tables với dữ liệu đã lọc
@@ -4275,6 +4468,46 @@
                 <button class="text-blue-600 hover:text-blue-800" onclick="viewBusStationDetail('${station.IDBen}')">
                     Chi tiết
                 </button>
+            </td>
+        `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update Registration Centers Table
+        function updateRegistrationCentersTable() {
+            const tableBody = document.getElementById('registrationCentersTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            filteredRegistrationCentersData.forEach(center => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+
+                row.innerHTML = `
+            <td class="px-4 py-2 font-medium">${center.IDTrungTam || ''}</td>
+            <td class="px-4 py-2">${center.TenTrungTam || ''}</td>
+            <td class="px-4 py-2">${center.DiaChi || ''}</td>
+            <td class="px-4 py-2 text-center">${center.SoDTTT || ''}</td>
+            <td class="px-4 py-2 text-center">
+                ${center.Email ? `<a href="mailto:${center.Email}" class="text-blue-600 hover:underline">${center.Email}</a>` : ''}
+            </td>
+            <td class="px-4 py-2 text-center">${center['Phụ trách'] || ''}</td>
+            <td class="px-4 py-2 text-center">${center.SoDTGiamDoc || ''}</td>
+            <td class="px-4 py-2 text-center font-medium text-green-600">${(center['Loại I'] || 0).toLocaleString()}</td>
+            <td class="px-4 py-2 text-center font-medium text-blue-600">${(center['Loại II'] || 0).toLocaleString()}</td>
+            <td class="px-4 py-2 text-center">
+                <div class="flex justify-center space-x-2">
+                    <button class="text-blue-600 hover:text-blue-800" onclick="viewRegistrationCenterDetail('${center.IDTrungTam}')">
+                        <i class="fas fa-eye"></i> Chi tiết
+                    </button>
+                    ${center.LinkMap ? `
+                        <a href="${center.LinkMap}" target="_blank" class="text-green-600 hover:text-green-800">
+                            <i class="fas fa-map-marker-alt"></i> Bản đồ
+                        </a>
+                    ` : ''}
+                </div>
             </td>
         `;
                 tableBody.appendChild(row);
@@ -4598,6 +4831,8 @@
                     setTimeout(initReportCharts, 100);
                 } else if (tabId === 'bus-stations') {        // THÊM
                     setTimeout(initBusStationCharts, 100);    // THÊM
+                } else if (tabId === 'registration-centers') {  // THÊM DÒNG NÀY
+                    // Không cần charts cho tab này
                 }
             });
         });
@@ -4722,6 +4957,14 @@
             const station = originalBusStationsData.find(item => item.IDBen === stationId);
             if (station) {
                 showBusStationModal(station);
+            }
+        }
+
+        // View Registration Center Detail Modal
+        function viewRegistrationCenterDetail(centerId) {
+            const center = originalRegistrationCentersData.find(item => item.IDTrungTam === centerId);
+            if (center) {
+                showRegistrationCenterModal(center);
             }
         }
 
@@ -5024,6 +5267,62 @@
           </div>
       </div>
   `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        // Show Registration Center Modal
+        function showRegistrationCenterModal(center) {
+            const modalContent = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="registrationCenterModal">
+            <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold">Chi tiết Trung tâm Đăng kiểm</h3>
+                    <button onclick="closeModal('registrationCenterModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><strong>ID Trung tâm:</strong> ${center.IDTrungTam || ''}</div>
+                    <div><strong>Tên trung tâm:</strong> ${center.TenTrungTam || ''}</div>
+                    <div class="md:col-span-2"><strong>Địa chỉ:</strong> ${center.DiaChi || ''}</div>
+                    <div><strong>Điện thoại TT:</strong> ${center.SoDTTT || ''}</div>
+                    <div><strong>Email:</strong> 
+                        ${center.Email ? `<a href="mailto:${center.Email}" class="text-blue-600 hover:underline">${center.Email}</a>` : ''}
+                    </div>
+                    <div><strong>Phụ trách:</strong> ${center['Phụ trách'] || ''}</div>
+                    <div><strong>ĐT Giám đốc:</strong> ${center.SoDTGiamDoc || ''}</div>
+                    <div><strong>Số xe Loại I:</strong> 
+                        <span class="text-lg font-semibold text-green-600">${(center['Loại I'] || 0).toLocaleString()}</span>
+                    </div>
+                    <div><strong>Số xe Loại II:</strong> 
+                        <span class="text-lg font-semibold text-blue-600">${(center['Loại II'] || 0).toLocaleString()}</span>
+                    </div>
+                </div>
+                ${center.LinkMap ? `
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Bản đồ:</h4>
+                        <div class="flex items-center space-x-3">
+                            <a href="${center.LinkMap}" target="_blank" 
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                Xem trên bản đồ
+                            </a>
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-external-link-alt mr-1"></i>
+                                Mở trong tab mới
+                            </span>
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-semibold text-gray-800 mb-2">Tổng cộng:</h4>
+                    <div class="text-2xl font-bold text-purple-600">
+                        ${((center['Loại I'] || 0) + (center['Loại II'] || 0)).toLocaleString()} xe
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
@@ -6172,7 +6471,8 @@
                     fetchIntBooksData(),
                     fetchBusStationsData(),      // THÊM
                     fetchFixedRoutesData(),      // THÊM  
-                    fetchBusRoutesData()
+                    fetchBusRoutesData(),
+                    fetchRegistrationCentersData()
                 ]);
 
                 // Populate filter options
@@ -6444,7 +6744,8 @@
                     fetchIntBooksData(),
                     fetchBusStationsData(),    // THÊM
                     fetchFixedRoutesData(),    // THÊM
-                    fetchBusRoutesData()       // THÊM
+                    fetchBusRoutesData(),
+                    fetchRegistrationCentersData()        // THÊM
                 ]);
                 updateAllUI();
                 showNotification('Dữ liệu đã được làm mới!', 'success');
