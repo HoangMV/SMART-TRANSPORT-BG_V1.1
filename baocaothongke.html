@@ -2077,7 +2077,7 @@
             <!-- Registration Centers Tab -->
             <div id="registration-centers" class="tab-content hidden">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg p-6">
                         <div class="flex items-center justify-between">
                             <div>
@@ -2103,15 +2103,6 @@
                                 <p class="text-3xl font-bold" id="totalType2">0</p>
                             </div>
                             <i class="fas fa-truck text-4xl text-blue-200"></i>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-purple-100">Tổng cộng</p>
-                                <p class="text-3xl font-bold" id="totalVehicles">0</p>
-                            </div>
-                            <i class="fas fa-chart-bar text-4xl text-purple-200"></i>
                         </div>
                     </div>
                 </div>
@@ -4228,7 +4219,6 @@
             document.getElementById('totalRegistrationCenters').textContent = totalCenters;
             document.getElementById('totalType1').textContent = totalType1.toLocaleString();
             document.getElementById('totalType2').textContent = totalType2.toLocaleString();
-            document.getElementById('totalVehicles').textContent = totalVehicles.toLocaleString();
 
             // Update table
             updateRegistrationCentersTable();
@@ -4498,16 +4488,11 @@
             <td class="px-4 py-2 text-center font-medium text-green-600">${(center['Loại I'] || 0).toLocaleString()}</td>
             <td class="px-4 py-2 text-center font-medium text-blue-600">${(center['Loại II'] || 0).toLocaleString()}</td>
             <td class="px-4 py-2 text-center">
-                <div class="flex justify-center space-x-2">
-                    <button class="text-blue-600 hover:text-blue-800" onclick="viewRegistrationCenterDetail('${center.IDTrungTam}')">
-                        <i class="fas fa-eye"></i> Chi tiết
-                    </button>
                     ${center.LinkMap ? `
                         <a href="${center.LinkMap}" target="_blank" class="text-green-600 hover:text-green-800">
                             <i class="fas fa-map-marker-alt"></i> Bản đồ
                         </a>
                     ` : ''}
-                </div>
             </td>
         `;
                 tableBody.appendChild(row);
@@ -4960,14 +4945,6 @@
             }
         }
 
-        // View Registration Center Detail Modal
-        function viewRegistrationCenterDetail(centerId) {
-            const center = originalRegistrationCentersData.find(item => item.IDTrungTam === centerId);
-            if (center) {
-                showRegistrationCenterModal(center);
-            }
-        }
-
         // Show Bus Station Modal
         function showBusStationModal(station) {
             const capacity = parseCapacity(station.CongSuatBen_Ngay);
@@ -5267,62 +5244,6 @@
           </div>
       </div>
   `;
-            document.body.insertAdjacentHTML('beforeend', modalContent);
-        }
-
-        // Show Registration Center Modal
-        function showRegistrationCenterModal(center) {
-            const modalContent = `
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="registrationCenterModal">
-            <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold">Chi tiết Trung tâm Đăng kiểm</h3>
-                    <button onclick="closeModal('registrationCenterModal')" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><strong>ID Trung tâm:</strong> ${center.IDTrungTam || ''}</div>
-                    <div><strong>Tên trung tâm:</strong> ${center.TenTrungTam || ''}</div>
-                    <div class="md:col-span-2"><strong>Địa chỉ:</strong> ${center.DiaChi || ''}</div>
-                    <div><strong>Điện thoại TT:</strong> ${center.SoDTTT || ''}</div>
-                    <div><strong>Email:</strong> 
-                        ${center.Email ? `<a href="mailto:${center.Email}" class="text-blue-600 hover:underline">${center.Email}</a>` : ''}
-                    </div>
-                    <div><strong>Phụ trách:</strong> ${center['Phụ trách'] || ''}</div>
-                    <div><strong>ĐT Giám đốc:</strong> ${center.SoDTGiamDoc || ''}</div>
-                    <div><strong>Số xe Loại I:</strong> 
-                        <span class="text-lg font-semibold text-green-600">${(center['Loại I'] || 0).toLocaleString()}</span>
-                    </div>
-                    <div><strong>Số xe Loại II:</strong> 
-                        <span class="text-lg font-semibold text-blue-600">${(center['Loại II'] || 0).toLocaleString()}</span>
-                    </div>
-                </div>
-                ${center.LinkMap ? `
-                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <h4 class="font-semibold text-blue-800 mb-2">Bản đồ:</h4>
-                        <div class="flex items-center space-x-3">
-                            <a href="${center.LinkMap}" target="_blank" 
-                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-map-marker-alt mr-2"></i>
-                                Xem trên bản đồ
-                            </a>
-                            <span class="text-sm text-gray-600">
-                                <i class="fas fa-external-link-alt mr-1"></i>
-                                Mở trong tab mới
-                            </span>
-                        </div>
-                    </div>
-                ` : ''}
-                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h4 class="font-semibold text-gray-800 mb-2">Tổng cộng:</h4>
-                    <div class="text-2xl font-bold text-purple-600">
-                        ${((center['Loại I'] || 0) + (center['Loại II'] || 0)).toLocaleString()} xe
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
             document.body.insertAdjacentHTML('beforeend', modalContent);
         }
 
