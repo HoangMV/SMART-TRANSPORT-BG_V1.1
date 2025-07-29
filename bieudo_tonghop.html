@@ -1347,6 +1347,7 @@
         }
 
         // Show route detail
+        // Show route detail
         function showRouteDetail(maSoTuyen) {
             const selectedTuyen = allTuyenData.find(t => t.MaSoTuyen === maSoTuyen);
             if (!selectedTuyen) {
@@ -1372,12 +1373,18 @@
             // Switch to detail view
             document.getElementById('routeListContent').style.display = 'none';
             document.getElementById('routeDetailContent').style.display = 'block';
+
+            // THÊM DÒNG NÀY: Cuộn về đầu trang
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Back to list
         function backToList() {
             document.getElementById('routeDetailContent').style.display = 'none';
             document.getElementById('routeListContent').style.display = 'block';
+
+            // THÊM DÒNG NÀY: Cuộn về đầu trang
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Update displayTuyenInfo to show calculated trips
