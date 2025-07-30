@@ -151,6 +151,18 @@
             animation: slideInRight 0.3s ease-out;
         }
 
+        .tab-button {
+            transition: background-color 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background-color: #3b82f6 !important;
+        }
+
+        .tab-button.active {
+            background-color: #1d4ed8 !important;
+        }
+
         @keyframes slideInRight {
             from {
                 transform: translateX(100%);
@@ -199,8 +211,15 @@
         <!-- Navigation header với tabs -->
         <div class="bg-blue-600 text-white">
             <div class="flex">
-                <div class="bg-blue-500 px-6 py-3 font-semibold border-r border-blue-400 flex items-center gap-2">
+                <div id="tabTuyen"
+                    class="tab-button bg-blue-500 px-6 py-3 font-semibold border-r border-blue-400 flex items-center gap-2 cursor-pointer"
+                    onclick="switchTab('tuyen')">
                     📋 TUYẾN CÔNG BỐ
+                </div>
+                <div id="tabXe"
+                    class="tab-button bg-blue-600 px-6 py-3 font-semibold border-r border-blue-400 flex items-center gap-2 cursor-pointer hover:bg-blue-500"
+                    onclick="switchTab('xe')">
+                    🚗 TRA CỨU XE THEO TUYẾN
                 </div>
             </div>
         </div>
@@ -247,6 +266,84 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Vehicle search content -->
+        <div id="vehicleSearchContent" style="display: none;">
+            <!-- Search bar for vehicles -->
+            <div class="bg-gray-100 p-2 border-b px-8">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <div class="flex-1 min-w-[200px]">
+                        <input type="text" id="vehicleSearchInput" placeholder="Tìm kiếm xe theo biển số, tuyến..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button onclick="performVehicleSearch()"
+                        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        🔍 Tìm kiếm xe
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleVehicleExportMenu()"
+                            class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+                            📊 Xuất danh sách xe
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="vehicleExportMenu"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-2">
+                                <button onclick="exportVehiclesToExcel('all')"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                    📋 Tất cả xe đang hoạt động
+                                </button>
+                                <button onclick="exportVehiclesToExcel('by-route')"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                    🚌 Xe theo tuyến cụ thể
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results count for vehicles -->
+            <div class="bg-gray-50 px-6 py-2 border-b px-8">
+                <span class="text-sm text-gray-600">
+                    Hiển thị <span id="vehicleCount" class="font-semibold text-blue-600">0</span> xe
+                </span>
+            </div>
+
+            <!-- Vehicle table -->
+            <div class="overflow-x-auto px-8">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700">
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[50px]">STT
+                            </th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[120px]">Biển
+                                số xe</th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[100px]">Mã
+                                tuyến</th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[200px]">Tên
+                                tuyến</th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[150px]">Đơn
+                                vị khai thác</th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[100px]">Số
+                                thông báo</th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[100px]">Loại
+                                phương tiện</th>
+                            <th class="px-2 py-2 text-center font-semibold border-r border-gray-300 min-w-[80px]">Hiệu
+                                lực
+                            </th>
+                            <th class="px-2 py-2 text-center font-semibold min-w-[80px]">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vehicleTableBody">
+                        <!-- Dữ liệu xe sẽ được điền vào đây -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -382,6 +479,29 @@
                     <!-- Dữ liệu tuyến sẽ được điền vào đây -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- Status legend -->
+        <div class="bg-blue-50 px-8 py-3 border-t">
+            <div class="text-sm font-medium text-gray-700 mb-2">Chú thích trạng thái:</div>
+            <div class="flex flex-wrap gap-4 text-xs">
+                <div class="flex items-center gap-1">
+                    <span>🟢</span>
+                    <span>Đầy đủ (có tuyến và thông báo)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span>🟡</span>
+                    <span>Có thông báo, chưa có tuyến</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span>🔴</span>
+                    <span>Thông báo không hợp lệ</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span>⚪</span>
+                    <span>Chưa có thông báo</span>
+                </div>
+            </div>
         </div>
 
         <!-- Footer thông tin -->
@@ -540,6 +660,8 @@
         let allThongBaoData = [];
         let allChiTietData = [];
         let filteredTuyenData = [];
+        let allVehicleData = [];
+        let filteredVehicleData = [];
 
         // Progress tracking
         function updateProgress(percentage, text) {
@@ -594,6 +716,193 @@
                 thongBaoData,
                 chiTietData
             };
+        }
+
+        // Function to switch between tabs
+        // Function to switch between tabs
+        function switchTab(tabName) {
+            const tabTuyen = document.getElementById('tabTuyen');
+            const tabXe = document.getElementById('tabXe');
+
+            // Find search containers more reliably
+            const routeSearchContent = document.querySelector('.bg-gray-100.p-2.border-b.px-8:not(#vehicleSearchContent *)');
+            const vehicleSearchContent = document.getElementById('vehicleSearchContent');
+
+            // Find table containers
+            const routeTableContainer = document.querySelector('.overflow-x-auto.px-8:has(#routeTableBody)');
+            const routeCountContainer = document.querySelector('.bg-gray-50.px-6.py-2.border-b.px-8:has(#routeCount)');
+
+            if (tabName === 'tuyen') {
+                // Switch to route tab
+                tabTuyen.classList.remove('bg-blue-600');
+                tabTuyen.classList.add('bg-blue-500');
+                tabXe.classList.remove('bg-blue-500');
+                tabXe.classList.add('bg-blue-600');
+
+                // Show route content, hide vehicle content  
+                if (routeSearchContent) routeSearchContent.style.display = 'block';
+                if (vehicleSearchContent) vehicleSearchContent.style.display = 'none';
+                if (routeTableContainer) routeTableContainer.style.display = 'block';
+                if (routeCountContainer) routeCountContainer.style.display = 'block';
+
+            } else if (tabName === 'xe') {
+                // Switch to vehicle tab
+                tabXe.classList.remove('bg-blue-600');
+                tabXe.classList.add('bg-blue-500');
+                tabTuyen.classList.remove('bg-blue-500');
+                tabTuyen.classList.add('bg-blue-600');
+
+                // Hide route content, show vehicle content
+                if (routeSearchContent) routeSearchContent.style.display = 'none';
+                if (vehicleSearchContent) vehicleSearchContent.style.display = 'block';
+                if (routeTableContainer) routeTableContainer.style.display = 'none';
+                if (routeCountContainer) routeCountContainer.style.display = 'none';
+
+                // Load vehicle data if not loaded yet
+                if (allVehicleData.length === 0) {
+                    console.log('Loading vehicle data for first time...');
+                    loadVehicleData();
+                } else {
+                    console.log('Vehicle data already loaded, displaying...');
+                    displayVehicleList(filteredVehicleData);
+                }
+            }
+        }
+
+        // Function to load vehicle data with correct ID_TB -> SoThongBao logic
+        async function loadVehicleData() {
+            try {
+                console.log('Loading vehicle data from PHUHIEUXE table...');
+
+                // Show loading state
+                const vehicleTableBody = document.getElementById('vehicleTableBody');
+                if (vehicleTableBody) {
+                    vehicleTableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-8">
+                        <div class="loading mb-2"></div>
+                        <span class="text-gray-600">Đang tải dữ liệu từ bảng PHUHIEUXE...</span>
+                    </td>
+                </tr>
+            `;
+                }
+
+                // Fetch PHUHIEUXE data
+                const vehicleData = await fetchDataFromAppSheet('PHUHIEUXE');
+                console.log('Raw PHUHIEUXE data:', vehicleData.length, 'records');
+
+                if (vehicleData.length > 0) {
+                    console.log('Sample PHUHIEUXE record:', vehicleData[0]);
+                }
+
+                // Process vehicle data with correct ID_TB -> SoThongBao logic
+                allVehicleData = vehicleData.filter(vehicle => {
+                    const hasBienSo = vehicle.BienSo && vehicle.BienSo.trim() !== '';
+                    return hasBienSo; // Include all vehicles with license plates
+                }).map(vehicle => {
+                    let thongBao = null;
+                    let tuyen = null;
+                    let soThongBaoDisplay = 'Chưa có thông báo';
+                    let maTuyen = 'N/A';
+                    let tenTuyen = 'Không xác định';
+                    let donViKhaiThac = 'Không xác định';
+
+                    // If vehicle has Ref_ThongBao, find the notification by ID_TB
+                    if (vehicle.Ref_ThongBao && vehicle.Ref_ThongBao.trim() !== '') {
+
+                        // LOGIC: Ref_ThongBao trỏ đến ID_TB trong THONGBAO_KHAITHAC
+                        thongBao = allThongBaoData.find(tb =>
+                            tb.ID_TB === vehicle.Ref_ThongBao &&
+                            (!tb.TrangThai || tb.TrangThai !== 'Hết hiệu lực')
+                        );
+
+                        if (thongBao) {
+                            // Hiển thị SoThongBao thay vì ID_TB
+                            soThongBaoDisplay = thongBao.SoThongBao || 'Không có số TB';
+
+                            // Lấy tuyến từ Ref_Tuyen
+                            if (thongBao.Ref_Tuyen) {
+                                tuyen = allTuyenData.find(t => t.MaSoTuyen === thongBao.Ref_Tuyen);
+
+                                if (tuyen) {
+                                    maTuyen = tuyen.MaSoTuyen;
+                                    tenTuyen = tuyen.TenTuyen || tuyen.MaSoTuyen;
+                                } else {
+                                    console.log(`Route not found for Ref_Tuyen: ${thongBao.Ref_Tuyen}`);
+                                    maTuyen = thongBao.Ref_Tuyen;
+                                    tenTuyen = `Tuyến ${thongBao.Ref_Tuyen} (chưa có thông tin)`;
+                                }
+                            }
+
+                            // Lấy thông tin đơn vị
+                            donViKhaiThac = thongBao['Đơn vị kinh doanh vận tải'] || 'Không xác định';
+
+                            console.log(`✓ Vehicle ${vehicle.BienSo}: ID_TB=${vehicle.Ref_ThongBao} -> SoTB=${soThongBaoDisplay}, Route=${maTuyen}`);
+                        } else {
+                            console.log(`✗ No notification found for vehicle ${vehicle.BienSo} with ID_TB=${vehicle.Ref_ThongBao}`);
+                            soThongBaoDisplay = `ID_TB: ${vehicle.Ref_ThongBao} (không tìm thấy)`;
+                        }
+                    }
+
+                    return {
+                        // Original PHUHIEUXE data
+                        ...vehicle,
+
+                        // Related data objects
+                        ThongBao: thongBao,
+                        Tuyen: tuyen,
+
+                        // Display fields
+                        BienSo: vehicle.BienSo || '',
+                        MaSoTuyen: maTuyen,
+                        TenTuyen: tenTuyen,
+                        DonViKhaiThac: donViKhaiThac,
+                        SoThongBaoDisplay: soThongBaoDisplay, // Hiển thị SoThongBao
+                        LoaiPH: vehicle.LoaiPH || '',
+                        TrangThai: vehicle.TrangThai || '',
+
+                        // Debug info
+                        RefThongBaoOriginal: vehicle.Ref_ThongBao || '', // ID_TB gốc
+                        HasValidThongBao: thongBao !== null,
+                        HasValidRoute: tuyen !== null
+                    };
+                });
+
+                console.log(`✓ Processed ${allVehicleData.length} vehicles from PHUHIEUXE`);
+
+                // Show detailed breakdown
+                const withValidNotification = allVehicleData.filter(v => v.HasValidThongBao).length;
+                const withValidRoute = allVehicleData.filter(v => v.HasValidRoute).length;
+                const withoutRef = allVehicleData.filter(v => !v.RefThongBaoOriginal).length;
+
+                console.log(`📊 Vehicle Data Breakdown:`);
+                console.log(`  - Total vehicles: ${allVehicleData.length}`);
+                console.log(`  - Without Ref_ThongBao: ${withoutRef}`);
+                console.log(`  - With valid notifications (ID_TB found): ${withValidNotification}`);
+                console.log(`  - With valid routes: ${withValidRoute}`);
+                console.log(`  - Invalid notifications: ${allVehicleData.length - withoutRef - withValidNotification}`);
+
+                filteredVehicleData = allVehicleData;
+                displayVehicleList(filteredVehicleData);
+
+            } catch (error) {
+                console.error('Error loading PHUHIEUXE data:', error);
+
+                const vehicleTableBody = document.getElementById('vehicleTableBody');
+                if (vehicleTableBody) {
+                    vehicleTableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-8 text-red-600">
+                        <div class="mb-2">❌ Lỗi tải dữ liệu từ bảng PHUHIEUXE</div>
+                        <div class="text-sm">${error.message}</div>
+                        <button onclick="loadVehicleData()" class="mt-2 px-4 py-1 bg-blue-500 text-white rounded text-xs">
+                            Thử lại
+                        </button>
+                    </td>
+                </tr>
+            `;
+                }
+            }
         }
 
         // Format date function
@@ -1262,6 +1571,23 @@
             }
         }
 
+        // Function to perform vehicle search
+        function performVehicleSearch() {
+            const searchTerm = document.getElementById('vehicleSearchInput').value.toLowerCase().trim();
+
+            filteredVehicleData = allVehicleData.filter(vehicle => {
+                const matchesSearch = !searchTerm ||
+                    (vehicle.BienSo && vehicle.BienSo.toLowerCase().includes(searchTerm)) ||
+                    (vehicle.MaSoTuyen && vehicle.MaSoTuyen.toLowerCase().includes(searchTerm)) ||
+                    (vehicle.TenTuyen && vehicle.TenTuyen.toLowerCase().includes(searchTerm)) ||
+                    (vehicle.DonViKhaiThac && vehicle.DonViKhaiThac.toLowerCase().includes(searchTerm));
+
+                return matchesSearch;
+            });
+
+            displayVehicleList(filteredVehicleData);
+        }
+
         // Clear advanced filter
         function clearAdvancedFilter() {
             document.getElementById('searchInput').value = '';
@@ -1347,7 +1673,6 @@
         }
 
         // Show route detail
-        // Show route detail
         function showRouteDetail(maSoTuyen) {
             const selectedTuyen = allTuyenData.find(t => t.MaSoTuyen === maSoTuyen);
             if (!selectedTuyen) {
@@ -1376,6 +1701,208 @@
 
             // THÊM DÒNG NÀY: Cuộn về đầu trang
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Function to show vehicle detail
+        function showVehicleDetail(BienSo, maSoTuyen) {
+            // Switch to route detail for the specific route
+            showRouteDetail(maSoTuyen);
+
+            // You can add specific vehicle highlighting logic here
+            setTimeout(() => {
+                // Scroll to and highlight the specific vehicle in the schedule
+                const scheduleTable = document.getElementById('bieuDoXeChay');
+                if (scheduleTable) {
+                    // Add visual indication for the specific vehicle
+                    console.log(`Highlighting vehicle ${BienSo} in route ${maSoTuyen}`);
+                }
+            }, 1000);
+        }
+
+        // Function to toggle vehicle export menu
+        function toggleVehicleExportMenu() {
+            const menu = document.getElementById('vehicleExportMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Function to export vehicles to Excel
+        async function exportVehiclesToExcel(type) {
+            try {
+                document.getElementById('vehicleExportMenu').classList.add('hidden');
+
+                // Show loading
+                const loadingDiv = document.createElement('div');
+                loadingDiv.innerHTML = `
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 flex items-center gap-4">
+                    <div class="loading"></div>
+                    <span>Đang xuất danh sách xe...</span>
+                </div>
+            </div>
+        `;
+                document.body.appendChild(loadingDiv);
+
+                let dataToExport = [];
+                let fileName = '';
+                let sheetName = '';
+
+                if (type === 'all') {
+                    dataToExport = allVehicleData;
+                    fileName = 'Danh_sach_xe_hoat_dong';
+                    sheetName = 'Xe đang hoạt động';
+                } else if (type === 'by-route') {
+                    dataToExport = filteredVehicleData;
+                    fileName = 'Danh_sach_xe_theo_tuyen';
+                    sheetName = 'Xe theo tuyến';
+                }
+
+                // Create workbook
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet(sheetName);
+
+                // Add title
+                worksheet.mergeCells('A1:I1');
+                const titleCell = worksheet.getCell('A1');
+                titleCell.value = 'DANH SÁCH XE HOẠT ĐỘNG - ' + sheetName.toUpperCase();
+                titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFF' } };
+                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1e3c72' } };
+                titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                worksheet.getRow(1).height = 30;
+
+                // Add export info
+                worksheet.mergeCells('A2:I2');
+                const infoCell = worksheet.getCell('A2');
+                infoCell.value = `Xuất ngày: ${new Date().toLocaleString('vi-VN')} | Tổng số xe: ${dataToExport.length}`;
+                infoCell.font = { italic: true, size: 10 };
+                infoCell.alignment = { horizontal: 'center' };
+
+                // Add headers
+                const headers = [
+                    'STT',
+                    'Biển số xe',
+                    'Mã tuyến',
+                    'Tên tuyến',
+                    'Đơn vị khai thác',
+                    'Số thông báo',
+                    'Loại phương tiện',
+                    'Hiệu lực',
+                    'Ghi chú'
+                ];
+
+                const headerRow = worksheet.addRow(headers);
+                headerRow.eachCell((cell) => {
+                    cell.font = { bold: true, color: { argb: 'FFFFFF' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4a90e2' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                });
+                worksheet.getRow(3).height = 40;
+
+                // Add data
+                dataToExport.forEach((vehicle, index) => {
+                    const row = worksheet.addRow([
+                        index + 1,
+                        vehicle.BienSo || '',
+                        vehicle.MaSoTuyen || '',
+                        vehicle.TenTuyen || '',
+                        vehicle.DonViKhaiThac || '',
+                        vehicle.Ref_ThongBao || '',
+                        vehicle.LoaiPH || '',
+                        vehicle.TrangThai || '',
+                        ''
+                    ]);
+
+                    // Style data rows
+                    row.eachCell((cell, colNumber) => {
+                        cell.border = {
+                            top: { style: 'thin' },
+                            left: { style: 'thin' },
+                            bottom: { style: 'thin' },
+                            right: { style: 'thin' }
+                        };
+
+                        if ([1, 3, 6, 7, 8].includes(colNumber)) {
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        } else {
+                            cell.alignment = { vertical: 'middle', wrapText: true };
+                        }
+                    });
+
+                    // Alternate row colors
+                    if (index % 2 === 0) {
+                        row.eachCell(cell => {
+                            if (!cell.fill || !cell.fill.fgColor) {
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'f9fafb' } };
+                            }
+                        });
+                    }
+                });
+
+                // Auto-fit columns
+                worksheet.columns = [
+                    { width: 6 },   // STT
+                    { width: 15 },  // Biển số xe
+                    { width: 12 },  // Mã tuyến
+                    { width: 30 },  // Tên tuyến
+                    { width: 25 },  // Đơn vị khai thác
+                    { width: 15 },  // Số thông báo
+                    { width: 15 },  // Loại phương tiện
+                    { width: 12 },  // Hiệu lực
+                    { width: 20 }   // Ghi chú
+                ];
+
+                // Generate Excel file
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                link.click();
+
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(loadingDiv);
+
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.innerHTML = `
+            <div class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Xuất Excel thành công! (${dataToExport.length} xe)
+            </div>
+        `;
+                document.body.appendChild(successDiv);
+
+                setTimeout(() => {
+                    document.body.removeChild(successDiv);
+                }, 3000);
+
+            } catch (error) {
+                console.error('Export error:', error);
+                // Handle error similar to route export
+            }
+        }
+
+        // Setup vehicle search functionality
+        function setupVehicleSearch() {
+            const vehicleSearchInput = document.getElementById('vehicleSearchInput');
+            if (vehicleSearchInput) {
+                vehicleSearchInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        performVehicleSearch();
+                    }
+                });
+            }
         }
 
         // Back to list
@@ -1595,6 +2122,113 @@
             });
 
             tableBody.innerHTML = html;
+        }
+
+        // Function to display vehicle list with clear status indicators
+        function displayVehicleList(vehicleList) {
+            console.log('🚗 Displaying vehicle list:', vehicleList.length, 'vehicles');
+
+            const tableBody = document.getElementById('vehicleTableBody');
+            const vehicleCount = document.getElementById('vehicleCount');
+
+            if (!vehicleCount || !tableBody) {
+                console.error('❌ Missing DOM elements for vehicle display');
+                return;
+            }
+
+            vehicleCount.textContent = vehicleList.length;
+
+            if (!vehicleList || vehicleList.length === 0) {
+                tableBody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-8 text-gray-500 italic">
+                    <div class="mb-2">🔍 Không tìm thấy xe nào</div>
+                    <div class="text-xs">Kiểm tra lại tiêu chí tìm kiếm hoặc dữ liệu trong bảng PHUHIEUXE</div>
+                </td>
+            </tr>
+        `;
+                return;
+            }
+
+            let html = '';
+            vehicleList.forEach((vehicle, index) => {
+                // Determine styling based on data status
+                let rowClass = 'route-row border-b border-gray-200';
+                let statusIcon = '';
+                let routeColor = '';
+                let notificationColor = '';
+
+                if (!vehicle.RefThongBaoOriginal) {
+                    // No reference to notification
+                    rowClass += ' bg-gray-50 hover:bg-gray-100';
+                    statusIcon = '⚪';
+                    routeColor = 'text-gray-500';
+                    notificationColor = 'text-gray-500';
+                } else if (!vehicle.HasValidThongBao) {
+                    // Has reference but notification not found
+                    rowClass += ' bg-red-50 hover:bg-red-100';
+                    statusIcon = '🔴';
+                    routeColor = 'text-red-500';
+                    notificationColor = 'text-red-600 font-medium';
+                } else if (!vehicle.HasValidRoute) {
+                    // Has notification but route not found
+                    rowClass += ' bg-yellow-50 hover:bg-yellow-100';
+                    statusIcon = '🟡';
+                    routeColor = 'text-yellow-600';
+                    notificationColor = 'text-blue-600 font-medium';
+                } else {
+                    // Complete data chain
+                    rowClass += ' bg-green-50 hover:bg-green-100';
+                    statusIcon = '🟢';
+                    routeColor = 'text-green-700 font-medium';
+                    notificationColor = 'text-blue-600 font-medium';
+                }
+
+                html += `
+            <tr class="${rowClass}">
+                <td class="px-2 py-2 text-center border-r border-gray-200">
+                    <div class="flex items-center justify-center gap-1">
+                        <span class="text-xs">${statusIcon}</span>
+                        <span>${index + 1}</span>
+                    </div>
+                </td>
+                <td class="px-2 py-2 text-center border-r border-gray-200 font-medium text-blue-600">${vehicle.BienSo || ''}</td>
+                <td class="px-2 py-2 text-center border-r border-gray-200 ${routeColor}">${vehicle.MaSoTuyen || ''}</td>
+                <td class="px-2 py-2 border-r border-gray-200 ${routeColor} text-sm">${vehicle.TenTuyen || ''}</td>
+                <td class="px-2 py-2 border-r border-gray-200 text-xs">${vehicle.DonViKhaiThac || ''}</td>
+                <td class="px-2 py-2 text-center border-r border-gray-200 text-xs ${notificationColor}" 
+                    title="ID_TB gốc: ${vehicle.RefThongBaoOriginal || 'Không có'}">${vehicle.SoThongBaoDisplay || ''}</td>
+                <td class="px-2 py-2 text-center border-r border-gray-200 text-xs">${vehicle.LoaiPH || ''}</td>
+                <td class="px-2 py-2 text-center border-r border-gray-200 text-xs">${vehicle.TrangThai || ''}</td>
+                <td class="px-2 py-2 text-center">
+                    ${vehicle.HasValidRoute ?
+                        `<button onclick="showVehicleDetail('${vehicle.BienSo}', '${vehicle.MaSoTuyen}')" 
+                                class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
+                            🔍 Chi tiết
+                        </button>` :
+                        `<span class="text-gray-400 text-xs">
+                            ${!vehicle.RefThongBaoOriginal ? 'Chưa có TB' :
+                            !vehicle.HasValidThongBao ? 'TB không hợp lệ' : 'Không có tuyến'}
+                        </span>`
+                    }
+                </td>
+            </tr>
+        `;
+            });
+
+            tableBody.innerHTML = html;
+            console.log('✅ Vehicle table updated with SoThongBao display');
+
+            // Show summary in console
+            const summary = {
+                total: vehicleList.length,
+                noRef: vehicleList.filter(v => !v.RefThongBaoOriginal).length,
+                invalidNotification: vehicleList.filter(v => v.RefThongBaoOriginal && !v.HasValidThongBao).length,
+                validNotification: vehicleList.filter(v => v.HasValidThongBao).length,
+                completeChain: vehicleList.filter(v => v.HasValidRoute).length
+            };
+
+            console.log('📊 Display Summary:', summary);
         }
 
         // Open AppSheet file
@@ -1866,6 +2500,7 @@
                 // Setup search functionality
                 setupSearch();
                 setupAutoSearch();
+                setupVehicleSearch();
 
                 // Update current time
                 document.getElementById('current-time-list').textContent = new Date().toLocaleString('vi-VN');
@@ -1948,6 +2583,16 @@
                         this.placeholder = '10-50, >10, <50';
                     }
                 });
+            }
+        });
+
+        // Close vehicle export menu when clicking outside
+        document.addEventListener('click', function (event) {
+            const menu = document.getElementById('vehicleExportMenu');
+            const button = event.target.closest('button[onclick="toggleVehicleExportMenu()"]');
+
+            if (menu && !button && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
             }
         });
 
